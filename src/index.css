@@ -8,49 +8,58 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Survey App Design System */
+    /* MS Survey App Design System - Shopify Style */
     --background: 0 0% 100%;
-    --foreground: 215 28% 17%;
+    --foreground: 212 12% 14%;
 
     --card: 0 0% 100%;
-    --card-foreground: 215 28% 17%;
+    --card-foreground: 212 12% 14%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 215 28% 17%;
+    --popover-foreground: 212 12% 14%;
 
-    /* Primary Blue - Shopify Style */
-    --primary: 215 84% 58%;
+    /* Primary Brand Colors - Shopify Green & Blue */
+    --primary: 158 64% 52%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 215 84% 52%;
+    --primary-hover: 158 64% 45%;
+    
+    --secondary-brand: 210 100% 50%;
+    --secondary-brand-light: 210 100% 96%;
 
-    /* Secondary Gray */
+    /* UI System Colors */
     --secondary: 210 40% 96.1%;
-    --secondary-foreground: 215 28% 17%;
+    --secondary-foreground: 212 12% 14%;
 
-    --muted: 220 14.3% 95.9%;
-    --muted-foreground: 220 8.9% 46.1%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 220 14.3% 95.9%;
-    --accent-foreground: 215 28% 17%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 212 12% 14%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 215 84% 58%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 158 64% 52%;
 
-    /* Survey Builder Colors */
-    --survey-blue: 215 84% 58%;
-    --survey-blue-light: 215 84% 96%;
-    --survey-success: 142 76% 36%;
+    /* Survey Specific Colors */
+    --survey-success: 158 64% 52%;
+    --survey-success-light: 158 64% 96%;
+    --survey-info: 210 100% 50%;
+    --survey-info-light: 210 100% 96%;
     --survey-warning: 38 92% 50%;
-    --survey-gray: 220 8.9% 46.1%;
-    --survey-gray-light: 220 14.3% 95.9%;
+    --survey-warning-light: 38 92% 95%;
+    --survey-purple: 262 83% 58%;
+    --survey-purple-light: 262 83% 96%;
     
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(215 84% 58%), hsl(215 84% 52%));
-    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%), hsl(220 14.3% 95.9%));
+    --gradient-primary: linear-gradient(135deg, hsl(158 64% 52%), hsl(158 64% 45%));
+    --gradient-secondary: linear-gradient(135deg, hsl(210 100% 50%), hsl(210 100% 45%));
+    --gradient-purple: linear-gradient(135deg, hsl(262 83% 58%), hsl(262 83% 50%));
+    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%), hsl(210 40% 98%));
+
+    --radius: 0.75rem;
 
     --radius: 0.5rem;
 
