@@ -191,11 +191,9 @@ const SurveyBuilder = () => {
                         </div>
                         <div className="flex items-center space-x-2">
                           <Select onValueChange={(value) => addQuestion(value as SurveyQuestion['type'])}>
-                            <SelectTrigger asChild>
-                              <Button className="bg-survey-blue hover:bg-primary-hover">
-                                <Plus className="w-4 h-4 mr-2" />
-                                Add Question
-                              </Button>
+                            <SelectTrigger className="w-auto bg-survey-blue hover:bg-primary-hover text-white border-survey-blue">
+                              <Plus className="w-4 h-4 mr-2" />
+                              Add Question
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="multiple-choice">Multiple Choice</SelectItem>
