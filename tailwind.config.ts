@@ -22,7 +22,14 @@ export default {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          hover: "hsl(var(--primary-hover))",
         },
+        'survey-blue': "hsl(var(--survey-blue))",
+        'survey-blue-light': "hsl(var(--survey-blue-light))",
+        'survey-success': "hsl(var(--survey-success))",
+        'survey-warning': "hsl(var(--survey-warning))",
+        'survey-gray': "hsl(var(--survey-gray))",
+        'survey-gray-light': "hsl(var(--survey-gray-light))",
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
