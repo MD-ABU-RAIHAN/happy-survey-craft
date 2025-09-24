@@ -8,7 +8,8 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { 
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import {
   Settings,
   Edit3,
   Eye,
@@ -24,7 +25,14 @@ import {
   DollarSign,
   Gift,
   Zap,
-  TrendingUp
+  TrendingUp,
+  ChevronDown,
+  ChevronUp,
+  ChevronRight,
+  Mail,
+  MousePointer,
+  ShoppingCart,
+  Monitor
 } from 'lucide-react';
 import QuestionBuilder from '@/components/QuestionBuilder';
 import SurveyPreview from '@/components/SurveyPreview';
@@ -46,10 +54,15 @@ const SurveyBuilder = () => {
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'mobile' | 'full'>('desktop');
   
   // Distribution Settings
-  const [distributionType, setDistributionType] = useState<'post-purchase' | 'onsite' | 'exit-intent' | 'email'>('post-purchase');
-  const [triggerDelay, setTriggerDelay] = useState('3');
-  const [displayDuration, setDisplayDuration] = useState('30');
-  const [targetAudience, setTargetAudience] = useState('all-customers');
+  const [enabledDistributions, setEnabledDistributions] = useState<string[]>(['post-purchase']);
+  const [collapsedDistributions, setCollapsedDistributions] = useState<string[]>([]);
+  const [distributionSettings, setDistributionSettings] = useState({
+    'branded-survey': { triggerDelay: '3', displayDuration: '30', targetAudience: 'all-customers' },
+    'post-purchase': { triggerDelay: '3', displayDuration: '30', targetAudience: 'all-customers' },
+    'exit-intent': { triggerDelay: '5', displayDuration: '15', targetAudience: 'all-customers' },
+    'email-campaign': { triggerDelay: '0', displayDuration: '0', targetAudience: 'all-customers' },
+    'onsite-popup': { triggerDelay: '10', displayDuration: '20', targetAudience: 'all-customers' }
+  });
   
   // Discount Settings
   const [isDiscountEnabled, setIsDiscountEnabled] = useState(false);
@@ -57,6 +70,82 @@ const SurveyBuilder = () => {
   const [discountValue, setDiscountValue] = useState('10');
   const [discountPrefix, setDiscountPrefix] = useState('SURVEY');
   const [discountExpiry, setDiscountExpiry] = useState('30');
+
+  // Distribution types configuration
+  const distributionTypes = [
+    {
+      id: 'branded-survey',
+      name: 'Branded Survey',
+      description: 'Customized survey with your brand colors and logo',
+      icon: Monitor,
+      color: 'text-primary',
+      bgColor: 'bg-primary/10',
+      borderColor: 'border-primary/20'
+    },
+    {
+      id: 'post-purchase',
+      name: 'Post-Purchase Survey',
+      description: 'Collect feedback immediately after purchase completion',
+      icon: ShoppingCart,
+      color: 'text-secondary-brand',
+      bgColor: 'bg-secondary-brand/10',
+      borderColor: 'border-secondary-brand/20'
+    },
+    {
+      id: 'exit-intent',
+      name: 'Exit-Intent Survey',
+      description: 'Capture feedback when visitors are about to leave',
+      icon: MousePointer,
+      color: 'text-survey-purple',
+      bgColor: 'bg-survey-purple/10',
+      borderColor: 'border-survey-purple/20'
+    },
+    {
+      id: 'email-campaign',
+      name: 'Email Campaign',
+      description: 'Send survey links via email to your customer base',
+      icon: Mail,
+      color: 'text-survey-success',
+      bgColor: 'bg-survey-success/10',
+      borderColor: 'border-survey-success/20'
+    },
+    {
+      id: 'onsite-popup',
+      name: 'On-Site Popup',
+      description: 'Display survey as popup on your website',
+      icon: Globe,
+      color: 'text-survey-warning',
+      bgColor: 'bg-survey-warning/10',
+      borderColor: 'border-survey-warning/20'
+    }
+  ];
+
+  // Distribution helper functions
+  const toggleDistribution = (distributionId: string) => {
+    setEnabledDistributions(prev =>
+      prev.includes(distributionId)
+        ? prev.filter(id => id !== distributionId)
+        : [...prev, distributionId]
+    );
+  };
+
+  const toggleCollapsed = (distributionId: string) => {
+    setCollapsedDistributions(prev =>
+      prev.includes(distributionId)
+        ? prev.filter(id => id !== distributionId)
+        : [...prev, distributionId]
+    );
+  };
+
+  const updateDistributionSetting = (distributionId: string, key: string, value: string) => {
+    setDistributionSettings(prev => ({
+      ...prev,
+      [distributionId]: {
+        ...prev[distributionId as keyof typeof prev],
+        [key]: value
+      }
+    }));
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-survey-success-light to-survey-info-light">
@@ -146,124 +235,179 @@ const SurveyBuilder = () => {
                     <div>
                       <h3 className="text-lg font-semibold mb-4">Distribution Settings</h3>
                       <p className="text-sm text-muted-foreground mb-6">
-                        Configure when and where your survey appears to maximize response rates
+                        Select and configure multiple distribution channels for your survey
                       </p>
                     </div>
 
-                    <div className="grid gap-6">
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-base flex items-center gap-2">
-                            <Zap className="w-4 h-4 text-survey-warning" />
-                            Survey Type & Placement
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div className="space-y-2">
-                            <Label>Distribution Type</Label>
-                            <Select value={distributionType} onValueChange={(value) => setDistributionType(value as any)}>
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="post-purchase">
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 bg-primary rounded-full"></div>
-                                    Post-Purchase Survey
-                                  </div>
-                                </SelectItem>
-                                <SelectItem value="onsite">
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 bg-secondary-brand rounded-full"></div>
-                                    On-Site Popup
-                                  </div>
-                                </SelectItem>
-                                <SelectItem value="exit-intent">
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 bg-survey-purple rounded-full"></div>
-                                    Exit-Intent Survey
-                                  </div>
-                                </SelectItem>
-                                <SelectItem value="email">
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 bg-survey-success rounded-full"></div>
-                                    Email Campaign
-                                  </div>
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <Label>Trigger Delay (seconds)</Label>
-                              <Input 
-                                type="number" 
-                                value={triggerDelay}
-                                onChange={(e) => setTriggerDelay(e.target.value)}
-                                min="0"
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label>Display Duration (seconds)</Label>
-                              <Input 
-                                type="number" 
-                                value={displayDuration}
-                                onChange={(e) => setDisplayDuration(e.target.value)}
-                                min="5"
-                              />
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
+                    <div className="space-y-4">
+                      {distributionTypes.map((distribution) => {
+                        const IconComponent = distribution.icon;
+                        const isEnabled = enabledDistributions.includes(distribution.id);
+                        const isCollapsed = collapsedDistributions.includes(distribution.id);
+                        const settings = distributionSettings[distribution.id as keyof typeof distributionSettings];
 
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-base flex items-center gap-2">
-                            <Users className="w-4 h-4 text-secondary-brand" />
-                            Target Audience
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div className="space-y-2">
-                            <Label>Customer Segment</Label>
-                            <Select value={targetAudience} onValueChange={setTargetAudience}>
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="all-customers">All Customers</SelectItem>
-                                <SelectItem value="new-customers">New Customers</SelectItem>
-                                <SelectItem value="returning-customers">Returning Customers</SelectItem>
-                                <SelectItem value="vip-customers">VIP Customers</SelectItem>
-                                <SelectItem value="specific-products">Specific Product Buyers</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <Label>Min. Order Value</Label>
-                              <Input type="number" placeholder="0.00" />
-                            </div>
-                            <div className="space-y-2">
-                              <Label>Geographic Location</Label>
-                              <Select defaultValue="all">
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="all">All Locations</SelectItem>
-                                  <SelectItem value="us">United States</SelectItem>
-                                  <SelectItem value="ca">Canada</SelectItem>
-                                  <SelectItem value="uk">United Kingdom</SelectItem>
-                                  <SelectItem value="eu">European Union</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
+                        return (
+                          <Collapsible
+                            key={distribution.id}
+                            open={!isCollapsed}
+                            onOpenChange={() => toggleCollapsed(distribution.id)}
+                          >
+                            <Card
+                              className={`transition-all duration-300 border-2 ${
+                                isEnabled
+                                  ? `${distribution.borderColor} ${distribution.bgColor} shadow-lg`
+                                  : 'border-muted hover:border-muted-foreground/20'
+                              }`}
+                            >
+                              <CardHeader className="pb-3">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center space-x-3">
+                                    <CollapsibleTrigger className="p-2 hover:bg-muted/50 rounded-lg transition-colors">
+                                      {isCollapsed ? (
+                                        <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                                      ) : (
+                                        <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                                      )}
+                                    </CollapsibleTrigger>
+                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                                      isEnabled ? distribution.bgColor : 'bg-muted'
+                                    }`}>
+                                      <IconComponent className={`w-5 h-5 ${
+                                        isEnabled ? distribution.color : 'text-muted-foreground'
+                                      }`} />
+                                    </div>
+                                    <div className="flex-1">
+                                      <h4 className="font-semibold flex items-center gap-2">
+                                        {distribution.name}
+                                        {isEnabled && (
+                                          <Badge variant="secondary" className="text-xs bg-primary/10 text-primary">
+                                            Active
+                                          </Badge>
+                                        )}
+                                      </h4>
+                                      <p className="text-sm text-muted-foreground">
+                                        {distribution.description}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center">
+                                    <Switch
+                                      checked={isEnabled}
+                                      onCheckedChange={() => toggleDistribution(distribution.id)}
+                                    />
+                                  </div>
+                                </div>
+                              </CardHeader>
+
+                              <CollapsibleContent className="data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
+                                <CardContent className="pt-0 space-y-6">
+                                  {isEnabled ? (
+                                    <>
+                                      <div className="bg-white/50 rounded-lg p-4 space-y-4">
+                                        <h5 className="font-medium text-sm flex items-center gap-2">
+                                          <Zap className="w-4 h-4 text-survey-warning" />
+                                          Timing & Display Settings
+                                        </h5>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                          {distribution.id !== 'email-campaign' && (
+                                            <>
+                                              <div className="space-y-2">
+                                                <Label className="text-xs">Trigger Delay (seconds)</Label>
+                                                <Input
+                                                  type="number"
+                                                  size="sm"
+                                                  value={settings.triggerDelay}
+                                                  onChange={(e) => updateDistributionSetting(distribution.id, 'triggerDelay', e.target.value)}
+                                                  min="0"
+                                                />
+                                              </div>
+                                              <div className="space-y-2">
+                                                <Label className="text-xs">Display Duration (seconds)</Label>
+                                                <Input
+                                                  type="number"
+                                                  size="sm"
+                                                  value={settings.displayDuration}
+                                                  onChange={(e) => updateDistributionSetting(distribution.id, 'displayDuration', e.target.value)}
+                                                  min="5"
+                                                />
+                                              </div>
+                                            </>
+                                          )}
+                                        </div>
+                                      </div>
+
+                                      <div className="bg-white/50 rounded-lg p-4 space-y-4">
+                                        <h5 className="font-medium text-sm flex items-center gap-2">
+                                          <Users className="w-4 h-4 text-secondary-brand" />
+                                          Target Audience
+                                        </h5>
+
+                                        <div className="space-y-4">
+                                          <div className="space-y-2">
+                                            <Label className="text-xs">Customer Segment</Label>
+                                            <Select
+                                              value={settings.targetAudience}
+                                              onValueChange={(value) => updateDistributionSetting(distribution.id, 'targetAudience', value)}
+                                            >
+                                              <SelectTrigger size="sm">
+                                                <SelectValue />
+                                              </SelectTrigger>
+                                              <SelectContent>
+                                                <SelectItem value="all-customers">All Customers</SelectItem>
+                                                <SelectItem value="new-customers">New Customers</SelectItem>
+                                                <SelectItem value="returning-customers">Returning Customers</SelectItem>
+                                                <SelectItem value="vip-customers">VIP Customers</SelectItem>
+                                                <SelectItem value="specific-products">Specific Product Buyers</SelectItem>
+                                              </SelectContent>
+                                            </Select>
+                                          </div>
+
+                                          <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                              <Label className="text-xs">Min. Order Value</Label>
+                                              <Input type="number" placeholder="0.00" size="sm" />
+                                            </div>
+                                            <div className="space-y-2">
+                                              <Label className="text-xs">Geographic Location</Label>
+                                              <Select defaultValue="all">
+                                                <SelectTrigger size="sm">
+                                                  <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                  <SelectItem value="all">All Locations</SelectItem>
+                                                  <SelectItem value="us">United States</SelectItem>
+                                                  <SelectItem value="ca">Canada</SelectItem>
+                                                  <SelectItem value="uk">United Kingdom</SelectItem>
+                                                  <SelectItem value="eu">European Union</SelectItem>
+                                                </SelectContent>
+                                              </Select>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </>
+                                  ) : (
+                                    <div className="bg-muted/30 rounded-lg p-6 text-center">
+                                      <div className="flex flex-col items-center gap-3">
+                                        <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${distribution.bgColor}`}>
+                                          <IconComponent className={`w-6 h-6 ${distribution.color}`} />
+                                        </div>
+                                        <div>
+                                          <h6 className="font-medium text-sm">{distribution.name} Settings</h6>
+                                          <p className="text-xs text-muted-foreground mt-1">
+                                            Enable this distribution type to configure its settings
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </CardContent>
+                              </CollapsibleContent>
+                            </Card>
+                          </Collapsible>
+                        );
+                      })}
                     </div>
                   </TabsContent>
 
@@ -390,7 +534,7 @@ const SurveyBuilder = () => {
                 questions={questions}
                 previewDevice={previewDevice}
                 setPreviewDevice={setPreviewDevice}
-                distributionType={distributionType}
+                distributionType={enabledDistributions[0] || 'post-purchase'}
                 discountEnabled={isDiscountEnabled}
                 discountType={discountType}
                 discountValue={discountValue}
