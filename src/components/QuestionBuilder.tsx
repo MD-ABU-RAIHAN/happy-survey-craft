@@ -38,12 +38,31 @@ import {
   Eye,
   EyeOff,
   Clock,
+  FileQuestion,
+  CircleDot,
+  ChevronDown as DropdownIcon,
+  CheckCircle,
+  Smile,
+  Calendar,
+  FileText,
 } from "lucide-react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
 interface SurveyQuestion {
   id: string;
-  type: "multiple-choice" | "text" | "rating" | "nps" | "email" | "phone";
+  type:
+    | "multiple-choice"
+    | "single-choice"
+    | "dropdown"
+    | "binary-choice"
+    | "text"
+    | "rating"
+    | "satisfaction"
+    | "nps"
+    | "email"
+    | "phone"
+    | "date"
+    | "short-answer";
   title: string;
   description?: string;
   required: boolean;
@@ -58,6 +77,16 @@ interface SurveyQuestion {
     placeholder: string;
     description?: string;
   };
+  // New properties for specific question types
+  dateFormat?: "MM/DD/YYYY" | "DD/MM/YYYY" | "YYYY-MM-DD";
+  satisfactionScale?: {
+    min: number;
+    max: number;
+    minLabel: string;
+    maxLabel: string;
+    showNumbers: boolean;
+  };
+  maxLength?: number; // For short answer
 }
 
 interface QuestionBuilderProps {
@@ -73,23 +102,38 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
     string[]
   >([]);
   const [selectedQuestionType, setSelectedQuestionType] = useState<string>("");
+  const [expandedQuestionId, setExpandedQuestionId] = useState<string | null>(
+    null
+  );
 
   const questionTypeIcons = {
     "multiple-choice": CheckSquare,
+    "single-choice": CircleDot,
+    dropdown: DropdownIcon,
+    "binary-choice": CheckCircle,
     text: Type,
     rating: Star,
+    satisfaction: Smile,
     nps: BarChart3,
     email: Mail,
     phone: Phone,
+    date: Calendar,
+    "short-answer": FileText,
   };
 
   const questionTypeLabels = {
     "multiple-choice": "Multiple Choice",
+    "single-choice": "Single Choice (Radio)",
+    dropdown: "Dropdown",
+    "binary-choice": "Binary Choice (Yes/No)",
     text: "Text Response",
     rating: "Rating Scale",
+    satisfaction: "Satisfaction Scale",
     nps: "NPS Score",
     email: "Email Address",
     phone: "Phone Number",
+    date: "Date",
+    "short-answer": "Short Answer",
   };
 
   // Quick templates for common questions
@@ -135,17 +179,66 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
   };
 
   const addQuestion = (type: SurveyQuestion["type"]) => {
+    const newQuestionId = `question-${Date.now()}`;
     const newQuestion: SurveyQuestion = {
-      id: `question-${Date.now()}`,
+      id: newQuestionId,
       type,
       title: "New Question",
-      required: false,
-      options:
-        type === "multiple-choice" ? ["Option 1", "Option 2"] : undefined,
+      required: true, // Changed from false to true - make required by default
       isCollapsed: false,
-      placeholder: type === "text" ? "Enter your answer..." : undefined,
     };
-    onQuestionsChange([...questions, newQuestion]);
+
+    // Set default options and properties based on question type
+    switch (type) {
+      case "multiple-choice":
+        newQuestion.options = ["Option 1", "Option 2"];
+        break;
+      case "single-choice":
+        newQuestion.options = ["Option 1", "Option 2"];
+        break;
+      case "dropdown":
+        newQuestion.options = ["Option 1", "Option 2"];
+        break;
+      case "binary-choice":
+        newQuestion.options = ["Yes", "No"];
+        break;
+      case "text":
+        newQuestion.placeholder = "Enter your answer...";
+        break;
+      case "short-answer":
+        newQuestion.placeholder = "Enter a brief answer...";
+        newQuestion.maxLength = 100;
+        break;
+      case "email":
+        newQuestion.placeholder = "Enter your email address...";
+        break;
+      case "phone":
+        newQuestion.placeholder = "Enter your phone number...";
+        break;
+      case "date":
+        newQuestion.dateFormat = "MM/DD/YYYY";
+        break;
+      case "satisfaction":
+        newQuestion.satisfactionScale = {
+          min: 1,
+          max: 5,
+          minLabel: "Very Dissatisfied",
+          maxLabel: "Very Satisfied",
+          showNumbers: true,
+        };
+        break;
+    }
+
+    // Collapse all existing questions and expand the new one
+    const updatedQuestions = questions.map((q) => ({
+      ...q,
+      isCollapsed: true,
+    }));
+    updatedQuestions.push(newQuestion);
+
+    onQuestionsChange(updatedQuestions);
+    setExpandedQuestionId(newQuestionId);
+
     // Reset the select value to allow selecting the same type again
     setSelectedQuestionType("");
   };
@@ -154,13 +247,23 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
     templateKey: keyof typeof questionTemplates
   ) => {
     const template = questionTemplates[templateKey];
+    const newQuestionId = `question-${Date.now()}`;
     const newQuestion: SurveyQuestion = {
-      id: `question-${Date.now()}`,
+      id: newQuestionId,
       ...template,
-      required: false,
+      required: true, // Changed from false to true - make required by default
       isCollapsed: false,
     };
-    onQuestionsChange([...questions, newQuestion]);
+
+    // Collapse all existing questions and expand the new one
+    const updatedQuestions = questions.map((q) => ({
+      ...q,
+      isCollapsed: true,
+    }));
+    updatedQuestions.push(newQuestion);
+
+    onQuestionsChange(updatedQuestions);
+    setExpandedQuestionId(newQuestionId);
   };
 
   const updateQuestion = (id: string, updates: Partial<SurveyQuestion>) => {
@@ -170,28 +273,56 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
   };
 
   const deleteQuestion = (id: string) => {
-    onQuestionsChange(questions.filter((q) => q.id !== id));
+    const updatedQuestions = questions.filter((q) => q.id !== id);
+    onQuestionsChange(updatedQuestions);
+
+    // If the deleted question was expanded, clear the expandedQuestionId
+    if (expandedQuestionId === id) {
+      setExpandedQuestionId(null);
+    }
   };
 
   const duplicateQuestion = (id: string) => {
     const question = questions.find((q) => q.id === id);
     if (question) {
+      const duplicatedId = `question-${Date.now()}`;
       const duplicated = {
         ...question,
-        id: `question-${Date.now()}`,
+        id: duplicatedId,
         title: `${question.title} (Copy)`,
+        isCollapsed: false,
       };
       const index = questions.findIndex((q) => q.id === id);
-      const newQuestions = [...questions];
-      newQuestions.splice(index + 1, 0, duplicated);
-      onQuestionsChange(newQuestions);
+
+      // Collapse all existing questions and expand the duplicated one
+      const updatedQuestions = questions.map((q) => ({
+        ...q,
+        isCollapsed: true,
+      }));
+      updatedQuestions.splice(index + 1, 0, duplicated);
+
+      onQuestionsChange(updatedQuestions);
+      setExpandedQuestionId(duplicatedId);
     }
   };
 
   const toggleCollapse = (id: string) => {
-    updateQuestion(id, {
-      isCollapsed: !questions.find((q) => q.id === id)?.isCollapsed,
-    });
+    const question = questions.find((q) => q.id === id);
+    if (!question) return;
+
+    if (question.isCollapsed) {
+      // Expanding this question - collapse all others
+      const updatedQuestions = questions.map((q) => ({
+        ...q,
+        isCollapsed: q.id === id ? false : true,
+      }));
+      onQuestionsChange(updatedQuestions);
+      setExpandedQuestionId(id);
+    } else {
+      // Collapsing this question
+      updateQuestion(id, { isCollapsed: true });
+      setExpandedQuestionId(null);
+    }
   };
 
   const addOption = (questionId: string) => {
@@ -361,8 +492,8 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
       {questions.length === 0 ? (
         <Card className="border-dashed border-2 border-muted">
           <CardContent className="flex flex-col items-center justify-center py-16">
-            <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mb-6">
-              <Plus className="w-10 h-10 text-muted-foreground" />
+            <div className="w-20 h-20 bg-muted/30 rounded-lg flex items-center justify-center mb-6">
+              <FileQuestion className="w-10 h-10 text-muted-foreground/50" />
             </div>
             <h3 className="text-xl font-semibold mb-2">No questions yet</h3>
             <p className="text-muted-foreground text-center mb-6 max-w-sm">
@@ -380,12 +511,46 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                   Multiple Choice
                 </Button>
                 <Button
+                  onClick={() => addQuestion("single-choice")}
+                  variant="outline"
+                  size="sm"
+                >
+                  <CircleDot className="w-4 h-4 mr-2" />
+                  Single Choice
+                </Button>
+                <Button
+                  onClick={() => addQuestion("dropdown")}
+                  variant="outline"
+                  size="sm"
+                >
+                  <DropdownIcon className="w-4 h-4 mr-2" />
+                  Dropdown
+                </Button>
+                <Button
+                  onClick={() => addQuestion("binary-choice")}
+                  variant="outline"
+                  size="sm"
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Yes/No
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-2 justify-center">
+                <Button
                   onClick={() => addQuestion("text")}
                   variant="outline"
                   size="sm"
                 >
                   <Type className="w-4 h-4 mr-2" />
                   Text Response
+                </Button>
+                <Button
+                  onClick={() => addQuestion("short-answer")}
+                  variant="outline"
+                  size="sm"
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Short Answer
                 </Button>
                 <Button
                   onClick={() => addQuestion("rating")}
@@ -396,12 +561,46 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                   Rating Scale
                 </Button>
                 <Button
+                  onClick={() => addQuestion("satisfaction")}
+                  variant="outline"
+                  size="sm"
+                >
+                  <Smile className="w-4 h-4 mr-2" />
+                  Satisfaction
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-2 justify-center">
+                <Button
                   onClick={() => addQuestion("nps")}
                   variant="outline"
                   size="sm"
                 >
                   <BarChart3 className="w-4 h-4 mr-2" />
                   NPS Score
+                </Button>
+                <Button
+                  onClick={() => addQuestion("date")}
+                  variant="outline"
+                  size="sm"
+                >
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Date
+                </Button>
+                <Button
+                  onClick={() => addQuestion("email")}
+                  variant="outline"
+                  size="sm"
+                >
+                  <Mail className="w-4 h-4 mr-2" />
+                  Email
+                </Button>
+                <Button
+                  onClick={() => addQuestion("phone")}
+                  variant="outline"
+                  size="sm"
+                >
+                  <Phone className="w-4 h-4 mr-2" />
+                  Phone
                 </Button>
               </div>
             </div>
@@ -642,6 +841,7 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                                 </div>
 
                                 {(question.type === "text" ||
+                                  question.type === "short-answer" ||
                                   question.type === "email" ||
                                   question.type === "phone") && (
                                   <div className="space-y-2">
@@ -657,14 +857,262 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                                       }
                                       placeholder="Enter placeholder text..."
                                     />
+                                    {question.type === "short-answer" && (
+                                      <div className="mt-3">
+                                        <Label className="text-sm font-medium">
+                                          Maximum Length
+                                        </Label>
+                                        <Input
+                                          type="number"
+                                          min="10"
+                                          max="500"
+                                          value={question.maxLength || 100}
+                                          onChange={(e) =>
+                                            updateQuestion(question.id, {
+                                              maxLength:
+                                                parseInt(e.target.value) || 100,
+                                            })
+                                          }
+                                          placeholder="100"
+                                        />
+                                      </div>
+                                    )}
                                   </div>
                                 )}
 
-                                {question.type === "multiple-choice" &&
+                                {/* Date Configuration */}
+                                {question.type === "date" && (
+                                  <div className="space-y-2">
+                                    <Label className="text-sm font-medium">
+                                      Date Format
+                                    </Label>
+                                    <Select
+                                      value={
+                                        question.dateFormat || "MM/DD/YYYY"
+                                      }
+                                      onValueChange={(
+                                        value:
+                                          | "MM/DD/YYYY"
+                                          | "DD/MM/YYYY"
+                                          | "YYYY-MM-DD"
+                                      ) =>
+                                        updateQuestion(question.id, {
+                                          dateFormat: value,
+                                        })
+                                      }
+                                    >
+                                      <SelectTrigger>
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="MM/DD/YYYY">
+                                          MM/DD/YYYY (US Format)
+                                        </SelectItem>
+                                        <SelectItem value="DD/MM/YYYY">
+                                          DD/MM/YYYY (European Format)
+                                        </SelectItem>
+                                        <SelectItem value="YYYY-MM-DD">
+                                          YYYY-MM-DD (ISO Format)
+                                        </SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                )}
+
+                                {/* Satisfaction Scale Configuration */}
+                                {question.type === "satisfaction" && (
+                                  <div className="space-y-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                      <div className="space-y-2">
+                                        <Label className="text-sm font-medium">
+                                          Scale Range (Min)
+                                        </Label>
+                                        <Input
+                                          type="number"
+                                          min="1"
+                                          max="5"
+                                          value={
+                                            question.satisfactionScale?.min || 1
+                                          }
+                                          onChange={(e) =>
+                                            updateQuestion(question.id, {
+                                              satisfactionScale: {
+                                                ...question.satisfactionScale,
+                                                min:
+                                                  parseInt(e.target.value) || 1,
+                                                max:
+                                                  question.satisfactionScale
+                                                    ?.max || 5,
+                                                minLabel:
+                                                  question.satisfactionScale
+                                                    ?.minLabel ||
+                                                  "Very Dissatisfied",
+                                                maxLabel:
+                                                  question.satisfactionScale
+                                                    ?.maxLabel ||
+                                                  "Very Satisfied",
+                                                showNumbers:
+                                                  question.satisfactionScale
+                                                    ?.showNumbers ?? true,
+                                              },
+                                            })
+                                          }
+                                        />
+                                      </div>
+                                      <div className="space-y-2">
+                                        <Label className="text-sm font-medium">
+                                          Scale Range (Max)
+                                        </Label>
+                                        <Input
+                                          type="number"
+                                          min="3"
+                                          max="10"
+                                          value={
+                                            question.satisfactionScale?.max || 5
+                                          }
+                                          onChange={(e) =>
+                                            updateQuestion(question.id, {
+                                              satisfactionScale: {
+                                                ...question.satisfactionScale,
+                                                min:
+                                                  question.satisfactionScale
+                                                    ?.min || 1,
+                                                max:
+                                                  parseInt(e.target.value) || 5,
+                                                minLabel:
+                                                  question.satisfactionScale
+                                                    ?.minLabel ||
+                                                  "Very Dissatisfied",
+                                                maxLabel:
+                                                  question.satisfactionScale
+                                                    ?.maxLabel ||
+                                                  "Very Satisfied",
+                                                showNumbers:
+                                                  question.satisfactionScale
+                                                    ?.showNumbers ?? true,
+                                              },
+                                            })
+                                          }
+                                        />
+                                      </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                      <div className="space-y-2">
+                                        <Label className="text-sm font-medium">
+                                          Min Label
+                                        </Label>
+                                        <Input
+                                          value={
+                                            question.satisfactionScale
+                                              ?.minLabel || "Very Dissatisfied"
+                                          }
+                                          onChange={(e) =>
+                                            updateQuestion(question.id, {
+                                              satisfactionScale: {
+                                                ...question.satisfactionScale,
+                                                min:
+                                                  question.satisfactionScale
+                                                    ?.min || 1,
+                                                max:
+                                                  question.satisfactionScale
+                                                    ?.max || 5,
+                                                minLabel: e.target.value,
+                                                maxLabel:
+                                                  question.satisfactionScale
+                                                    ?.maxLabel ||
+                                                  "Very Satisfied",
+                                                showNumbers:
+                                                  question.satisfactionScale
+                                                    ?.showNumbers ?? true,
+                                              },
+                                            })
+                                          }
+                                          placeholder="Very Dissatisfied"
+                                        />
+                                      </div>
+                                      <div className="space-y-2">
+                                        <Label className="text-sm font-medium">
+                                          Max Label
+                                        </Label>
+                                        <Input
+                                          value={
+                                            question.satisfactionScale
+                                              ?.maxLabel || "Very Satisfied"
+                                          }
+                                          onChange={(e) =>
+                                            updateQuestion(question.id, {
+                                              satisfactionScale: {
+                                                ...question.satisfactionScale,
+                                                min:
+                                                  question.satisfactionScale
+                                                    ?.min || 1,
+                                                max:
+                                                  question.satisfactionScale
+                                                    ?.max || 5,
+                                                minLabel:
+                                                  question.satisfactionScale
+                                                    ?.minLabel ||
+                                                  "Very Dissatisfied",
+                                                maxLabel: e.target.value,
+                                                showNumbers:
+                                                  question.satisfactionScale
+                                                    ?.showNumbers ?? true,
+                                              },
+                                            })
+                                          }
+                                          placeholder="Very Satisfied"
+                                        />
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                      <Switch
+                                        checked={
+                                          question.satisfactionScale
+                                            ?.showNumbers ?? true
+                                        }
+                                        onCheckedChange={(checked) =>
+                                          updateQuestion(question.id, {
+                                            satisfactionScale: {
+                                              ...question.satisfactionScale,
+                                              min:
+                                                question.satisfactionScale
+                                                  ?.min || 1,
+                                              max:
+                                                question.satisfactionScale
+                                                  ?.max || 5,
+                                              minLabel:
+                                                question.satisfactionScale
+                                                  ?.minLabel ||
+                                                "Very Dissatisfied",
+                                              maxLabel:
+                                                question.satisfactionScale
+                                                  ?.maxLabel ||
+                                                "Very Satisfied",
+                                              showNumbers: checked,
+                                            },
+                                          })
+                                        }
+                                      />
+                                      <Label className="text-sm font-medium">
+                                        Show Numbers on Scale
+                                      </Label>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {(question.type === "multiple-choice" ||
+                                  question.type === "single-choice" ||
+                                  question.type === "dropdown" ||
+                                  question.type === "binary-choice") &&
                                   question.options && (
                                     <div className="space-y-3">
                                       <Label className="text-sm font-medium">
                                         Answer Options
+                                        {question.type === "binary-choice" && (
+                                          <span className="text-xs text-muted-foreground ml-2">
+                                            (Yes/No format)
+                                          </span>
+                                        )}
                                       </Label>
                                       <DragDropContext
                                         onDragEnd={(result) =>
@@ -697,29 +1145,58 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                                                             : "hover:bg-muted/50"
                                                         }`}
                                                       >
-                                                        <div
-                                                          {...provided.dragHandleProps}
-                                                          className="cursor-move p-1 hover:bg-muted rounded"
-                                                        >
-                                                          <GripVertical className="w-3 h-3 text-muted-foreground" />
+                                                        {question.type !==
+                                                          "binary-choice" && (
+                                                          <div
+                                                            {...provided.dragHandleProps}
+                                                            className="cursor-move p-1 hover:bg-muted rounded"
+                                                          >
+                                                            <GripVertical className="w-3 h-3 text-muted-foreground" />
+                                                          </div>
+                                                        )}
+                                                        <div className="flex items-center space-x-2 flex-1">
+                                                          {question.type ===
+                                                            "single-choice" && (
+                                                            <CircleDot className="w-4 h-4 text-muted-foreground" />
+                                                          )}
+                                                          {question.type ===
+                                                            "multiple-choice" && (
+                                                            <CheckSquare className="w-4 h-4 text-muted-foreground" />
+                                                          )}
+                                                          {question.type ===
+                                                            "dropdown" && (
+                                                            <span className="text-sm text-muted-foreground min-w-[20px]">
+                                                              {optionIndex + 1}.
+                                                            </span>
+                                                          )}
+                                                          {question.type ===
+                                                            "binary-choice" && (
+                                                            <CheckCircle className="w-4 h-4 text-muted-foreground" />
+                                                          )}
+                                                          <Input
+                                                            value={option}
+                                                            onChange={(e) =>
+                                                              updateOption(
+                                                                question.id,
+                                                                optionIndex,
+                                                                e.target.value
+                                                              )
+                                                            }
+                                                            placeholder={`Option ${
+                                                              optionIndex + 1
+                                                            }`}
+                                                            className="flex-1"
+                                                            disabled={
+                                                              question.type ===
+                                                              "binary-choice"
+                                                            }
+                                                          />
                                                         </div>
-                                                        <Input
-                                                          value={option}
-                                                          onChange={(e) =>
-                                                            updateOption(
-                                                              question.id,
-                                                              optionIndex,
-                                                              e.target.value
-                                                            )
-                                                          }
-                                                          placeholder={`Option ${
-                                                            optionIndex + 1
-                                                          }`}
-                                                          className="flex-1"
-                                                        />
                                                         {question.options &&
                                                           question.options
-                                                            .length > 2 && (
+                                                            .length > 2 &&
+                                                          question.type !==
+                                                            "binary-choice" && (
                                                             <Button
                                                               variant="ghost"
                                                               size="sm"
@@ -744,20 +1221,23 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                                           )}
                                         </Droppable>
                                       </DragDropContext>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => addOption(question.id)}
-                                        className="w-full"
-                                      >
-                                        <Plus className="w-4 h-4 mr-2" />
-                                        Add Option
-                                      </Button>
+                                      {question.type !== "binary-choice" && (
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() => addOption(question.id)}
+                                          className="w-full"
+                                        >
+                                          <Plus className="w-4 h-4 mr-2" />
+                                          Add Option
+                                        </Button>
+                                      )}
                                     </div>
                                   )}
 
-                                {/* Custom Answer Section for Multiple Choice */}
-                                {question.type === "multiple-choice" && (
+                                {/* Custom Answer Section for Multiple Choice and Single Choice */}
+                                {(question.type === "multiple-choice" ||
+                                  question.type === "single-choice") && (
                                   <div className="pt-4 border-t border-muted/50">
                                     <div className="flex items-center justify-between">
                                       <div className="flex items-center space-x-3">

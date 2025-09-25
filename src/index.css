@@ -22,7 +22,7 @@ All colors MUST be HSL.
     --primary: 158 64% 52%;
     --primary-foreground: 0 0% 100%;
     --primary-hover: 158 64% 45%;
-    
+
     --secondary-brand: 210 100% 50%;
     --secondary-brand-light: 210 100% 96%;
 
@@ -52,12 +52,28 @@ All colors MUST be HSL.
     --survey-warning-light: 38 92% 95%;
     --survey-purple: 262 83% 58%;
     --survey-purple-light: 262 83% 96%;
-    
+
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(158 64% 52%), hsl(158 64% 45%));
-    --gradient-secondary: linear-gradient(135deg, hsl(210 100% 50%), hsl(210 100% 45%));
-    --gradient-purple: linear-gradient(135deg, hsl(262 83% 58%), hsl(262 83% 50%));
-    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%), hsl(210 40% 98%));
+    --gradient-primary: linear-gradient(
+      135deg,
+      hsl(158 64% 52%),
+      hsl(158 64% 45%)
+    );
+    --gradient-secondary: linear-gradient(
+      135deg,
+      hsl(210 100% 50%),
+      hsl(210 100% 45%)
+    );
+    --gradient-purple: linear-gradient(
+      135deg,
+      hsl(262 83% 58%),
+      hsl(262 83% 50%)
+    );
+    --gradient-subtle: linear-gradient(
+      180deg,
+      hsl(0 0% 100%),
+      hsl(210 40% 98%)
+    );
 
     --radius: 0.75rem;
 

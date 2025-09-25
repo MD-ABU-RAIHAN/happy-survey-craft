@@ -15,13 +15,35 @@ import {
 
 interface SurveyQuestion {
   id: string;
-  type: "multiple-choice" | "text" | "rating" | "nps" | "email" | "phone";
+  type:
+    | "multiple-choice"
+    | "single-choice"
+    | "dropdown"
+    | "binary-choice"
+    | "text"
+    | "rating"
+    | "satisfaction"
+    | "nps"
+    | "email"
+    | "phone"
+    | "date"
+    | "short-answer";
   title: string;
   description?: string;
   required: boolean;
   options?: string[];
   isCollapsed: boolean;
   placeholder?: string;
+  // New properties for specific question types
+  dateFormat?: "MM/DD/YYYY" | "DD/MM/YYYY" | "YYYY-MM-DD";
+  satisfactionScale?: {
+    min: number;
+    max: number;
+    minLabel: string;
+    maxLabel: string;
+    showNumbers: boolean;
+  };
+  maxLength?: number; // For short answer
 }
 
 interface PostPurchaseSettings {
@@ -572,6 +594,40 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
             </div>
           )}
 
+          {question.type === "single-choice" && question.options && (
+            <div className="space-y-2">
+              {question.options.map((option, optionIndex) => (
+                <div key={optionIndex} className="flex items-center space-x-2">
+                  <div className="w-3 h-3 border border-muted-foreground rounded-full"></div>
+                  <span className="text-sm text-muted-foreground">
+                    {option}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {question.type === "dropdown" && question.options && (
+            <div className="space-y-2">
+              <div className="border border-muted-foreground rounded px-3 py-2 text-sm text-muted-foreground bg-muted/20">
+                Select an option...
+              </div>
+            </div>
+          )}
+
+          {question.type === "binary-choice" && question.options && (
+            <div className="space-y-2">
+              {question.options.map((option, optionIndex) => (
+                <div key={optionIndex} className="flex items-center space-x-2">
+                  <div className="w-3 h-3 border border-muted-foreground rounded-full"></div>
+                  <span className="text-sm text-muted-foreground">
+                    {option}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
           {question.type === "text" && (
             <div className="space-y-2">
               <Input
@@ -579,6 +635,19 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                 className="h-8 text-sm"
                 disabled
               />
+            </div>
+          )}
+
+          {question.type === "short-answer" && (
+            <div className="space-y-2">
+              <Input
+                placeholder={question.placeholder || "Brief answer..."}
+                className="h-8 text-sm"
+                disabled
+              />
+              <div className="text-xs text-muted-foreground">
+                Max {question.maxLength || 100} characters
+              </div>
             </div>
           )}
 
@@ -604,6 +673,15 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
             </div>
           )}
 
+          {question.type === "date" && (
+            <div className="space-y-2">
+              <Input type="date" className="h-8 text-sm" disabled />
+              <div className="text-xs text-muted-foreground">
+                Format: {question.dateFormat || "MM/DD/YYYY"}
+              </div>
+            </div>
+          )}
+
           {question.type === "rating" && (
             <div className="flex space-x-1">
               {[1, 2, 3, 4, 5].map((star) => (
@@ -612,6 +690,38 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                   className="w-5 h-5 text-survey-warning cursor-pointer hover:fill-current"
                 />
               ))}
+            </div>
+          )}
+
+          {question.type === "satisfaction" && (
+            <div className="space-y-2">
+              <div className="flex flex-wrap gap-1">
+                {Array.from(
+                  {
+                    length:
+                      (question.satisfactionScale?.max || 5) -
+                      (question.satisfactionScale?.min || 1) +
+                      1,
+                  },
+                  (_, i) => (question.satisfactionScale?.min || 1) + i
+                ).map((value) => (
+                  <button
+                    key={value}
+                    className="px-3 py-2 border border-muted-foreground rounded text-sm flex items-center justify-center hover:bg-muted"
+                    disabled
+                  >
+                    {question.satisfactionScale?.showNumbers ? value : "😐"}
+                  </button>
+                ))}
+              </div>
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>
+                  {question.satisfactionScale?.minLabel || "Very Dissatisfied"}
+                </span>
+                <span>
+                  {question.satisfactionScale?.maxLabel || "Very Satisfied"}
+                </span>
+              </div>
             </div>
           )}
 
@@ -1041,7 +1151,87 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                           </div>
                         )}
 
+                      {question.type === "single-choice" &&
+                        question.options && (
+                          <div className="space-y-2">
+                            {question.options.map((option, optionIndex) => (
+                              <div
+                                key={optionIndex}
+                                className="flex items-center space-x-2"
+                              >
+                                <div className="w-3 h-3 border border-muted-foreground rounded-full"></div>
+                                <span
+                                  className="text-sm"
+                                  style={
+                                    distributionType === "branded-survey" &&
+                                    brandedSurveySettings
+                                      ? {
+                                          color:
+                                            brandedSurveySettings.section
+                                              .primaryTextColor,
+                                        }
+                                      : {}
+                                  }
+                                >
+                                  {option}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                      {question.type === "dropdown" && question.options && (
+                        <div className="space-y-2">
+                          <div className="border border-muted-foreground rounded px-3 py-2 text-sm bg-muted/20">
+                            <span
+                              style={
+                                distributionType === "branded-survey" &&
+                                brandedSurveySettings
+                                  ? {
+                                      color:
+                                        brandedSurveySettings.section
+                                          .secondaryTextColor,
+                                    }
+                                  : {}
+                              }
+                            >
+                              Select an option...
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      {question.type === "binary-choice" &&
+                        question.options && (
+                          <div className="space-y-2">
+                            {question.options.map((option, optionIndex) => (
+                              <div
+                                key={optionIndex}
+                                className="flex items-center space-x-2"
+                              >
+                                <div className="w-3 h-3 border border-muted-foreground rounded-full"></div>
+                                <span
+                                  className="text-sm"
+                                  style={
+                                    distributionType === "branded-survey" &&
+                                    brandedSurveySettings
+                                      ? {
+                                          color:
+                                            brandedSurveySettings.section
+                                              .primaryTextColor,
+                                        }
+                                      : {}
+                                  }
+                                >
+                                  {option}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
                       {(question.type === "text" ||
+                        question.type === "short-answer" ||
                         question.type === "email" ||
                         question.type === "phone") && (
                         <div className="space-y-2">
@@ -1059,11 +1249,27 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                                 ? "your.email@example.com"
                                 : question.type === "phone"
                                 ? "+1 (555) 123-4567"
+                                : question.type === "short-answer"
+                                ? "Brief answer..."
                                 : "Your answer...")
                             }
                             className="h-8 text-sm"
                             disabled
                           />
+                          {question.type === "short-answer" && (
+                            <div className="text-xs text-muted-foreground">
+                              Max {question.maxLength || 100} characters
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {question.type === "date" && (
+                        <div className="space-y-2">
+                          <Input type="date" className="h-8 text-sm" disabled />
+                          <div className="text-xs text-muted-foreground">
+                            Format: {question.dateFormat || "MM/DD/YYYY"}
+                          </div>
                         </div>
                       )}
 
@@ -1075,6 +1281,43 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                               className="w-5 h-5 text-survey-warning cursor-pointer hover:fill-current"
                             />
                           ))}
+                        </div>
+                      )}
+
+                      {question.type === "satisfaction" && (
+                        <div className="space-y-2">
+                          <div className="flex flex-wrap gap-1">
+                            {Array.from(
+                              {
+                                length:
+                                  (question.satisfactionScale?.max || 5) -
+                                  (question.satisfactionScale?.min || 1) +
+                                  1,
+                              },
+                              (_, i) =>
+                                (question.satisfactionScale?.min || 1) + i
+                            ).map((value) => (
+                              <button
+                                key={value}
+                                className="px-3 py-2 border border-muted-foreground rounded text-sm flex items-center justify-center hover:bg-muted"
+                                disabled
+                              >
+                                {question.satisfactionScale?.showNumbers
+                                  ? value
+                                  : "😐"}
+                              </button>
+                            ))}
+                          </div>
+                          <div className="flex justify-between text-xs text-muted-foreground">
+                            <span>
+                              {question.satisfactionScale?.minLabel ||
+                                "Very Dissatisfied"}
+                            </span>
+                            <span>
+                              {question.satisfactionScale?.maxLabel ||
+                                "Very Satisfied"}
+                            </span>
+                          </div>
                         </div>
                       )}
 
