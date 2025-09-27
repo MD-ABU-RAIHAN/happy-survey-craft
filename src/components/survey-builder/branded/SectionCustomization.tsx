@@ -194,9 +194,24 @@ const SectionCustomization: React.FC<SectionCustomizationProps> = ({
             className="w-full"
           >
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="solid">Solid Color</TabsTrigger>
-              <TabsTrigger value="gradient">Gradient</TabsTrigger>
-              <TabsTrigger value="image">Image</TabsTrigger>
+              <TabsTrigger
+                value="solid"
+                className="data-[state=active]:!bg-white data-[state=active]:!text-gray-900 data-[state=active]:!shadow-md data-[state=active]:!border-gray-200"
+              >
+                Solid Color
+              </TabsTrigger>
+              <TabsTrigger
+                value="gradient"
+                className="data-[state=active]:!bg-white data-[state=active]:!text-gray-900 data-[state=active]:!shadow-md data-[state=active]:!border-gray-200"
+              >
+                Gradient
+              </TabsTrigger>
+              <TabsTrigger
+                value="image"
+                className="data-[state=active]:!bg-white data-[state=active]:!text-gray-900 data-[state=active]:!shadow-md data-[state=active]:!border-gray-200"
+              >
+                Image
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="solid" className="space-y-4">

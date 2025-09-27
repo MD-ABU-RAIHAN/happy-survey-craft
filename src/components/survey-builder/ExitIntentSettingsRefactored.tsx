@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/select";
 import { MousePointer } from "lucide-react";
 import SectionCard from "./shared/SectionCard";
-import UploadInput from "./shared/UploadInput";
+import LogoSettings from "./shared/LogoSettings";
 import IntegratedCustomization from "./branded/IntegratedCustomization";
 
 interface ExitIntentSettings {
@@ -20,13 +20,21 @@ interface ExitIntentSettings {
     hasProducts: boolean;
   };
   recurrence: "only-once" | "every-incomplete";
+  headerLogo: {
+    enabled: boolean;
+    url: string;
+    width: number;
+    height: number;
+    position: "left" | "right" | "center";
+    size: "small" | "medium" | "large";
+  };
   sideLogo: {
     enabled: boolean;
     url: string;
-    file: File | null;
-    size: "small" | "medium" | "large";
+    width: number;
+    height: number;
     position: "left" | "right";
-    minimized: boolean;
+    size: "small" | "medium" | "large";
   };
   button: {
     enabled: boolean;
@@ -82,7 +90,12 @@ const ExitIntentSettingsRefactored: React.FC<
     const keys = key.split(".");
     let newSettings = { ...settings };
 
-    if (keys.length === 2) {
+    if (keys.length === 1) {
+      newSettings = {
+        ...newSettings,
+        [keys[0]]: value,
+      };
+    } else if (keys.length === 2) {
       newSettings = {
         ...newSettings,
         [keys[0]]: {
@@ -113,33 +126,31 @@ const ExitIntentSettingsRefactored: React.FC<
     <div className="space-y-8">
       {/* Exit Intent Trigger Settings */}
       <SectionCard
-        icon={MousePointer}
+        icon={<MousePointer className="w-5 h-5 text-orange-600" />}
         title="Exit Intent Settings"
         description="Configure when and how the exit intent survey appears"
-        color="text-orange-600"
-        bgColor="bg-orange-50"
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-2">
             <Label className="text-sm font-medium">Show Popup When</Label>
             <div className="space-y-2">
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm">Cart is empty</Label>
                 <SlimSwitch
                   checked={settings.showPopup.emptyCart}
                   onCheckedChange={(checked) =>
                     updateSetting("showPopup.emptyCart", checked)
                   }
                 />
-                <Label className="text-sm">Cart is empty</Label>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm">Cart has products</Label>
                 <SlimSwitch
                   checked={settings.showPopup.hasProducts}
                   onCheckedChange={(checked) =>
                     updateSetting("showPopup.hasProducts", checked)
                   }
                 />
-                <Label className="text-sm">Cart has products</Label>
               </div>
             </div>
           </div>
@@ -167,79 +178,13 @@ const ExitIntentSettingsRefactored: React.FC<
         </div>
       </SectionCard>
 
-      {/* Side Logo Settings */}
-      <SectionCard
-        icon={MousePointer}
-        title="Side Logo"
-        description="Add your brand logo to the survey"
-        color="text-blue-600"
-        bgColor="bg-blue-50"
-        collapsible
-        defaultExpanded={settings.sideLogo.enabled}
-      >
-        <div className="space-y-4">
-          <div className="flex items-center space-x-2">
-            <SlimSwitch
-              checked={settings.sideLogo.enabled}
-              onCheckedChange={(checked) =>
-                updateSetting("sideLogo.enabled", checked)
-              }
-            />
-            <Label className="text-sm">Enable side logo</Label>
-          </div>
-
-          {settings.sideLogo.enabled && (
-            <div className="space-y-4 pl-6">
-              <UploadInput
-                label="Logo Image"
-                value={settings.sideLogo.url}
-                file={settings.sideLogo.file}
-                onChange={(url, file) => {
-                  updateSetting("sideLogo.url", url);
-                  updateSetting("sideLogo.file", file);
-                }}
-              />
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-sm">Size</Label>
-                  <Select
-                    value={settings.sideLogo.size}
-                    onValueChange={(value: "small" | "medium" | "large") =>
-                      updateSetting("sideLogo.size", value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="small">Small</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="large">Large</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm">Position</Label>
-                  <Select
-                    value={settings.sideLogo.position}
-                    onValueChange={(value: "left" | "right") =>
-                      updateSetting("sideLogo.position", value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="left">Left</SelectItem>
-                      <SelectItem value="right">Right</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </SectionCard>
+      {/* Logo Settings */}
+      <LogoSettings
+        headerLogo={settings.headerLogo}
+        sideLogo={settings.sideLogo}
+        onSettingsChange={updateSetting}
+        distributionType="exit-intent"
+      />
 
       {/* Customization Settings */}
       <IntegratedCustomization

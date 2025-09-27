@@ -12,12 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Card,
   CardContent,
@@ -111,14 +106,30 @@ const DiscountConfiguration: React.FC<DiscountConfigurationProps> = ({
 
   const responseQualityOptions = [
     { value: "any", label: "Any Response", desc: "All survey completions" },
-    { value: "complete", label: "Complete Response", desc: "All questions answered" },
-    { value: "detailed", label: "Detailed Response", desc: "High-quality, thoughtful responses" },
+    {
+      value: "complete",
+      label: "Complete Response",
+      desc: "All questions answered",
+    },
+    {
+      value: "detailed",
+      label: "Detailed Response",
+      desc: "High-quality, thoughtful responses",
+    },
   ];
 
   const customerSegmentOptions = [
     { value: "all", label: "All Customers", desc: "No restrictions" },
-    { value: "new", label: "New Customers", desc: "First-time survey respondents" },
-    { value: "returning", label: "Returning Customers", desc: "Previous customers" },
+    {
+      value: "new",
+      label: "New Customers",
+      desc: "First-time survey respondents",
+    },
+    {
+      value: "returning",
+      label: "Returning Customers",
+      desc: "Previous customers",
+    },
     { value: "vip", label: "VIP Customers", desc: "High-value customers" },
   ];
 
@@ -126,11 +137,17 @@ const DiscountConfiguration: React.FC<DiscountConfigurationProps> = ({
     <div className="space-y-6">
       <Tabs defaultValue="basic" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="basic" className="flex items-center gap-2">
+          <TabsTrigger
+            value="basic"
+            className="flex items-center gap-2 data-[state=active]:!bg-white data-[state=active]:!text-gray-900 data-[state=active]:!shadow-md data-[state=active]:!border-gray-200"
+          >
             <Gift className="w-4 h-4" />
             Basic Setup
           </TabsTrigger>
-          <TabsTrigger value="smart" className="flex items-center gap-2">
+          <TabsTrigger
+            value="smart"
+            className="flex items-center gap-2 data-[state=active]:!bg-white data-[state=active]:!text-gray-900 data-[state=active]:!shadow-md data-[state=active]:!border-gray-200"
+          >
             <Zap className="w-4 h-4" />
             Smart Features
           </TabsTrigger>
@@ -241,12 +258,16 @@ const DiscountConfiguration: React.FC<DiscountConfigurationProps> = ({
               <CardTitle className="flex items-center gap-2">
                 <Target className="w-5 h-5 text-blue-600" />
                 Smart Targeting
-                <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                <Badge
+                  variant="secondary"
+                  className="bg-blue-100 text-blue-700"
+                >
                   Exclusive
                 </Badge>
               </CardTitle>
               <CardDescription>
-                Advanced targeting based on response quality and customer behavior
+                Advanced targeting based on response quality and customer
+                behavior
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -260,7 +281,10 @@ const DiscountConfiguration: React.FC<DiscountConfigurationProps> = ({
                 <SlimSwitch
                   checked={advancedSettings.smartTargeting}
                   onCheckedChange={(checked) =>
-                    setAdvancedSettings(prev => ({ ...prev, smartTargeting: checked }))
+                    setAdvancedSettings((prev) => ({
+                      ...prev,
+                      smartTargeting: checked,
+                    }))
                   }
                 />
               </div>
@@ -272,7 +296,10 @@ const DiscountConfiguration: React.FC<DiscountConfigurationProps> = ({
                     <Select
                       value={advancedSettings.responseQuality}
                       onValueChange={(value) =>
-                        setAdvancedSettings(prev => ({ ...prev, responseQuality: value }))
+                        setAdvancedSettings((prev) => ({
+                          ...prev,
+                          responseQuality: value,
+                        }))
                       }
                     >
                       <SelectTrigger>
@@ -283,7 +310,9 @@ const DiscountConfiguration: React.FC<DiscountConfigurationProps> = ({
                           <SelectItem key={option.value} value={option.value}>
                             <div>
                               <div className="font-medium">{option.label}</div>
-                              <div className="text-xs text-muted-foreground">{option.desc}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {option.desc}
+                              </div>
                             </div>
                           </SelectItem>
                         ))}
@@ -296,7 +325,10 @@ const DiscountConfiguration: React.FC<DiscountConfigurationProps> = ({
                     <Select
                       value={advancedSettings.customerSegment}
                       onValueChange={(value) =>
-                        setAdvancedSettings(prev => ({ ...prev, customerSegment: value }))
+                        setAdvancedSettings((prev) => ({
+                          ...prev,
+                          customerSegment: value,
+                        }))
                       }
                     >
                       <SelectTrigger>
@@ -307,7 +339,9 @@ const DiscountConfiguration: React.FC<DiscountConfigurationProps> = ({
                           <SelectItem key={option.value} value={option.value}>
                             <div>
                               <div className="font-medium">{option.label}</div>
-                              <div className="text-xs text-muted-foreground">{option.desc}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {option.desc}
+                              </div>
                             </div>
                           </SelectItem>
                         ))}
@@ -319,14 +353,16 @@ const DiscountConfiguration: React.FC<DiscountConfigurationProps> = ({
             </CardContent>
           </Card>
 
-
           {/* Fraud Prevention */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <AlertCircle className="w-5 h-5 text-orange-600" />
                 Fraud Prevention
-                <Badge variant="secondary" className="bg-orange-100 text-orange-700">
+                <Badge
+                  variant="secondary"
+                  className="bg-orange-100 text-orange-700"
+                >
                   Security
                 </Badge>
               </CardTitle>
@@ -345,7 +381,10 @@ const DiscountConfiguration: React.FC<DiscountConfigurationProps> = ({
                 <SlimSwitch
                   checked={advancedSettings.onePerCustomer}
                   onCheckedChange={(checked) =>
-                    setAdvancedSettings(prev => ({ ...prev, onePerCustomer: checked }))
+                    setAdvancedSettings((prev) => ({
+                      ...prev,
+                      onePerCustomer: checked,
+                    }))
                   }
                 />
               </div>
@@ -360,7 +399,10 @@ const DiscountConfiguration: React.FC<DiscountConfigurationProps> = ({
                 <SlimSwitch
                   checked={advancedSettings.emailVerification}
                   onCheckedChange={(checked) =>
-                    setAdvancedSettings(prev => ({ ...prev, emailVerification: checked }))
+                    setAdvancedSettings((prev) => ({
+                      ...prev,
+                      emailVerification: checked,
+                    }))
                   }
                 />
               </div>
@@ -370,7 +412,10 @@ const DiscountConfiguration: React.FC<DiscountConfigurationProps> = ({
                 <Input
                   value={advancedSettings.maxUsage}
                   onChange={(e) =>
-                    setAdvancedSettings(prev => ({ ...prev, maxUsage: e.target.value }))
+                    setAdvancedSettings((prev) => ({
+                      ...prev,
+                      maxUsage: e.target.value,
+                    }))
                   }
                   placeholder="1000"
                   type="number"
@@ -382,7 +427,6 @@ const DiscountConfiguration: React.FC<DiscountConfigurationProps> = ({
             </CardContent>
           </Card>
         </TabsContent>
-
       </Tabs>
     </div>
   );

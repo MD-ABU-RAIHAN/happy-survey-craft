@@ -1,7 +1,8 @@
 import React from "react";
 import UserTargeting from "./post-purchase/UserTargeting";
 import DisplaySettings from "./post-purchase/DisplaySettings";
-import SideLogo from "./post-purchase/SideLogo";
+import PageLocationSettings from "./post-purchase/PageLocationSettings";
+import LogoSettings from "./shared/LogoSettings";
 import IntegratedCustomization from "./branded/IntegratedCustomization";
 
 interface PostPurchaseSettings {
@@ -9,25 +10,43 @@ interface PostPurchaseSettings {
     type: "all-users" | "segment-users";
     userTag: {
       enabled: boolean;
-      selectedTag: string;
+      selectedTags: string[];
     };
-    customerType: "all" | "new" | "return";
+    newCustomer: boolean;
+    returningCustomer: boolean;
     productPurchase: {
       enabled: boolean;
       selectedProducts: string[];
     };
+  };
+  postPurchasePage: {
+    shopifyCheckout: boolean;
+    installationSteps: {
+      orderStatusPage: string;
+      thankYouPage: string;
+    };
+    displayLocation: "thank-you" | "order-status" | "both";
   };
   display: {
     delay: number;
     position: "center" | "bottom-right" | "top-center";
     showOnPages: string[];
   };
-  sideLogo: {
+  headerLogo: {
     enabled: boolean;
     url: string;
     width: number;
     height: number;
     position: "left" | "right" | "center";
+    size: "small" | "medium" | "large";
+  };
+  sideLogo: {
+    enabled: boolean;
+    url: string;
+    width: number;
+    height: number;
+    position: "left" | "right";
+    size: "small" | "medium" | "large";
   };
   button: {
     enabled: boolean;
@@ -79,7 +98,10 @@ interface PostPurchaseSettingsRefactoredProps {
 const PostPurchaseSettingsRefactored: React.FC<
   PostPurchaseSettingsRefactoredProps
 > = ({ settings, onSettingsChange }) => {
-  const updateSetting = (key: string, value: any) => {
+  const updateSetting = (
+    key: string,
+    value: string | boolean | number | string[]
+  ) => {
     const keys = key.split(".");
     let newSettings = { ...settings };
 
@@ -117,12 +139,22 @@ const PostPurchaseSettingsRefactored: React.FC<
         onSettingsChange={updateSetting}
       />
 
+      <PageLocationSettings
+        settings={settings.postPurchasePage}
+        onSettingsChange={updateSetting}
+      />
+
       <DisplaySettings
         settings={settings.display}
         onSettingsChange={updateSetting}
       />
 
-      <SideLogo settings={settings.sideLogo} onSettingsChange={updateSetting} />
+      <LogoSettings
+        headerLogo={settings.headerLogo}
+        sideLogo={settings.sideLogo}
+        onSettingsChange={updateSetting}
+        distributionType="post-purchase"
+      />
 
       <IntegratedCustomization
         buttonSettings={settings.button}

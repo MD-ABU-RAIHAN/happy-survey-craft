@@ -2,9 +2,9 @@ import React from "react";
 import DistributionItem from "./distribution/DistributionItem";
 import BrandedSurveySettingsRefactored from "./BrandedSurveySettingsRefactored";
 import PostPurchaseSettingsRefactored from "./PostPurchaseSettingsRefactored";
-import ExitIntentSettingsComponent from "./ExitIntentSettings";
-import EmailCampaignSettingsComponent from "./EmailCampaignSettings";
-import OnSitePopupSettingsComponent from "./OnSitePopupSettings";
+import ExitIntentSettingsComponent from "./ExitIntentSettingsRefactored";
+import EmailCampaignSettingsComponent from "./EmailCampaignSettingsRefactored";
+import OnSitePopupSettingsComponent from "./OnSitePopupSettingsRefactored";
 import DefaultDistributionSettings from "./shared/DefaultDistributionSettings";
 
 interface DistributionType {
@@ -160,13 +160,21 @@ interface ExitIntentSettings {
     hasProducts: boolean;
   };
   recurrence: "only-once" | "every-incomplete";
+  headerLogo: {
+    enabled: boolean;
+    url: string;
+    width: number;
+    height: number;
+    position: "left" | "right" | "center";
+    size: "small" | "medium" | "large";
+  };
   sideLogo: {
     enabled: boolean;
     url: string;
-    file: File | null;
-    size: "small" | "medium" | "large";
+    width: number;
+    height: number;
     position: "left" | "right";
-    minimized: boolean;
+    size: "small" | "medium" | "large";
   };
   button: {
     enabled: boolean;
@@ -215,9 +223,10 @@ interface EmailCampaignSettings {
     type: "all-users" | "segment-users";
     userTag: {
       enabled: boolean;
-      selectedTag: string;
+      selectedTags: string[];
     };
-    customerType: "all" | "new" | "return";
+    newCustomer: boolean;
+    returningCustomer: boolean;
     productPurchase: {
       enabled: boolean;
       selectedProducts: string[];
@@ -307,13 +316,21 @@ interface OnSitePopupSettings {
   display: {
     position: "center" | "bottom-right" | "top-center";
   };
+  headerLogo: {
+    enabled: boolean;
+    url: string;
+    width: number;
+    height: number;
+    position: "left" | "right" | "center";
+    size: "small" | "medium" | "large";
+  };
   sideLogo: {
     enabled: boolean;
     url: string;
-    file: File | null;
-    size: "small" | "medium" | "large";
+    width: number;
+    height: number;
     position: "left" | "right";
-    minimized: boolean;
+    size: "small" | "medium" | "large";
   };
   button: {
     enabled: boolean;

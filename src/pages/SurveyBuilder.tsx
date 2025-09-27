@@ -116,9 +116,10 @@ interface PostPurchaseSettings {
     type: "all-users" | "segment-users";
     userTag: {
       enabled: boolean;
-      selectedTag: string;
+      selectedTags: string[];
     };
-    customerType: "all" | "new" | "return";
+    newCustomer: boolean;
+    returningCustomer: boolean;
     productPurchase: {
       enabled: boolean;
       selectedProducts: string[];
@@ -377,14 +378,24 @@ interface ExitIntentSettings {
   // Recurrence settings
   recurrence: "only-once" | "every-incomplete";
 
+  // Header Logo
+  headerLogo: {
+    enabled: boolean;
+    url: string;
+    width: number;
+    height: number;
+    position: "left" | "right" | "center";
+    size: "small" | "medium" | "large";
+  };
+
   // Side Logo
   sideLogo: {
     enabled: boolean;
     url: string;
-    file: File | null;
-    size: "small" | "medium" | "large";
+    width: number;
+    height: number;
     position: "left" | "right";
-    minimized: boolean;
+    size: "small" | "medium" | "large";
   };
 
   // Button customization
@@ -438,9 +449,10 @@ interface EmailCampaignSettings {
     type: "all-users" | "segment-users";
     userTag: {
       enabled: boolean;
-      selectedTag: string;
+      selectedTags: string[];
     };
-    customerType: "all" | "new" | "return";
+    newCustomer: boolean;
+    returningCustomer: boolean;
     productPurchase: {
       enabled: boolean;
       selectedProducts: string[];
@@ -544,14 +556,24 @@ interface OnSitePopupSettings {
     position: "center" | "bottom-right" | "top-center";
   };
 
+  // Header Logo
+  headerLogo: {
+    enabled: boolean;
+    url: string;
+    width: number;
+    height: number;
+    position: "left" | "right" | "center";
+    size: "small" | "medium" | "large";
+  };
+
   // Side Logo
   sideLogo: {
     enabled: boolean;
     url: string;
-    file: File | null;
-    size: "small" | "medium" | "large";
+    width: number;
+    height: number;
     position: "left" | "right";
-    minimized: boolean;
+    size: "small" | "medium" | "large";
   };
 
   // Button customization
@@ -615,8 +637,13 @@ const SurveyBuilder = () => {
   >("branded-survey");
 
   // Pagination state
-  const [paginationEnabled, setPaginationEnabled] = useState(false);
+  const [paginationEnabled, setPaginationEnabled] = useState(true);
   const [questionsPerPage, setQuestionsPerPage] = useState(1);
+
+  // Active question tracking for Live Preview sync
+  const [expandedQuestionId, setExpandedQuestionId] = useState<string | null>(
+    null
+  );
 
   // Distribution Settings
   const [enabledDistributions, setEnabledDistributions] = useState<string[]>([
@@ -660,9 +687,10 @@ const SurveyBuilder = () => {
         type: "all-users",
         userTag: {
           enabled: false,
-          selectedTag: "",
+          selectedTags: [],
         },
-        customerType: "all",
+        newCustomer: false,
+        returningCustomer: false,
         productPurchase: {
           enabled: false,
           selectedProducts: [],
@@ -876,13 +904,21 @@ const SurveyBuilder = () => {
         hasProducts: true,
       },
       recurrence: "only-once",
+      headerLogo: {
+        enabled: false,
+        url: "",
+        width: 100,
+        height: 50,
+        position: "center",
+        size: "medium",
+      },
       sideLogo: {
         enabled: false,
         url: "",
-        file: null,
-        size: "medium",
+        width: 100,
+        height: 50,
         position: "right",
-        minimized: true,
+        size: "medium",
       },
       button: {
         textColor: "#ffffff",
@@ -905,9 +941,10 @@ const SurveyBuilder = () => {
         type: "all-users",
         userTag: {
           enabled: false,
-          selectedTag: "",
+          selectedTags: [],
         },
-        customerType: "all",
+        newCustomer: false,
+        returningCustomer: false,
         productPurchase: {
           enabled: false,
           selectedProducts: [],
@@ -935,24 +972,29 @@ const SurveyBuilder = () => {
 <p>Best regards,<br>Your Customer Success Team</p>`,
       },
       button: {
-        textColor: "#ffffff",
+        enabled: true,
         backgroundColor: "#3b82f6",
+        textColor: "#ffffff",
+        borderRadius: 8,
+        fontSize: 16,
+        fontWeight: "medium",
         backgroundHoverColor: "#2563eb",
-        minimized: true,
+        shadow: true,
       },
-      background: {
-        type: "solid",
-        solidColor: "#ffffff",
-        gradientStart: "#f8fafc",
-        gradientEnd: "#e2e8f0",
+      section: {
+        primaryText: "#1f2937",
+        secondaryText: "#6b7280",
+        accentColor: "#3b82f6",
+        backgroundColor: "#ffffff",
+        backgroundType: "solid",
+        gradientFrom: "#f8fafc",
+        gradientTo: "#e2e8f0",
         gradientDirection: "to-br",
-        imageUrl: "",
-        imageFile: null,
-        imagePosition: "center",
-        imageSize: "cover",
-        overlay: false,
-        overlayColor: "#000000",
-        overlayOpacity: 0.3,
+        backgroundImage: "",
+        backgroundImageOpacity: 80,
+        backgroundImagePosition: "center",
+        customCss: "",
+        enableCustomCss: false,
       },
     });
 
@@ -983,26 +1025,46 @@ const SurveyBuilder = () => {
       display: {
         position: "bottom-right",
       },
+      headerLogo: {
+        enabled: false,
+        url: "",
+        width: 100,
+        height: 50,
+        position: "center",
+        size: "medium",
+      },
       sideLogo: {
         enabled: false,
         url: "",
-        file: null,
-        size: "medium",
+        width: 100,
+        height: 50,
         position: "right",
-        minimized: true,
+        size: "medium",
       },
       button: {
-        textColor: "#ffffff",
+        enabled: true,
         backgroundColor: "#3b82f6",
+        textColor: "#ffffff",
+        borderRadius: 8,
+        fontSize: 16,
+        fontWeight: "500",
         backgroundHoverColor: "#2563eb",
-        minimized: true,
+        shadow: true,
       },
       section: {
-        primaryTextColor: "#1f2937",
-        secondaryTextColor: "#6b7280",
+        primaryText: "#1f2937",
+        secondaryText: "#6b7280",
         accentColor: "#3b82f6",
         backgroundColor: "#ffffff",
-        minimized: true,
+        backgroundType: "solid",
+        gradientFrom: "#ffffff",
+        gradientTo: "#f3f4f6",
+        gradientDirection: "to-r",
+        backgroundImage: "",
+        backgroundImageOpacity: 0.5,
+        backgroundImagePosition: "center",
+        customCss: "",
+        enableCustomCss: false,
       },
     });
 
@@ -1142,6 +1204,13 @@ const SurveyBuilder = () => {
     setEnabledDistributions((prev) => {
       const isCurrentlyEnabled = prev.includes(distributionId);
       if (isCurrentlyEnabled) {
+        // When disabling a distribution, automatically collapse it
+        setExpandedDistributionId((prevExpanded) => {
+          if (prevExpanded === distributionId) {
+            return null;
+          }
+          return prevExpanded;
+        });
         return prev.filter((id) => id !== distributionId);
       } else {
         // When enabling a distribution, automatically expand it and set it as preview
@@ -1321,9 +1390,10 @@ const SurveyBuilder = () => {
         type: "all-users",
         userTag: {
           enabled: false,
-          selectedTag: "",
+          selectedTags: [],
         },
-        customerType: "all",
+        newCustomer: false,
+        returningCustomer: false,
         productPurchase: {
           enabled: false,
           selectedProducts: [],
@@ -1351,24 +1421,29 @@ const SurveyBuilder = () => {
 <p>Best regards,<br>Your Customer Success Team</p>`,
       },
       button: {
-        textColor: "#ffffff",
+        enabled: true,
         backgroundColor: "#3b82f6",
+        textColor: "#ffffff",
+        borderRadius: 8,
+        fontSize: 16,
+        fontWeight: "medium",
         backgroundHoverColor: "#2563eb",
-        minimized: true,
+        shadow: true,
       },
-      background: {
-        type: "solid",
-        solidColor: "#ffffff",
-        gradientStart: "#f8fafc",
-        gradientEnd: "#e2e8f0",
+      section: {
+        primaryText: "#1f2937",
+        secondaryText: "#6b7280",
+        accentColor: "#3b82f6",
+        backgroundColor: "#ffffff",
+        backgroundType: "solid",
+        gradientFrom: "#f8fafc",
+        gradientTo: "#e2e8f0",
         gradientDirection: "to-br",
-        imageUrl: "",
-        imageFile: null,
-        imagePosition: "center",
-        imageSize: "cover",
-        overlay: false,
-        overlayColor: "#000000",
-        overlayOpacity: 0.3,
+        backgroundImage: "",
+        backgroundImageOpacity: 80,
+        backgroundImagePosition: "center",
+        customCss: "",
+        enableCustomCss: false,
       },
     });
   };
@@ -1610,21 +1685,21 @@ const SurveyBuilder = () => {
                   <TabsList className="grid grid-cols-3 m-6 mb-0">
                     <TabsTrigger
                       value="builder"
-                      className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200 ease-in-out hover:bg-muted/50"
+                      className="data-[state=active]:!bg-primary data-[state=active]:!text-primary-foreground data-[state=active]:!shadow-lg transition-all duration-200 ease-in-out hover:bg-muted/50"
                     >
                       <Target className="w-4 h-4 mr-2 transition-transform duration-200 group-hover:scale-105" />
                       Survey Builder
                     </TabsTrigger>
                     <TabsTrigger
                       value="distribution"
-                      className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200 ease-in-out hover:bg-muted/50"
+                      className="data-[state=active]:!bg-primary data-[state=active]:!text-primary-foreground data-[state=active]:!shadow-lg transition-all duration-200 ease-in-out hover:bg-muted/50"
                     >
                       <MapPin className="w-4 h-4 mr-2 transition-transform duration-200 group-hover:scale-105" />
                       Distribution
                     </TabsTrigger>
                     <TabsTrigger
                       value="discount"
-                      className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200 ease-in-out hover:bg-muted/50"
+                      className="data-[state=active]:!bg-primary data-[state=active]:!text-primary-foreground data-[state=active]:!shadow-lg transition-all duration-200 ease-in-out hover:bg-muted/50"
                     >
                       <Gift className="w-4 h-4 mr-2 transition-transform duration-200 group-hover:scale-105" />
                       Incentives
@@ -1638,6 +1713,7 @@ const SurveyBuilder = () => {
                     <QuestionBuilder
                       questions={questions}
                       onQuestionsChange={setQuestions}
+                      onExpandedQuestionChange={setExpandedQuestionId}
                     />
                   </TabsContent>
 
@@ -1723,6 +1799,7 @@ const SurveyBuilder = () => {
                 questionsPerPage={questionsPerPage}
                 onPaginationChange={setPaginationEnabled}
                 onQuestionsPerPageChange={setQuestionsPerPage}
+                expandedQuestionId={expandedQuestionId}
               />
             </div>
           </div>

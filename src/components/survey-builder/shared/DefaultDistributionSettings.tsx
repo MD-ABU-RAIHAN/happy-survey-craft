@@ -1,17 +1,22 @@
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Zap,
-  Users,
-} from "lucide-react";
+import { Zap } from "lucide-react";
+import UserTargeting from "./UserTargeting";
+
+interface UserTargetingSettings {
+  type: "all-users" | "segment-users";
+  userTag: {
+    enabled: boolean;
+    selectedTags: string[];
+  };
+  newCustomer: boolean;
+  returningCustomer: boolean;
+  productPurchase: {
+    enabled: boolean;
+    selectedProducts: string[];
+  };
+}
 
 interface DefaultDistributionSettingsProps {
   distribution: {
@@ -21,9 +26,9 @@ interface DefaultDistributionSettingsProps {
   settings: {
     triggerDelay: string;
     displayDuration: string;
-    targetAudience: string;
+    userTargeting: UserTargetingSettings;
   };
-  onSettingsChange: (distributionId: string, key: string, value: string) => void;
+  onSettingsChange: (distributionId: string, key: string, value: string | boolean | string[]) => void;
 }
 
 const DefaultDistributionSettings: React.FC<DefaultDistributionSettingsProps> = ({
@@ -31,6 +36,10 @@ const DefaultDistributionSettings: React.FC<DefaultDistributionSettingsProps> = 
   settings,
   onSettingsChange,
 }) => {
+  const handleUserTargetingChange = (key: string, value: string | boolean | string[]) => {
+    onSettingsChange(distribution.id, key, value);
+  };
+
   return (
     <>
       <div className="bg-white/50 rounded-lg p-4 space-y-4">
@@ -81,90 +90,11 @@ const DefaultDistributionSettings: React.FC<DefaultDistributionSettingsProps> = 
         </div>
       </div>
 
-      <div className="bg-white/50 rounded-lg p-4 space-y-4">
-        <h5 className="font-medium text-sm flex items-center gap-2">
-          <Users className="w-4 h-4 text-secondary-brand" />
-          Target Audience
-        </h5>
-
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label className="text-xs">
-              Customer Segment
-            </Label>
-            <Select
-              value={settings.targetAudience}
-              onValueChange={(value) =>
-                onSettingsChange(
-                  distribution.id,
-                  "targetAudience",
-                  value
-                )
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all-customers">
-                  All Customers
-                </SelectItem>
-                <SelectItem value="new-customers">
-                  New Customers
-                </SelectItem>
-                <SelectItem value="returning-customers">
-                  Returning Customers
-                </SelectItem>
-                <SelectItem value="vip-customers">
-                  VIP Customers
-                </SelectItem>
-                <SelectItem value="specific-products">
-                  Specific Product Buyers
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label className="text-xs">
-                Min. Order Value
-              </Label>
-              <Input
-                type="number"
-                placeholder="0.00"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs">
-                Geographic Location
-              </Label>
-              <Select defaultValue="all">
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">
-                    All Locations
-                  </SelectItem>
-                  <SelectItem value="us">
-                    United States
-                  </SelectItem>
-                  <SelectItem value="ca">
-                    Canada
-                  </SelectItem>
-                  <SelectItem value="uk">
-                    United Kingdom
-                  </SelectItem>
-                  <SelectItem value="eu">
-                    European Union
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </div>
-      </div>
+      <UserTargeting
+        settings={settings.userTargeting}
+        onSettingsChange={handleUserTargetingChange}
+        distributionId={distribution.id}
+      />
     </>
   );
 };

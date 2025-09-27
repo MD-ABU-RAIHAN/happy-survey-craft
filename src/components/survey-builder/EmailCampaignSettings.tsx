@@ -19,6 +19,7 @@ import ColorPicker from "./shared/ColorPicker";
 import UploadInput from "./shared/UploadInput";
 import IntegratedCustomization from "./branded/IntegratedCustomization";
 import { Mail, Users, ShoppingCart, Upload, Type, Palette } from "lucide-react";
+import LogoSettings from "./shared/LogoSettings";
 
 interface EmailCampaignSettings {
   userTargeting: {
@@ -41,10 +42,18 @@ interface EmailCampaignSettings {
   headerLogo: {
     enabled: boolean;
     url: string;
-    file: File | null;
-    size: "small" | "medium" | "large";
+    width: number;
+    height: number;
     position: "left" | "right" | "center";
-    minimized: boolean;
+    size: "small" | "medium" | "large";
+  };
+  sideLogo: {
+    enabled: boolean;
+    url: string;
+    width: number;
+    height: number;
+    position: "left" | "right";
+    size: "small" | "medium" | "large";
   };
   content: {
     subject: string;
@@ -353,71 +362,13 @@ const EmailCampaignSettingsComponent: React.FC<EmailCampaignSettingsProps> = ({
         </div>
       </SectionCard>
 
-      {/* Header Logo */}
-      <SectionCard
-        title="Header Logo"
-        icon={<Upload className="w-5 h-5 text-survey-purple" />}
-      >
-        <div className="flex items-center justify-between mb-4">
-          <Label className="font-medium">Enable Header Logo</Label>
-          <SlimSwitch
-            checked={settings.headerLogo.enabled}
-            onCheckedChange={(checked) =>
-              updateSetting("headerLogo.enabled", checked)
-            }
-          />
-        </div>
-
-        {settings.headerLogo.enabled && (
-          <div className="space-y-4">
-            <UploadInput
-              label="Logo URL"
-              value={settings.headerLogo.url}
-              onChange={(value) => updateSetting("headerLogo.url", value)}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-xs">Size</Label>
-                <Select
-                  value={settings.headerLogo.size}
-                  onValueChange={(value) =>
-                    updateSetting("headerLogo.size", value)
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="small">Small</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="large">Large</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-xs">Position</Label>
-                <Select
-                  value={settings.headerLogo.position}
-                  onValueChange={(value) =>
-                    updateSetting("headerLogo.position", value)
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="left">Left</SelectItem>
-                    <SelectItem value="center">Center</SelectItem>
-                    <SelectItem value="right">Right</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-        )}
-      </SectionCard>
+      {/* Logo Settings */}
+      <LogoSettings
+        headerLogo={settings.headerLogo}
+        sideLogo={settings.sideLogo}
+        onSettingsChange={updateSetting}
+        distributionType="email-campaign"
+      />
 
       {/* Email Content */}
       <SectionCard
@@ -453,211 +404,6 @@ const EmailCampaignSettingsComponent: React.FC<EmailCampaignSettingsProps> = ({
         </div>
       </SectionCard>
 
-      {/* Background Settings */}
-      <SectionCard
-        title="Background"
-        icon={<Palette className="w-5 h-5 text-survey-info" />}
-      >
-        <div className="space-y-4">
-          <div className="space-y-3">
-            <Label className="font-medium">Background Type</Label>
-            <div className="space-y-3">
-              <div className="flex items-center space-x-3">
-                <input
-                  type="radio"
-                  id="bg-solid"
-                  name="backgroundType"
-                  value="solid"
-                  checked={settings.background.type === "solid"}
-                  onChange={() => updateSetting("background.type", "solid")}
-                  className="w-4 h-4 text-primary"
-                />
-                <Label htmlFor="bg-solid" className="text-sm cursor-pointer">
-                  Solid Color
-                </Label>
-              </div>
-              <div className="flex items-center space-x-3">
-                <input
-                  type="radio"
-                  id="bg-gradient"
-                  name="backgroundType"
-                  value="gradient"
-                  checked={settings.background.type === "gradient"}
-                  onChange={() => updateSetting("background.type", "gradient")}
-                  className="w-4 h-4 text-primary"
-                />
-                <Label htmlFor="bg-gradient" className="text-sm cursor-pointer">
-                  Gradient
-                </Label>
-              </div>
-              <div className="flex items-center space-x-3">
-                <input
-                  type="radio"
-                  id="bg-image"
-                  name="backgroundType"
-                  value="image"
-                  checked={settings.background.type === "image"}
-                  onChange={() => updateSetting("background.type", "image")}
-                  className="w-4 h-4 text-primary"
-                />
-                <Label htmlFor="bg-image" className="text-sm cursor-pointer">
-                  Image
-                </Label>
-              </div>
-            </div>
-          </div>
-
-          {settings.background.type === "solid" && (
-            <ColorPicker
-              label="Background Color"
-              value={settings.background.solidColor}
-              onChange={(value) =>
-                updateSetting("background.solidColor", value)
-              }
-            />
-          )}
-
-          {settings.background.type === "gradient" && (
-            <div className="space-y-4 ml-6">
-              <div className="grid grid-cols-2 gap-4">
-                <ColorPicker
-                  label="Start Color"
-                  value={settings.background.gradientStart}
-                  onChange={(value) =>
-                    updateSetting("background.gradientStart", value)
-                  }
-                />
-                <ColorPicker
-                  label="End Color"
-                  value={settings.background.gradientEnd}
-                  onChange={(value) =>
-                    updateSetting("background.gradientEnd", value)
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs">Direction</Label>
-                <Select
-                  value={settings.background.gradientDirection}
-                  onValueChange={(value) =>
-                    updateSetting("background.gradientDirection", value)
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="to-r">Left to Right</SelectItem>
-                    <SelectItem value="to-l">Right to Left</SelectItem>
-                    <SelectItem value="to-t">Bottom to Top</SelectItem>
-                    <SelectItem value="to-b">Top to Bottom</SelectItem>
-                    <SelectItem value="to-br">
-                      Top-Left to Bottom-Right
-                    </SelectItem>
-                    <SelectItem value="to-bl">
-                      Top-Right to Bottom-Left
-                    </SelectItem>
-                    <SelectItem value="to-tr">
-                      Bottom-Left to Top-Right
-                    </SelectItem>
-                    <SelectItem value="to-tl">
-                      Bottom-Right to Top-Left
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          )}
-
-          {settings.background.type === "image" && (
-            <div className="space-y-4 ml-6">
-              <UploadInput
-                label="Background Image URL"
-                value={settings.background.imageUrl}
-                onChange={(value) =>
-                  updateSetting("background.imageUrl", value)
-                }
-              />
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-xs">Position</Label>
-                  <Select
-                    value={settings.background.imagePosition}
-                    onValueChange={(value) =>
-                      updateSetting("background.imagePosition", value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="center">Center</SelectItem>
-                      <SelectItem value="top">Top</SelectItem>
-                      <SelectItem value="bottom">Bottom</SelectItem>
-                      <SelectItem value="left">Left</SelectItem>
-                      <SelectItem value="right">Right</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs">Size</Label>
-                  <Select
-                    value={settings.background.imageSize}
-                    onValueChange={(value) =>
-                      updateSetting("background.imageSize", value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="cover">Cover</SelectItem>
-                      <SelectItem value="contain">Contain</SelectItem>
-                      <SelectItem value="auto">Auto</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <Label className="text-sm">Overlay</Label>
-                <SlimSwitch
-                  checked={settings.background.overlay}
-                  onCheckedChange={(checked) =>
-                    updateSetting("background.overlay", checked)
-                  }
-                />
-              </div>
-              {settings.background.overlay && (
-                <div className="grid grid-cols-2 gap-4 ml-6">
-                  <ColorPicker
-                    label="Overlay Color"
-                    value={settings.background.overlayColor}
-                    onChange={(value) =>
-                      updateSetting("background.overlayColor", value)
-                    }
-                  />
-                  <div className="space-y-2">
-                    <Label className="text-xs">Opacity</Label>
-                    <Input
-                      type="number"
-                      min={0}
-                      max={1}
-                      step={0.1}
-                      value={settings.background.overlayOpacity}
-                      onChange={(e) =>
-                        updateSetting(
-                          "background.overlayOpacity",
-                          parseFloat(e.target.value)
-                        )
-                      }
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </SectionCard>
 
       {/* Integrated Customization */}
       <IntegratedCustomization

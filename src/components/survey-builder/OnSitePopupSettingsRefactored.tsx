@@ -11,7 +11,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import SectionCard from "./shared/SectionCard";
-import UploadInput from "./shared/UploadInput";
+import LogoSettings from "./shared/LogoSettings";
 import IntegratedCustomization from "./branded/IntegratedCustomization";
 import { Globe, Monitor, Upload } from "lucide-react";
 
@@ -40,13 +40,21 @@ interface OnSitePopupSettings {
   display: {
     position: "center" | "bottom-right" | "top-center";
   };
+  headerLogo: {
+    enabled: boolean;
+    url: string;
+    width: number;
+    height: number;
+    position: "left" | "right" | "center";
+    size: "small" | "medium" | "large";
+  };
   sideLogo: {
     enabled: boolean;
     url: string;
-    file: File | null;
-    size: "small" | "medium" | "large";
+    width: number;
+    height: number;
     position: "left" | "right";
-    minimized: boolean;
+    size: "small" | "medium" | "large";
   };
   button: {
     enabled: boolean;
@@ -110,7 +118,12 @@ const OnSitePopupSettingsRefactored: React.FC<
     const keys = key.split(".");
     let newSettings = { ...settings };
 
-    if (keys.length === 2) {
+    if (keys.length === 1) {
+      newSettings = {
+        ...newSettings,
+        [keys[0]]: value,
+      };
+    } else if (keys.length === 2) {
       newSettings = {
         ...newSettings,
         [keys[0]]: {
@@ -159,11 +172,9 @@ const OnSitePopupSettingsRefactored: React.FC<
     <div className="space-y-8">
       {/* Page Targeting */}
       <SectionCard
-        icon={Globe}
+        icon={<Globe className="w-5 h-5 text-green-600" />}
         title="Page Targeting"
         description="Choose which pages the popup will appear on"
-        color="text-green-600"
-        bgColor="bg-green-50"
       >
         <div className="space-y-4">
           <div className="space-y-2">
@@ -411,11 +422,9 @@ const OnSitePopupSettingsRefactored: React.FC<
 
       {/* Display Settings */}
       <SectionCard
-        icon={Monitor}
+        icon={<Monitor className="w-5 h-5 text-blue-600" />}
         title="Display Settings"
         description="Configure popup display preferences"
-        color="text-blue-600"
-        bgColor="bg-blue-50"
       >
         <div className="space-y-2">
           <Label className="text-sm font-medium">Position</Label>
@@ -437,79 +446,13 @@ const OnSitePopupSettingsRefactored: React.FC<
         </div>
       </SectionCard>
 
-      {/* Side Logo Settings */}
-      <SectionCard
-        icon={Upload}
-        title="Side Logo"
-        description="Add your brand logo to the popup"
-        color="text-purple-600"
-        bgColor="bg-purple-50"
-        collapsible
-        defaultExpanded={settings.sideLogo.enabled}
-      >
-        <div className="space-y-4">
-          <div className="flex items-center space-x-2">
-            <SlimSwitch
-              checked={settings.sideLogo.enabled}
-              onCheckedChange={(checked) =>
-                updateSetting("sideLogo.enabled", checked)
-              }
-            />
-            <Label className="text-sm">Enable side logo</Label>
-          </div>
-
-          {settings.sideLogo.enabled && (
-            <div className="space-y-4 pl-6">
-              <UploadInput
-                label="Logo Image"
-                value={settings.sideLogo.url}
-                file={settings.sideLogo.file}
-                onChange={(url, file) => {
-                  updateSetting("sideLogo.url", url);
-                  updateSetting("sideLogo.file", file);
-                }}
-              />
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-sm">Size</Label>
-                  <Select
-                    value={settings.sideLogo.size}
-                    onValueChange={(value: "small" | "medium" | "large") =>
-                      updateSetting("sideLogo.size", value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="small">Small</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="large">Large</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm">Position</Label>
-                  <Select
-                    value={settings.sideLogo.position}
-                    onValueChange={(value: "left" | "right") =>
-                      updateSetting("sideLogo.position", value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="left">Left</SelectItem>
-                      <SelectItem value="right">Right</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </SectionCard>
+      {/* Logo Settings */}
+      <LogoSettings
+        headerLogo={settings.headerLogo}
+        sideLogo={settings.sideLogo}
+        onSettingsChange={updateSetting}
+        distributionType="onsite-popup"
+      />
 
       {/* Customization Settings */}
       <IntegratedCustomization

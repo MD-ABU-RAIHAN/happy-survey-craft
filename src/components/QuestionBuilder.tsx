@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { SlimSwitch } from "@/components/ui/slim-switch";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -85,11 +85,13 @@ interface SurveyQuestion {
 interface QuestionBuilderProps {
   questions: SurveyQuestion[];
   onQuestionsChange: (questions: SurveyQuestion[]) => void;
+  onExpandedQuestionChange?: (questionId: string | null) => void;
 }
 
 const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
   questions,
   onQuestionsChange,
+  onExpandedQuestionChange,
 }) => {
   const [collapsedCustomAnswers, setCollapsedCustomAnswers] = useState<
     string[]
@@ -206,6 +208,7 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
 
     onQuestionsChange(updatedQuestions);
     setExpandedQuestionId(newQuestionId);
+    onExpandedQuestionChange?.(newQuestionId);
 
     // Reset the select value to allow selecting the same type again
     setSelectedQuestionType("");
@@ -232,6 +235,7 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
 
     onQuestionsChange(updatedQuestions);
     setExpandedQuestionId(newQuestionId);
+    onExpandedQuestionChange?.(newQuestionId);
   };
 
   const updateQuestion = (id: string, updates: Partial<SurveyQuestion>) => {
@@ -247,6 +251,7 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
     // If the deleted question was expanded, clear the expandedQuestionId
     if (expandedQuestionId === id) {
       setExpandedQuestionId(null);
+      onExpandedQuestionChange?.(null);
     }
   };
 
@@ -271,6 +276,7 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
 
       onQuestionsChange(updatedQuestions);
       setExpandedQuestionId(duplicatedId);
+      onExpandedQuestionChange?.(duplicatedId);
     }
   };
 
@@ -286,10 +292,12 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
       }));
       onQuestionsChange(updatedQuestions);
       setExpandedQuestionId(id);
+      onExpandedQuestionChange?.(id);
     } else {
       // Collapsing this question
       updateQuestion(id, { isCollapsed: true });
       setExpandedQuestionId(null);
+      onExpandedQuestionChange?.(null);
     }
   };
 
@@ -1231,7 +1239,7 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                                           </Badge>
                                         </div>
                                       </div>
-                                      <Switch
+                                      <SlimSwitch
                                         checked={
                                           question.customAnswer?.enabled ||
                                           false
@@ -1417,7 +1425,7 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                                         : "Optional"}
                                     </Badge>
                                   </div>
-                                  <Switch
+                                  <SlimSwitch
                                     checked={question.required}
                                     onCheckedChange={(checked) =>
                                       updateQuestion(question.id, {

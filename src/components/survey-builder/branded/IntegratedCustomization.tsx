@@ -144,8 +144,18 @@ const IntegratedCustomization: React.FC<IntegratedCustomizationProps> = ({
           <CardContent className="space-y-6">
             <Tabs defaultValue="button" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="button">Button Customization</TabsTrigger>
-                <TabsTrigger value="section">Section Customization</TabsTrigger>
+                <TabsTrigger
+                  value="button"
+                  className="data-[state=active]:!bg-white data-[state=active]:!text-gray-900 data-[state=active]:!shadow-md data-[state=active]:!border-gray-200"
+                >
+                  Button Customization
+                </TabsTrigger>
+                <TabsTrigger
+                  value="section"
+                  className="data-[state=active]:!bg-white data-[state=active]:!text-gray-900 data-[state=active]:!shadow-md data-[state=active]:!border-gray-200"
+                >
+                  Section Customization
+                </TabsTrigger>
               </TabsList>
 
               {/* Button Customization Tab */}
@@ -299,9 +309,24 @@ const IntegratedCustomization: React.FC<IntegratedCustomizationProps> = ({
                     className="w-full"
                   >
                     <TabsList className="grid w-full grid-cols-3">
-                      <TabsTrigger value="solid">Solid Color</TabsTrigger>
-                      <TabsTrigger value="gradient">Gradient</TabsTrigger>
-                      <TabsTrigger value="image">Image</TabsTrigger>
+                      <TabsTrigger
+                        value="solid"
+                        className="data-[state=active]:!bg-white data-[state=active]:!text-gray-900 data-[state=active]:!shadow-md data-[state=active]:!border-gray-200"
+                      >
+                        Solid Color
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="gradient"
+                        className="data-[state=active]:!bg-white data-[state=active]:!text-gray-900 data-[state=active]:!shadow-md data-[state=active]:!border-gray-200"
+                      >
+                        Gradient
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="image"
+                        className="data-[state=active]:!bg-white data-[state=active]:!text-gray-900 data-[state=active]:!shadow-md data-[state=active]:!border-gray-200"
+                      >
+                        Image
+                      </TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="solid" className="space-y-4">
