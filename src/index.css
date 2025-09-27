@@ -9,7 +9,7 @@ All colors MUST be HSL.
 @layer base {
   :root {
     /* MS Survey App Design System - Shopify Style */
-    --background: 0 0% 100%;
+    --background: 0 0% 94.5%;
     --foreground: 212 12% 14%;
 
     --card: 0 0% 100%;

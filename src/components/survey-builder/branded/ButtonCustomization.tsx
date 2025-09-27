@@ -51,66 +51,39 @@ const ButtonCustomization: React.FC<ButtonCustomizationProps> = ({
           <div className="space-y-3">
             <div className="space-y-1">
               <Label className="text-xs">Background Color</Label>
-              <div className="flex space-x-2">
-                <Input
-                  type="color"
-                  value={settings.backgroundColor}
-                  onChange={(e) =>
-                    onSettingsChange("button.backgroundColor", e.target.value)
-                  }
-                  className="w-16"
-                />
-                <Input
-                  value={settings.backgroundColor}
-                  onChange={(e) =>
-                    onSettingsChange("button.backgroundColor", e.target.value)
-                  }
-                />
-              </div>
+              <Input
+                type="color"
+                value={settings.backgroundColor}
+                onChange={(e) =>
+                  onSettingsChange("button.backgroundColor", e.target.value)
+                }
+                className="w-16"
+              />
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Text Color</Label>
-              <div className="flex space-x-2">
-                <Input
-                  type="color"
-                  value={settings.textColor}
-                  onChange={(e) =>
-                    onSettingsChange("button.textColor", e.target.value)
-                  }
-                  className="w-16"
-                />
-                <Input
-                  value={settings.textColor}
-                  onChange={(e) =>
-                    onSettingsChange("button.textColor", e.target.value)
-                  }
-                />
-              </div>
+              <Input
+                type="color"
+                value={settings.textColor}
+                onChange={(e) =>
+                  onSettingsChange("button.textColor", e.target.value)
+                }
+                className="w-16"
+              />
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Hover Color</Label>
-              <div className="flex space-x-2">
-                <Input
-                  type="color"
-                  value={settings.backgroundHoverColor}
-                  onChange={(e) =>
-                    onSettingsChange(
-                      "button.backgroundHoverColor",
-                      e.target.value
-                    )
-                  }
-                  className="w-16"
-                />
-                <Input
-                  value={settings.backgroundHoverColor}
-                  onChange={(e) =>
-                    onSettingsChange(
-                      "button.backgroundHoverColor",
-                      e.target.value
-                    )
-                  }
-                />
-              </div>
+              <Input
+                type="color"
+                value={settings.backgroundHoverColor}
+                onChange={(e) =>
+                  onSettingsChange(
+                    "button.backgroundHoverColor",
+                    e.target.value
+                  )
+                }
+                className="w-16"
+              />
             </div>
           </div>
           <div className="space-y-3">
@@ -164,38 +137,6 @@ const ButtonCustomization: React.FC<ButtonCustomizationProps> = ({
         <p className="text-sm text-muted-foreground">
           Enable to customize button appearance
         </p>
-      )}
-
-      {/* Button Preview */}
-      {settings.enabled && (
-        <div className="space-y-2">
-          <Label className="text-xs font-medium">Button Preview</Label>
-          <div className="flex justify-center p-4 bg-muted/30 rounded-lg">
-            <button
-              style={{
-                backgroundColor: settings.backgroundColor,
-                color: settings.textColor,
-                borderRadius: `${settings.borderRadius}px`,
-                fontSize: `${settings.fontSize}px`,
-                fontWeight: settings.fontWeight,
-                boxShadow: settings.shadow
-                  ? "0 2px 4px rgba(0,0,0,0.1)"
-                  : "none",
-              }}
-              className="px-6 py-2 transition-colors duration-200"
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor =
-                  settings.backgroundHoverColor;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor =
-                  settings.backgroundColor;
-              }}
-            >
-              Submit Survey
-            </button>
-          </div>
-        </div>
       )}
     </div>
   );

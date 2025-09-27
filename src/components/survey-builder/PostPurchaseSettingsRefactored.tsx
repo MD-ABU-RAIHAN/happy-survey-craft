@@ -1,9 +1,8 @@
 import React from "react";
 import UserTargeting from "./post-purchase/UserTargeting";
 import DisplaySettings from "./post-purchase/DisplaySettings";
-import AppearanceSettings from "./post-purchase/AppearanceSettings";
 import SideLogo from "./post-purchase/SideLogo";
-import AdvancedFeatures from "./post-purchase/AdvancedFeatures";
+import IntegratedCustomization from "./branded/IntegratedCustomization";
 
 interface PostPurchaseSettings {
   userTargeting: {
@@ -23,12 +22,6 @@ interface PostPurchaseSettings {
     position: "center" | "bottom-right" | "top-center";
     showOnPages: string[];
   };
-  appearance: {
-    primaryColor: string;
-    backgroundColor: string;
-    borderRadius: number;
-    shadow: boolean;
-  };
   sideLogo: {
     enabled: boolean;
     url: string;
@@ -36,8 +29,45 @@ interface PostPurchaseSettings {
     height: number;
     position: "left" | "right" | "center";
   };
-  advancedFeatures: {
-    minimized: boolean;
+  button: {
+    enabled: boolean;
+    backgroundColor: string;
+    textColor: string;
+    borderRadius: number;
+    fontSize: number;
+    fontWeight: string;
+    backgroundHoverColor: string;
+    shadow: boolean;
+  };
+  section: {
+    primaryText: string;
+    secondaryText: string;
+    accentColor: string;
+    backgroundColor: string;
+    backgroundType: "solid" | "gradient" | "image";
+    gradientFrom: string;
+    gradientTo: string;
+    gradientDirection:
+      | "to-r"
+      | "to-br"
+      | "to-b"
+      | "to-bl"
+      | "to-l"
+      | "to-tl"
+      | "to-t"
+      | "to-tr";
+    backgroundImage: string;
+    backgroundImageOpacity: number;
+    backgroundImagePosition:
+      | "center"
+      | "top"
+      | "bottom"
+      | "left"
+      | "right"
+      | "cover"
+      | "contain";
+    customCss: string;
+    enableCustomCss: boolean;
   };
 }
 
@@ -46,18 +76,20 @@ interface PostPurchaseSettingsRefactoredProps {
   onSettingsChange: (settings: PostPurchaseSettings) => void;
 }
 
-const PostPurchaseSettingsRefactored: React.FC<PostPurchaseSettingsRefactoredProps> = ({
-  settings,
-  onSettingsChange,
-}) => {
+const PostPurchaseSettingsRefactored: React.FC<
+  PostPurchaseSettingsRefactoredProps
+> = ({ settings, onSettingsChange }) => {
   const updateSetting = (key: string, value: any) => {
-    const keys = key.split('.');
+    const keys = key.split(".");
     let newSettings = { ...settings };
 
     if (keys.length === 2) {
       newSettings = {
         ...newSettings,
-        [keys[0]]: { ...newSettings[keys[0] as keyof PostPurchaseSettings], [keys[1]]: value }
+        [keys[0]]: {
+          ...newSettings[keys[0] as keyof PostPurchaseSettings],
+          [keys[1]]: value,
+        },
       };
     } else if (keys.length === 3) {
       const firstKey = keys[0] as keyof PostPurchaseSettings;
@@ -67,8 +99,11 @@ const PostPurchaseSettingsRefactored: React.FC<PostPurchaseSettingsRefactoredPro
         ...newSettings,
         [firstKey]: {
           ...newSettings[firstKey],
-          [secondKey]: { ...newSettings[firstKey][secondKey], [thirdKey]: value }
-        }
+          [secondKey]: {
+            ...newSettings[firstKey][secondKey],
+            [thirdKey]: value,
+          },
+        },
       };
     }
 
@@ -87,18 +122,11 @@ const PostPurchaseSettingsRefactored: React.FC<PostPurchaseSettingsRefactoredPro
         onSettingsChange={updateSetting}
       />
 
-      <AppearanceSettings
-        settings={settings.appearance}
-        onSettingsChange={updateSetting}
-      />
+      <SideLogo settings={settings.sideLogo} onSettingsChange={updateSetting} />
 
-      <SideLogo
-        settings={settings.sideLogo}
-        onSettingsChange={updateSetting}
-      />
-
-      <AdvancedFeatures
-        settings={settings.advancedFeatures}
+      <IntegratedCustomization
+        buttonSettings={settings.button}
+        sectionSettings={settings.section}
         onSettingsChange={updateSetting}
       />
     </div>

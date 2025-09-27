@@ -1,7 +1,7 @@
 import React from "react";
 import SurveyUrlSection from "./branded/SurveyUrlSection";
 import LogoSettings from "./branded/LogoSettings";
-import ButtonCustomization from "./branded/ButtonCustomization";
+import IntegratedCustomization from "./branded/IntegratedCustomization";
 
 interface BrandedSurveySettings {
   useCustomDomain: boolean;
@@ -20,10 +20,34 @@ interface BrandedSurveySettings {
     shadow: boolean;
   };
   section: {
+    primaryText: string;
+    secondaryText: string;
+    accentColor: string;
     backgroundColor: string;
-    textColor: string;
-    borderColor: string;
-    borderRadius: number;
+    backgroundType: "solid" | "gradient" | "image";
+    gradientFrom: string;
+    gradientTo: string;
+    gradientDirection:
+      | "to-r"
+      | "to-br"
+      | "to-b"
+      | "to-bl"
+      | "to-l"
+      | "to-tl"
+      | "to-t"
+      | "to-tr";
+    backgroundImage: string;
+    backgroundImageOpacity: number;
+    backgroundImagePosition:
+      | "center"
+      | "top"
+      | "bottom"
+      | "left"
+      | "right"
+      | "cover"
+      | "contain";
+    customCss: string;
+    enableCustomCss: boolean;
   };
   background: {
     type: "color" | "gradient" | "image";
@@ -58,7 +82,9 @@ interface BrandedSurveySettingsRefactoredProps {
   copiedUrl: boolean;
 }
 
-const BrandedSurveySettingsRefactored: React.FC<BrandedSurveySettingsRefactoredProps> = ({
+const BrandedSurveySettingsRefactored: React.FC<
+  BrandedSurveySettingsRefactoredProps
+> = ({
   settings,
   onSettingsChange,
   onResetToDefault,
@@ -66,15 +92,19 @@ const BrandedSurveySettingsRefactored: React.FC<BrandedSurveySettingsRefactoredP
   onCopyUrl,
   copiedUrl,
 }) => {
-  const updateSetting = (key: string, value: any) => {
-    const keys = key.split('.');
+  const updateSetting = (key: string, value: string | number | boolean) => {
+    const keys = key.split(".");
     if (keys.length === 1) {
       onSettingsChange({ ...settings, [key]: value });
     } else if (keys.length === 2) {
-      onSettingsChange({
-        ...settings,
-        [keys[0]]: { ...settings[keys[0] as keyof BrandedSurveySettings], [keys[1]]: value }
-      });
+      const parentKey = keys[0] as keyof BrandedSurveySettings;
+      const parentObject = settings[parentKey];
+      if (typeof parentObject === "object" && parentObject !== null) {
+        onSettingsChange({
+          ...settings,
+          [parentKey]: { ...parentObject, [keys[1]]: value },
+        });
+      }
     }
   };
 
@@ -99,8 +129,9 @@ const BrandedSurveySettingsRefactored: React.FC<BrandedSurveySettingsRefactoredP
         onSettingsChange={updateSetting}
       />
 
-      <ButtonCustomization
-        settings={settings.button}
+      <IntegratedCustomization
+        buttonSettings={settings.button}
+        sectionSettings={settings.section}
         onSettingsChange={updateSetting}
       />
     </div>

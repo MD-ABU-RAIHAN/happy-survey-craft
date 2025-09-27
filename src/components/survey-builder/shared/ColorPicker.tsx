@@ -18,15 +18,12 @@ const ColorPicker: React.FC<ColorPickerProps> = ({
   return (
     <div className={`space-y-1 ${className}`}>
       <Label className="text-xs">{label}</Label>
-      <div className="flex space-x-2">
-        <Input
-          type="color"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-16"
-        />
-        <Input value={value} onChange={(e) => onChange(e.target.value)} />
-      </div>
+      <Input
+        type="color"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-16"
+      />
     </div>
   );
 };

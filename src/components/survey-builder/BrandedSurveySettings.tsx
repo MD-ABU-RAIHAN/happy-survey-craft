@@ -131,14 +131,14 @@ const BrandedSurveySettingsComponent: React.FC<BrandedSurveySettingsProps> = ({
         </div>
 
         <div className="space-y-3">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center justify-between">
+            <Label className="text-sm">Use Custom Domain</Label>
             <Switch
               checked={settings.useCustomDomain}
               onCheckedChange={(checked) =>
                 updateSetting("useCustomDomain", checked)
               }
             />
-            <Label className="text-sm">Use Custom Domain</Label>
           </div>
 
           {settings.useCustomDomain && (
@@ -351,66 +351,39 @@ const BrandedSurveySettingsComponent: React.FC<BrandedSurveySettingsProps> = ({
             <div className="space-y-3">
               <div className="space-y-1">
                 <Label className="text-xs">Background Color</Label>
-                <div className="flex space-x-2">
-                  <Input
-                    type="color"
-                    value={settings.button.backgroundColor}
-                    onChange={(e) =>
-                      updateSetting("button.backgroundColor", e.target.value)
-                    }
-                    className="w-16"
-                  />
-                  <Input
-                    value={settings.button.backgroundColor}
-                    onChange={(e) =>
-                      updateSetting("button.backgroundColor", e.target.value)
-                    }
-                  />
-                </div>
+                <Input
+                  type="color"
+                  value={settings.button.backgroundColor}
+                  onChange={(e) =>
+                    updateSetting("button.backgroundColor", e.target.value)
+                  }
+                  className="w-16"
+                />
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">Text Color</Label>
-                <div className="flex space-x-2">
-                  <Input
-                    type="color"
-                    value={settings.button.textColor}
-                    onChange={(e) =>
-                      updateSetting("button.textColor", e.target.value)
-                    }
-                    className="w-16"
-                  />
-                  <Input
-                    value={settings.button.textColor}
-                    onChange={(e) =>
-                      updateSetting("button.textColor", e.target.value)
-                    }
-                  />
-                </div>
+                <Input
+                  type="color"
+                  value={settings.button.textColor}
+                  onChange={(e) =>
+                    updateSetting("button.textColor", e.target.value)
+                  }
+                  className="w-16"
+                />
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">Hover Color</Label>
-                <div className="flex space-x-2">
-                  <Input
-                    type="color"
-                    value={settings.button.backgroundHoverColor}
-                    onChange={(e) =>
-                      updateSetting(
-                        "button.backgroundHoverColor",
-                        e.target.value
-                      )
-                    }
-                    className="w-16"
-                  />
-                  <Input
-                    value={settings.button.backgroundHoverColor}
-                    onChange={(e) =>
-                      updateSetting(
-                        "button.backgroundHoverColor",
-                        e.target.value
-                      )
-                    }
-                  />
-                </div>
+                <Input
+                  type="color"
+                  value={settings.button.backgroundHoverColor}
+                  onChange={(e) =>
+                    updateSetting(
+                      "button.backgroundHoverColor",
+                      e.target.value
+                    )
+                  }
+                  className="w-16"
+                />
               </div>
             </div>
             <div className="space-y-3">

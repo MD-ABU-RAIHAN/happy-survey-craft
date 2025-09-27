@@ -17,6 +17,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import SectionCard from "./shared/SectionCard";
 import ColorPicker from "./shared/ColorPicker";
 import UploadInput from "./shared/UploadInput";
+import IntegratedCustomization from "./branded/IntegratedCustomization";
 import { Mail, Users, ShoppingCart, Upload, Type, Palette } from "lucide-react";
 
 interface EmailCampaignSettings {
@@ -88,7 +89,10 @@ const EmailCampaignSettingsComponent: React.FC<EmailCampaignSettingsProps> = ({
   settings,
   onSettingsChange,
 }) => {
-  const updateSetting = (key: string, value: any) => {
+  const updateSetting = (
+    key: string,
+    value: string | boolean | number | File | null
+  ) => {
     const keys = key.split(".");
     let newSettings = { ...settings };
 
@@ -654,6 +658,64 @@ const EmailCampaignSettingsComponent: React.FC<EmailCampaignSettingsProps> = ({
           )}
         </div>
       </SectionCard>
+
+      {/* Integrated Customization */}
+      <IntegratedCustomization
+        buttonSettings={{
+          enabled: !settings.button.minimized,
+          backgroundColor: settings.button.backgroundColor,
+          textColor: settings.button.textColor,
+          borderRadius: 8,
+          fontSize: 16,
+          fontWeight: "medium",
+          backgroundHoverColor: settings.button.backgroundHoverColor,
+          shadow: true,
+        }}
+        sectionSettings={{
+          primaryText: "Email Survey",
+          secondaryText: "Your feedback matters",
+          accentColor: settings.background.solidColor || "#3b82f6",
+          backgroundColor: settings.background.solidColor || "#ffffff",
+          backgroundType: settings.background.type as
+            | "solid"
+            | "gradient"
+            | "image",
+          gradientFrom: settings.background.gradientStart || "#3b82f6",
+          gradientTo: settings.background.gradientEnd || "#8b5cf6",
+          gradientDirection: "to-r",
+          backgroundImage: settings.background.imageUrl || "",
+          backgroundImageOpacity: settings.background.overlayOpacity || 100,
+          backgroundImagePosition:
+            (settings.background.imagePosition as
+              | "center"
+              | "top"
+              | "bottom"
+              | "left"
+              | "right") || "center",
+          customCss: "",
+          enableCustomCss: false,
+        }}
+        onSettingsChange={(key: string, value: string | boolean | number) => {
+          // Transform the new structure back to the old interface
+          if (key.startsWith("button.enabled")) {
+            updateSetting("button.minimized", !value);
+          } else if (key.startsWith("button.")) {
+            updateSetting(key, value);
+          } else if (key.startsWith("section.backgroundColor")) {
+            updateSetting("background.solidColor", value);
+          } else if (key.startsWith("section.backgroundType")) {
+            updateSetting("background.type", value);
+          } else if (key.startsWith("section.gradientFrom")) {
+            updateSetting("background.gradientStart", value);
+          } else if (key.startsWith("section.gradientTo")) {
+            updateSetting("background.gradientEnd", value);
+          } else if (key.startsWith("section.gradientDirection")) {
+            updateSetting("background.gradientDirection", value);
+          } else if (key.startsWith("section.backgroundImage")) {
+            updateSetting("background.imageUrl", value);
+          }
+        }}
+      />
     </div>
   );
 };

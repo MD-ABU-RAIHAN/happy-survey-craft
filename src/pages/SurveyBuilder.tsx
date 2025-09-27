@@ -73,7 +73,7 @@ import {
 } from "lucide-react";
 import QuestionBuilder from "@/components/QuestionBuilder";
 import SurveyPreview from "@/components/SurveyPreview";
-import HeaderSection from "@/components/survey-builder/HeaderSection";
+import SimpleHeader from "@/components/SimpleHeader";
 import DistributionTabRefactored from "@/components/survey-builder/DistributionTabRefactored";
 import IncentivesTabRefactored from "@/components/survey-builder/IncentivesTabRefactored";
 
@@ -163,18 +163,48 @@ interface PostPurchaseSettings {
       | "slide-left";
   };
 
-  // Survey Appearance
-  appearance: {
+  // Button Customization
+  button: {
+    enabled: boolean;
     backgroundColor: string;
     textColor: string;
-    buttonColor: string;
     borderRadius: number;
+    fontSize: number;
+    fontWeight: string;
+    backgroundHoverColor: string;
     shadow: boolean;
   };
 
-  // Advanced Features
-  advancedFeatures: {
-    minimized: boolean;
+  // Section Customization
+  section: {
+    primaryText: string;
+    secondaryText: string;
+    accentColor: string;
+    backgroundColor: string;
+    backgroundType: "solid" | "gradient" | "image";
+    gradientFrom: string;
+    gradientTo: string;
+    gradientDirection:
+      | "to-r"
+      | "to-br"
+      | "to-b"
+      | "to-bl"
+      | "to-l"
+      | "to-tl"
+      | "to-t"
+      | "to-tr";
+    backgroundImage: string;
+    backgroundImageOpacity: number;
+    backgroundImagePosition:
+      | "center"
+      | "top"
+      | "bottom"
+      | "left"
+      | "right"
+      | "cover"
+      | "contain";
+    customCss: string;
+    enableCustomCss: boolean;
   };
 }
 
@@ -216,12 +246,36 @@ interface BrandedSurveySettings {
     shadow: boolean;
   };
 
-  // Section Colors
+  // Section Colors and Customization
   section: {
-    primaryTextColor: string;
-    secondaryTextColor: string;
-    headingColor: string;
-    linkColor: string;
+    primaryText: string;
+    secondaryText: string;
+    accentColor: string;
+    backgroundColor: string;
+    backgroundType: "solid" | "gradient" | "image";
+    gradientFrom: string;
+    gradientTo: string;
+    gradientDirection:
+      | "to-r"
+      | "to-br"
+      | "to-b"
+      | "to-bl"
+      | "to-l"
+      | "to-tl"
+      | "to-t"
+      | "to-tr";
+    backgroundImage: string;
+    backgroundImageOpacity: number;
+    backgroundImagePosition:
+      | "center"
+      | "top"
+      | "bottom"
+      | "left"
+      | "right"
+      | "cover"
+      | "contain";
+    customCss: string;
+    enableCustomCss: boolean;
   };
 
   // Background Options
@@ -335,18 +389,46 @@ interface ExitIntentSettings {
 
   // Button customization
   button: {
-    textColor: string;
+    enabled: boolean;
     backgroundColor: string;
+    textColor: string;
+    borderRadius: number;
+    fontSize: number;
+    fontWeight: string;
     backgroundHoverColor: string;
-    minimized: boolean;
+    shadow: boolean;
   };
 
-  // Section colors
+  // Section customization
   section: {
-    primaryTextColor: string;
-    secondaryTextColor: string;
+    primaryText: string;
+    secondaryText: string;
     accentColor: string;
     backgroundColor: string;
+    backgroundType: "solid" | "gradient" | "image";
+    gradientFrom: string;
+    gradientTo: string;
+    gradientDirection:
+      | "to-r"
+      | "to-br"
+      | "to-b"
+      | "to-bl"
+      | "to-l"
+      | "to-tl"
+      | "to-t"
+      | "to-tr";
+    backgroundImage: string;
+    backgroundImageOpacity: number;
+    backgroundImagePosition:
+      | "center"
+      | "top"
+      | "bottom"
+      | "left"
+      | "right"
+      | "cover"
+      | "contain";
+    customCss: string;
+    enableCustomCss: boolean;
   };
 }
 
@@ -390,34 +472,46 @@ interface EmailCampaignSettings {
 
   // Button customization
   button: {
-    textColor: string;
+    enabled: boolean;
     backgroundColor: string;
+    textColor: string;
+    borderRadius: number;
+    fontSize: number;
+    fontWeight: string;
     backgroundHoverColor: string;
-    minimized: boolean;
+    shadow: boolean;
   };
 
-  // Background
-  background: {
-    type: "solid" | "gradient" | "image";
-    solidColor: string;
-    gradientStart: string;
-    gradientEnd: string;
+  // Section customization
+  section: {
+    primaryText: string;
+    secondaryText: string;
+    accentColor: string;
+    backgroundColor: string;
+    backgroundType: "solid" | "gradient" | "image";
+    gradientFrom: string;
+    gradientTo: string;
     gradientDirection:
       | "to-r"
-      | "to-l"
-      | "to-t"
-      | "to-b"
       | "to-br"
+      | "to-b"
       | "to-bl"
-      | "to-tr"
-      | "to-tl";
-    imageUrl: string;
-    imageFile: File | null;
-    imagePosition: "center" | "top" | "bottom" | "left" | "right";
-    imageSize: "cover" | "contain" | "auto";
-    overlay: boolean;
-    overlayColor: string;
-    overlayOpacity: number;
+      | "to-l"
+      | "to-tl"
+      | "to-t"
+      | "to-tr";
+    backgroundImage: string;
+    backgroundImageOpacity: number;
+    backgroundImagePosition:
+      | "center"
+      | "top"
+      | "bottom"
+      | "left"
+      | "right"
+      | "cover"
+      | "contain";
+    customCss: string;
+    enableCustomCss: boolean;
   };
 }
 
@@ -447,7 +541,7 @@ interface OnSitePopupSettings {
 
   // Display Settings
   display: {
-    position: "bottom-left" | "bottom-center" | "bottom-right";
+    position: "center" | "bottom-right" | "top-center";
   };
 
   // Side Logo
@@ -462,28 +556,67 @@ interface OnSitePopupSettings {
 
   // Button customization
   button: {
-    textColor: string;
+    enabled: boolean;
     backgroundColor: string;
+    textColor: string;
+    borderRadius: number;
+    fontSize: number;
+    fontWeight: string;
     backgroundHoverColor: string;
-    minimized: boolean;
+    shadow: boolean;
   };
 
-  // Section styling
+  // Section customization
   section: {
-    primaryTextColor: string;
-    secondaryTextColor: string;
+    primaryText: string;
+    secondaryText: string;
     accentColor: string;
     backgroundColor: string;
-    minimized: boolean;
+    backgroundType: "solid" | "gradient" | "image";
+    gradientFrom: string;
+    gradientTo: string;
+    gradientDirection:
+      | "to-r"
+      | "to-br"
+      | "to-b"
+      | "to-bl"
+      | "to-l"
+      | "to-tl"
+      | "to-t"
+      | "to-tr";
+    backgroundImage: string;
+    backgroundImageOpacity: number;
+    backgroundImagePosition:
+      | "center"
+      | "top"
+      | "bottom"
+      | "left"
+      | "right"
+      | "cover"
+      | "contain";
+    customCss: string;
+    enableCustomCss: boolean;
   };
 }
 
 const SurveyBuilder = () => {
-  const [surveyTitle, setSurveyTitle] = useState("Customer Feedback Survey");
   const [questions, setQuestions] = useState<SurveyQuestion[]>([]);
   const [previewDevice, setPreviewDevice] = useState<
     "desktop" | "mobile" | "full"
   >("desktop");
+
+  // State for tracking which distribution to preview
+  const [previewDistribution, setPreviewDistribution] = useState<
+    | "branded-survey"
+    | "post-purchase"
+    | "exit-intent"
+    | "email-campaign"
+    | "onsite-popup"
+  >("branded-survey");
+
+  // Pagination state
+  const [paginationEnabled, setPaginationEnabled] = useState(false);
+  const [questionsPerPage, setQuestionsPerPage] = useState(1);
 
   // Distribution Settings
   const [enabledDistributions, setEnabledDistributions] = useState<string[]>([
@@ -559,15 +692,30 @@ const SurveyBuilder = () => {
         position: "center",
         animation: "fade",
       },
-      appearance: {
-        backgroundColor: "#ffffff",
-        textColor: "#1f2937",
-        buttonColor: "#3b82f6",
+      button: {
+        enabled: true,
+        backgroundColor: "#3b82f6",
+        textColor: "#ffffff",
         borderRadius: 8,
+        fontSize: 16,
+        fontWeight: "medium",
+        backgroundHoverColor: "#2563eb",
         shadow: true,
       },
-      advancedFeatures: {
-        minimized: true,
+      section: {
+        primaryText: "We'd love your feedback!",
+        secondaryText: "Help us improve your experience",
+        accentColor: "#3b82f6",
+        backgroundColor: "#ffffff",
+        backgroundType: "solid",
+        gradientFrom: "#3b82f6",
+        gradientTo: "#8b5cf6",
+        gradientDirection: "to-r",
+        backgroundImage: "",
+        backgroundImageOpacity: 100,
+        backgroundImagePosition: "center",
+        customCss: "",
+        enableCustomCss: false,
       },
     });
 
@@ -642,10 +790,19 @@ const SurveyBuilder = () => {
         shadow: true,
       },
       section: {
-        primaryTextColor: "#1f2937",
-        secondaryTextColor: "#6b7280",
-        headingColor: "#111827",
-        linkColor: "#3b82f6",
+        primaryText: "#1f2937",
+        secondaryText: "#6b7280",
+        accentColor: "#3b82f6",
+        backgroundColor: "#ffffff",
+        backgroundType: "solid",
+        gradientFrom: "#f8fafc",
+        gradientTo: "#e2e8f0",
+        gradientDirection: "to-br",
+        backgroundImage: "",
+        backgroundImageOpacity: 80,
+        backgroundImagePosition: "center",
+        customCss: "",
+        enableCustomCss: false,
       },
       background: {
         type: "solid",
@@ -987,17 +1144,25 @@ const SurveyBuilder = () => {
       if (isCurrentlyEnabled) {
         return prev.filter((id) => id !== distributionId);
       } else {
-        // When enabling a distribution, automatically expand it
+        // When enabling a distribution, automatically expand it and set it as preview
         setExpandedDistributionId(distributionId);
+        setPreviewDistribution(distributionId as typeof previewDistribution);
         return [...prev, distributionId];
       }
     });
   };
 
   const toggleCollapsed = (distributionId: string) => {
-    setExpandedDistributionId((prev) =>
-      prev === distributionId ? null : distributionId
-    );
+    setExpandedDistributionId((prev) => {
+      const newExpandedId = prev === distributionId ? null : distributionId;
+
+      // Update preview distribution when expanding a distribution
+      if (newExpandedId) {
+        setPreviewDistribution(newExpandedId as typeof previewDistribution);
+      }
+
+      return newExpandedId;
+    });
   };
 
   const updateDistributionSetting = (
@@ -1433,12 +1598,8 @@ const SurveyBuilder = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-survey-success-light to-survey-info-light">
-      <HeaderSection
-        surveyTitle={surveyTitle}
-        setSurveyTitle={setSurveyTitle}
-      />
-
+    <div className="min-h-screen bg-background">
+      <SimpleHeader />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           {/* Main Content - 60% */}
@@ -1548,13 +1709,13 @@ const SurveyBuilder = () => {
                 previewDevice={previewDevice}
                 setPreviewDevice={setPreviewDevice}
                 distributionType={
-                  (enabledDistributions[0] as
-                    | "post-purchase"
-                    | "onsite"
-                    | "exit-intent"
-                    | "email-campaign"
-                    | "branded-survey") || "post-purchase"
+                  previewDistribution === "onsite-popup"
+                    ? "onsite"
+                    : previewDistribution
                 }
+                previewDistribution={previewDistribution}
+                setPreviewDistribution={setPreviewDistribution}
+                distributionTypes={distributionTypes}
                 discountEnabled={isDiscountEnabled}
                 discountType={discountType}
                 discountValue={discountValue}
@@ -1562,6 +1723,10 @@ const SurveyBuilder = () => {
                 postPurchaseSettings={postPurchaseSettings}
                 exitIntentSettings={exitIntentSettings}
                 emailCampaignSettings={emailCampaignSettings}
+                paginationEnabled={paginationEnabled}
+                questionsPerPage={questionsPerPage}
+                onPaginationChange={setPaginationEnabled}
+                onQuestionsPerPageChange={setQuestionsPerPage}
               />
             </div>
           </div>

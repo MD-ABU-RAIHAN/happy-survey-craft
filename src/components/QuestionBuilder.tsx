@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Collapsible,
   CollapsibleContent,
@@ -28,9 +29,6 @@ import {
   Type,
   CheckSquare,
   Star,
-  BarChart3,
-  Mail,
-  Phone,
   Upload,
   ImageIcon,
   X,
@@ -40,11 +38,10 @@ import {
   Clock,
   FileQuestion,
   CircleDot,
-  ChevronDown as DropdownIcon,
-  CheckCircle,
-  Smile,
   Calendar,
   FileText,
+  Smile,
+  Hash,
 } from "lucide-react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
@@ -53,16 +50,11 @@ interface SurveyQuestion {
   type:
     | "multiple-choice"
     | "single-choice"
-    | "dropdown"
-    | "binary-choice"
     | "text"
     | "rating"
     | "satisfaction"
-    | "nps"
-    | "email"
-    | "phone"
-    | "date"
-    | "short-answer";
+    | "point-scale"
+    | "date";
   title: string;
   description?: string;
   required: boolean;
@@ -79,14 +71,15 @@ interface SurveyQuestion {
   };
   // New properties for specific question types
   dateFormat?: "MM/DD/YYYY" | "DD/MM/YYYY" | "YYYY-MM-DD";
-  satisfactionScale?: {
+  // Text response properties
+  textInputType?: "single-line" | "multi-line";
+  // Satisfaction properties
+  satisfactionEmojis?: string[];
+  // Point scale properties
+  pointScale?: {
     min: number;
     max: number;
-    minLabel: string;
-    maxLabel: string;
-    showNumbers: boolean;
   };
-  maxLength?: number; // For short answer
 }
 
 interface QuestionBuilderProps {
@@ -109,31 +102,21 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
   const questionTypeIcons = {
     "multiple-choice": CheckSquare,
     "single-choice": CircleDot,
-    dropdown: DropdownIcon,
-    "binary-choice": CheckCircle,
     text: Type,
     rating: Star,
     satisfaction: Smile,
-    nps: BarChart3,
-    email: Mail,
-    phone: Phone,
+    "point-scale": Hash,
     date: Calendar,
-    "short-answer": FileText,
   };
 
   const questionTypeLabels = {
     "multiple-choice": "Multiple Choice",
     "single-choice": "Single Choice (Radio)",
-    dropdown: "Dropdown",
-    "binary-choice": "Binary Choice (Yes/No)",
     text: "Text Response",
     rating: "Rating Scale",
-    satisfaction: "Satisfaction Scale",
-    nps: "NPS Score",
-    email: "Email Address",
-    phone: "Phone Number",
+    satisfaction: "Satisfaction",
+    "point-scale": "Point Scale",
     date: "Date",
-    "short-answer": "Short Answer",
   };
 
   // Quick templates for common questions
@@ -196,36 +179,21 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
       case "single-choice":
         newQuestion.options = ["Option 1", "Option 2"];
         break;
-      case "dropdown":
-        newQuestion.options = ["Option 1", "Option 2"];
-        break;
-      case "binary-choice":
-        newQuestion.options = ["Yes", "No"];
-        break;
       case "text":
         newQuestion.placeholder = "Enter your answer...";
+        newQuestion.textInputType = "multi-line"; // Default to multi-line
         break;
-      case "short-answer":
-        newQuestion.placeholder = "Enter a brief answer...";
-        newQuestion.maxLength = 100;
+      case "satisfaction":
+        newQuestion.satisfactionEmojis = ["😢", "🙁", "😐", "🙂", "😄"];
         break;
-      case "email":
-        newQuestion.placeholder = "Enter your email address...";
-        break;
-      case "phone":
-        newQuestion.placeholder = "Enter your phone number...";
+      case "point-scale":
+        newQuestion.pointScale = {
+          min: 1,
+          max: 10,
+        };
         break;
       case "date":
         newQuestion.dateFormat = "MM/DD/YYYY";
-        break;
-      case "satisfaction":
-        newQuestion.satisfactionScale = {
-          min: 1,
-          max: 5,
-          minLabel: "Very Dissatisfied",
-          maxLabel: "Very Satisfied",
-          showNumbers: true,
-        };
         break;
     }
 
@@ -414,14 +382,58 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
     const question = questions.find((q) => q.id === questionId);
     const isEnabled = question?.customAnswer?.enabled || false;
 
-    updateQuestion(questionId, {
-      customAnswer: {
-        enabled: !isEnabled,
-        displayMode: "on-select",
-        placeholder: "Please specify...",
-        description: "Allow customers to provide custom answers",
-      },
-    });
+    if (!isEnabled) {
+      // Enabling custom answer - add "Others" option if it doesn't exist
+      const currentOptions = question?.options || [];
+      const hasOthersOption = currentOptions.some(
+        (option) =>
+          option.toLowerCase() === "others" || option.toLowerCase() === "other"
+      );
+
+      let updatedOptions = currentOptions;
+      if (
+        !hasOthersOption &&
+        (question?.type === "multiple-choice" ||
+          question?.type === "single-choice")
+      ) {
+        updatedOptions = [...currentOptions, "Others"];
+      }
+
+      updateQuestion(questionId, {
+        customAnswer: {
+          enabled: true,
+          displayMode: "on-select",
+          placeholder: "Please specify...",
+          description: "Allow customers to provide custom answers",
+        },
+        ...(updatedOptions !== currentOptions && { options: updatedOptions }),
+      });
+    } else {
+      // Disabling custom answer - remove "Others" option
+      const currentOptions = question?.options || [];
+      let updatedOptions = currentOptions;
+
+      if (
+        question?.type === "multiple-choice" ||
+        question?.type === "single-choice"
+      ) {
+        updatedOptions = currentOptions.filter(
+          (option) =>
+            option.toLowerCase() !== "others" &&
+            option.toLowerCase() !== "other"
+        );
+      }
+
+      updateQuestion(questionId, {
+        customAnswer: {
+          enabled: false,
+          displayMode: "on-select",
+          placeholder: "Please specify...",
+          description: "Allow customers to provide custom answers",
+        },
+        ...(updatedOptions !== currentOptions && { options: updatedOptions }),
+      });
+    }
   };
 
   const updateCustomAnswerSetting = (
@@ -431,12 +443,55 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
   ) => {
     const question = questions.find((q) => q.id === questionId);
     if (question?.customAnswer) {
-      updateQuestion(questionId, {
-        customAnswer: {
-          ...question.customAnswer,
-          [key]: value,
-        },
-      });
+      // Handle display mode change with automatic "Others" option management
+      if (key === "displayMode") {
+        const currentOptions = question.options || [];
+        let updatedOptions = currentOptions;
+
+        if (value === "on-select") {
+          // Add "Others" option if it doesn't exist
+          const hasOthersOption = currentOptions.some(
+            (option) =>
+              option.toLowerCase() === "others" ||
+              option.toLowerCase() === "other"
+          );
+
+          if (
+            !hasOthersOption &&
+            (question.type === "multiple-choice" ||
+              question.type === "single-choice")
+          ) {
+            updatedOptions = [...currentOptions, "Others"];
+          }
+        } else if (value === "always") {
+          // Remove "Others" option when switching to "always" mode
+          if (
+            question.type === "multiple-choice" ||
+            question.type === "single-choice"
+          ) {
+            updatedOptions = currentOptions.filter(
+              (option) =>
+                option.toLowerCase() !== "others" &&
+                option.toLowerCase() !== "other"
+            );
+          }
+        }
+
+        updateQuestion(questionId, {
+          customAnswer: {
+            ...question.customAnswer,
+            [key]: value,
+          },
+          ...(updatedOptions !== currentOptions && { options: updatedOptions }),
+        });
+      } else {
+        updateQuestion(questionId, {
+          customAnswer: {
+            ...question.customAnswer,
+            [key]: value,
+          },
+        });
+      }
     }
   };
 
@@ -518,22 +573,6 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                   <CircleDot className="w-4 h-4 mr-2" />
                   Single Choice
                 </Button>
-                <Button
-                  onClick={() => addQuestion("dropdown")}
-                  variant="outline"
-                  size="sm"
-                >
-                  <DropdownIcon className="w-4 h-4 mr-2" />
-                  Dropdown
-                </Button>
-                <Button
-                  onClick={() => addQuestion("binary-choice")}
-                  variant="outline"
-                  size="sm"
-                >
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  Yes/No
-                </Button>
               </div>
               <div className="flex flex-wrap gap-2 justify-center">
                 <Button
@@ -543,14 +582,6 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                 >
                   <Type className="w-4 h-4 mr-2" />
                   Text Response
-                </Button>
-                <Button
-                  onClick={() => addQuestion("short-answer")}
-                  variant="outline"
-                  size="sm"
-                >
-                  <FileText className="w-4 h-4 mr-2" />
-                  Short Answer
                 </Button>
                 <Button
                   onClick={() => addQuestion("rating")}
@@ -568,16 +599,16 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                   <Smile className="w-4 h-4 mr-2" />
                   Satisfaction
                 </Button>
-              </div>
-              <div className="flex flex-wrap gap-2 justify-center">
                 <Button
-                  onClick={() => addQuestion("nps")}
+                  onClick={() => addQuestion("point-scale")}
                   variant="outline"
                   size="sm"
                 >
-                  <BarChart3 className="w-4 h-4 mr-2" />
-                  NPS Score
+                  <Hash className="w-4 h-4 mr-2" />
+                  Point Scale
                 </Button>
+              </div>
+              <div className="flex flex-wrap gap-2 justify-center">
                 <Button
                   onClick={() => addQuestion("date")}
                   variant="outline"
@@ -585,22 +616,6 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                 >
                   <Calendar className="w-4 h-4 mr-2" />
                   Date
-                </Button>
-                <Button
-                  onClick={() => addQuestion("email")}
-                  variant="outline"
-                  size="sm"
-                >
-                  <Mail className="w-4 h-4 mr-2" />
-                  Email
-                </Button>
-                <Button
-                  onClick={() => addQuestion("phone")}
-                  variant="outline"
-                  size="sm"
-                >
-                  <Phone className="w-4 h-4 mr-2" />
-                  Phone
                 </Button>
               </div>
             </div>
@@ -666,18 +681,11 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                                     {questionTypeLabels[question.type]}
                                   </Badge>
 
-                                  {question.isCollapsed && (
-                                    <div className="flex flex-col">
-                                      <span className="font-medium text-sm">
-                                        {question.title}
-                                      </span>
-                                      {question.required && (
-                                        <span className="text-xs text-muted-foreground">
-                                          Required
-                                        </span>
-                                      )}
-                                    </div>
-                                  )}
+                                  <div className="flex flex-col">
+                                    <span className="font-medium text-sm">
+                                      {question.title || "New Question"}
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
 
@@ -720,7 +728,6 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                                     className="font-medium"
                                   />
                                 </div>
-
                                 <div className="space-y-2">
                                   <Label className="text-sm font-medium">
                                     Description (Optional)
@@ -737,7 +744,6 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                                     className="resize-none"
                                   />
                                 </div>
-
                                 {/* Image Upload Section */}
                                 <div className="space-y-3">
                                   <Label className="text-sm font-medium flex items-center gap-2">
@@ -839,47 +845,205 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                                     </div>
                                   )}
                                 </div>
+                                {question.type === "text" && (
+                                  <div className="space-y-4">
+                                    <div className="space-y-2">
+                                      <Label className="text-sm font-medium">
+                                        Input Type
+                                      </Label>
+                                      <Select
+                                        value={
+                                          question.textInputType || "multi-line"
+                                        }
+                                        onValueChange={(
+                                          value: "single-line" | "multi-line"
+                                        ) =>
+                                          updateQuestion(question.id, {
+                                            textInputType: value,
+                                          })
+                                        }
+                                      >
+                                        <SelectTrigger>
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="single-line">
+                                            Single Line Input
+                                          </SelectItem>
+                                          <SelectItem value="multi-line">
+                                            Multi-line Textarea
+                                          </SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
 
-                                {(question.type === "text" ||
-                                  question.type === "short-answer" ||
-                                  question.type === "email" ||
-                                  question.type === "phone") && (
-                                  <div className="space-y-2">
+                                    <div className="space-y-2">
+                                      <Label className="text-sm font-medium">
+                                        Placeholder Text
+                                      </Label>
+                                      <Input
+                                        value={question.placeholder || ""}
+                                        onChange={(e) =>
+                                          updateQuestion(question.id, {
+                                            placeholder: e.target.value,
+                                          })
+                                        }
+                                        placeholder={
+                                          question.textInputType ===
+                                          "single-line"
+                                            ? "Enter placeholder text..."
+                                            : "Enter placeholder text for textarea..."
+                                        }
+                                      />
+                                    </div>
+                                  </div>
+                                )}{" "}
+                                {/* Satisfaction Configuration */}
+                                {question.type === "satisfaction" && (
+                                  <div className="space-y-4">
                                     <Label className="text-sm font-medium">
-                                      Placeholder Text
+                                      Satisfaction Emojis
                                     </Label>
-                                    <Input
-                                      value={question.placeholder || ""}
-                                      onChange={(e) =>
-                                        updateQuestion(question.id, {
-                                          placeholder: e.target.value,
-                                        })
-                                      }
-                                      placeholder="Enter placeholder text..."
-                                    />
-                                    {question.type === "short-answer" && (
-                                      <div className="mt-3">
+                                    <div className="bg-muted/30 rounded-lg p-4">
+                                      <div className="flex items-center justify-center space-x-4 mb-4">
+                                        {(
+                                          question.satisfactionEmojis || [
+                                            "😢",
+                                            "🙁",
+                                            "😐",
+                                            "🙂",
+                                            "😄",
+                                          ]
+                                        ).map((emoji, index) => (
+                                          <div
+                                            key={index}
+                                            className="flex flex-col items-center"
+                                          >
+                                            <span className="text-2xl mb-2">
+                                              {emoji}
+                                            </span>
+                                            <Input
+                                              value={emoji}
+                                              onChange={(e) => {
+                                                const newEmojis = [
+                                                  ...(question.satisfactionEmojis || [
+                                                    "😢",
+                                                    "🙁",
+                                                    "😐",
+                                                    "🙂",
+                                                    "😄",
+                                                  ]),
+                                                ];
+                                                newEmojis[index] =
+                                                  e.target.value;
+                                                updateQuestion(question.id, {
+                                                  satisfactionEmojis: newEmojis,
+                                                });
+                                              }}
+                                              className="w-12 h-8 text-center text-sm"
+                                              placeholder="😐"
+                                            />
+                                          </div>
+                                        ))}
+                                      </div>
+                                      <p className="text-xs text-muted-foreground text-center">
+                                        Click on each emoji field to customize
+                                        the satisfaction levels (1-5 scale)
+                                      </p>
+                                    </div>
+                                  </div>
+                                )}
+                                {/* Point Scale Configuration */}
+                                {question.type === "point-scale" && (
+                                  <div className="space-y-4">
+                                    <Label className="text-sm font-medium">
+                                      Scale Range
+                                    </Label>
+                                    <div className="grid grid-cols-2 gap-4">
+                                      <div className="space-y-2">
                                         <Label className="text-sm font-medium">
-                                          Maximum Length
+                                          Minimum Value
                                         </Label>
                                         <Input
                                           type="number"
-                                          min="10"
-                                          max="500"
-                                          value={question.maxLength || 100}
+                                          min="0"
+                                          max="50"
+                                          value={question.pointScale?.min || 1}
                                           onChange={(e) =>
                                             updateQuestion(question.id, {
-                                              maxLength:
-                                                parseInt(e.target.value) || 100,
+                                              pointScale: {
+                                                min:
+                                                  parseInt(e.target.value) || 1,
+                                                max:
+                                                  question.pointScale?.max ||
+                                                  10,
+                                              },
                                             })
                                           }
-                                          placeholder="100"
                                         />
                                       </div>
-                                    )}
+                                      <div className="space-y-2">
+                                        <Label className="text-sm font-medium">
+                                          Maximum Value
+                                        </Label>
+                                        <Input
+                                          type="number"
+                                          min="2"
+                                          max="100"
+                                          value={question.pointScale?.max || 10}
+                                          onChange={(e) =>
+                                            updateQuestion(question.id, {
+                                              pointScale: {
+                                                min:
+                                                  question.pointScale?.min || 1,
+                                                max:
+                                                  parseInt(e.target.value) ||
+                                                  10,
+                                              },
+                                            })
+                                          }
+                                        />
+                                      </div>
+                                    </div>
+                                    <div className="bg-muted/30 rounded-lg p-3">
+                                      <div className="flex justify-center space-x-1 mb-2">
+                                        {Array.from(
+                                          {
+                                            length: Math.min(
+                                              (question.pointScale?.max || 10) -
+                                                (question.pointScale?.min ||
+                                                  1) +
+                                                1,
+                                              15
+                                            ),
+                                          },
+                                          (_, i) =>
+                                            (question.pointScale?.min || 1) + i
+                                        ).map((value) => (
+                                          <div
+                                            key={value}
+                                            className="w-8 h-8 border rounded flex items-center justify-center text-xs bg-background"
+                                          >
+                                            {value}
+                                          </div>
+                                        ))}
+                                        {(question.pointScale?.max || 10) -
+                                          (question.pointScale?.min || 1) +
+                                          1 >
+                                          15 && (
+                                          <span className="text-xs text-muted-foreground self-center">
+                                            ...
+                                          </span>
+                                        )}
+                                      </div>
+                                      <p className="text-xs text-muted-foreground text-center">
+                                        Preview of scale (
+                                        {question.pointScale?.min || 1} to{" "}
+                                        {question.pointScale?.max || 10})
+                                      </p>
+                                    </div>
                                   </div>
                                 )}
-
                                 {/* Date Configuration */}
                                 {question.type === "date" && (
                                   <div className="space-y-2">
@@ -918,201 +1082,12 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                                     </Select>
                                   </div>
                                 )}
-
-                                {/* Satisfaction Scale Configuration */}
-                                {question.type === "satisfaction" && (
-                                  <div className="space-y-4">
-                                    <div className="grid grid-cols-2 gap-4">
-                                      <div className="space-y-2">
-                                        <Label className="text-sm font-medium">
-                                          Scale Range (Min)
-                                        </Label>
-                                        <Input
-                                          type="number"
-                                          min="1"
-                                          max="5"
-                                          value={
-                                            question.satisfactionScale?.min || 1
-                                          }
-                                          onChange={(e) =>
-                                            updateQuestion(question.id, {
-                                              satisfactionScale: {
-                                                ...question.satisfactionScale,
-                                                min:
-                                                  parseInt(e.target.value) || 1,
-                                                max:
-                                                  question.satisfactionScale
-                                                    ?.max || 5,
-                                                minLabel:
-                                                  question.satisfactionScale
-                                                    ?.minLabel ||
-                                                  "Very Dissatisfied",
-                                                maxLabel:
-                                                  question.satisfactionScale
-                                                    ?.maxLabel ||
-                                                  "Very Satisfied",
-                                                showNumbers:
-                                                  question.satisfactionScale
-                                                    ?.showNumbers ?? true,
-                                              },
-                                            })
-                                          }
-                                        />
-                                      </div>
-                                      <div className="space-y-2">
-                                        <Label className="text-sm font-medium">
-                                          Scale Range (Max)
-                                        </Label>
-                                        <Input
-                                          type="number"
-                                          min="3"
-                                          max="10"
-                                          value={
-                                            question.satisfactionScale?.max || 5
-                                          }
-                                          onChange={(e) =>
-                                            updateQuestion(question.id, {
-                                              satisfactionScale: {
-                                                ...question.satisfactionScale,
-                                                min:
-                                                  question.satisfactionScale
-                                                    ?.min || 1,
-                                                max:
-                                                  parseInt(e.target.value) || 5,
-                                                minLabel:
-                                                  question.satisfactionScale
-                                                    ?.minLabel ||
-                                                  "Very Dissatisfied",
-                                                maxLabel:
-                                                  question.satisfactionScale
-                                                    ?.maxLabel ||
-                                                  "Very Satisfied",
-                                                showNumbers:
-                                                  question.satisfactionScale
-                                                    ?.showNumbers ?? true,
-                                              },
-                                            })
-                                          }
-                                        />
-                                      </div>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                      <div className="space-y-2">
-                                        <Label className="text-sm font-medium">
-                                          Min Label
-                                        </Label>
-                                        <Input
-                                          value={
-                                            question.satisfactionScale
-                                              ?.minLabel || "Very Dissatisfied"
-                                          }
-                                          onChange={(e) =>
-                                            updateQuestion(question.id, {
-                                              satisfactionScale: {
-                                                ...question.satisfactionScale,
-                                                min:
-                                                  question.satisfactionScale
-                                                    ?.min || 1,
-                                                max:
-                                                  question.satisfactionScale
-                                                    ?.max || 5,
-                                                minLabel: e.target.value,
-                                                maxLabel:
-                                                  question.satisfactionScale
-                                                    ?.maxLabel ||
-                                                  "Very Satisfied",
-                                                showNumbers:
-                                                  question.satisfactionScale
-                                                    ?.showNumbers ?? true,
-                                              },
-                                            })
-                                          }
-                                          placeholder="Very Dissatisfied"
-                                        />
-                                      </div>
-                                      <div className="space-y-2">
-                                        <Label className="text-sm font-medium">
-                                          Max Label
-                                        </Label>
-                                        <Input
-                                          value={
-                                            question.satisfactionScale
-                                              ?.maxLabel || "Very Satisfied"
-                                          }
-                                          onChange={(e) =>
-                                            updateQuestion(question.id, {
-                                              satisfactionScale: {
-                                                ...question.satisfactionScale,
-                                                min:
-                                                  question.satisfactionScale
-                                                    ?.min || 1,
-                                                max:
-                                                  question.satisfactionScale
-                                                    ?.max || 5,
-                                                minLabel:
-                                                  question.satisfactionScale
-                                                    ?.minLabel ||
-                                                  "Very Dissatisfied",
-                                                maxLabel: e.target.value,
-                                                showNumbers:
-                                                  question.satisfactionScale
-                                                    ?.showNumbers ?? true,
-                                              },
-                                            })
-                                          }
-                                          placeholder="Very Satisfied"
-                                        />
-                                      </div>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                      <Switch
-                                        checked={
-                                          question.satisfactionScale
-                                            ?.showNumbers ?? true
-                                        }
-                                        onCheckedChange={(checked) =>
-                                          updateQuestion(question.id, {
-                                            satisfactionScale: {
-                                              ...question.satisfactionScale,
-                                              min:
-                                                question.satisfactionScale
-                                                  ?.min || 1,
-                                              max:
-                                                question.satisfactionScale
-                                                  ?.max || 5,
-                                              minLabel:
-                                                question.satisfactionScale
-                                                  ?.minLabel ||
-                                                "Very Dissatisfied",
-                                              maxLabel:
-                                                question.satisfactionScale
-                                                  ?.maxLabel ||
-                                                "Very Satisfied",
-                                              showNumbers: checked,
-                                            },
-                                          })
-                                        }
-                                      />
-                                      <Label className="text-sm font-medium">
-                                        Show Numbers on Scale
-                                      </Label>
-                                    </div>
-                                  </div>
-                                )}
-
                                 {(question.type === "multiple-choice" ||
-                                  question.type === "single-choice" ||
-                                  question.type === "dropdown" ||
-                                  question.type === "binary-choice") &&
+                                  question.type === "single-choice") &&
                                   question.options && (
                                     <div className="space-y-3">
                                       <Label className="text-sm font-medium">
                                         Answer Options
-                                        {question.type === "binary-choice" && (
-                                          <span className="text-xs text-muted-foreground ml-2">
-                                            (Yes/No format)
-                                          </span>
-                                        )}
                                       </Label>
                                       <DragDropContext
                                         onDragEnd={(result) =>
@@ -1145,15 +1120,12 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                                                             : "hover:bg-muted/50"
                                                         }`}
                                                       >
-                                                        {question.type !==
-                                                          "binary-choice" && (
-                                                          <div
-                                                            {...provided.dragHandleProps}
-                                                            className="cursor-move p-1 hover:bg-muted rounded"
-                                                          >
-                                                            <GripVertical className="w-3 h-3 text-muted-foreground" />
-                                                          </div>
-                                                        )}
+                                                        <div
+                                                          {...provided.dragHandleProps}
+                                                          className="cursor-move p-1 hover:bg-muted rounded"
+                                                        >
+                                                          <GripVertical className="w-3 h-3 text-muted-foreground" />
+                                                        </div>
                                                         <div className="flex items-center space-x-2 flex-1">
                                                           {question.type ===
                                                             "single-choice" && (
@@ -1162,16 +1134,6 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                                                           {question.type ===
                                                             "multiple-choice" && (
                                                             <CheckSquare className="w-4 h-4 text-muted-foreground" />
-                                                          )}
-                                                          {question.type ===
-                                                            "dropdown" && (
-                                                            <span className="text-sm text-muted-foreground min-w-[20px]">
-                                                              {optionIndex + 1}.
-                                                            </span>
-                                                          )}
-                                                          {question.type ===
-                                                            "binary-choice" && (
-                                                            <CheckCircle className="w-4 h-4 text-muted-foreground" />
                                                           )}
                                                           <Input
                                                             value={option}
@@ -1186,17 +1148,11 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                                                               optionIndex + 1
                                                             }`}
                                                             className="flex-1"
-                                                            disabled={
-                                                              question.type ===
-                                                              "binary-choice"
-                                                            }
                                                           />
                                                         </div>
                                                         {question.options &&
                                                           question.options
-                                                            .length > 2 &&
-                                                          question.type !==
-                                                            "binary-choice" && (
+                                                            .length > 2 && (
                                                             <Button
                                                               variant="ghost"
                                                               size="sm"
@@ -1221,20 +1177,17 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                                           )}
                                         </Droppable>
                                       </DragDropContext>
-                                      {question.type !== "binary-choice" && (
-                                        <Button
-                                          variant="outline"
-                                          size="sm"
-                                          onClick={() => addOption(question.id)}
-                                          className="w-full"
-                                        >
-                                          <Plus className="w-4 h-4 mr-2" />
-                                          Add Option
-                                        </Button>
-                                      )}
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => addOption(question.id)}
+                                        className="w-full"
+                                      >
+                                        <Plus className="w-4 h-4 mr-2" />
+                                        Add Option
+                                      </Button>
                                     </div>
                                   )}
-
                                 {/* Custom Answer Section for Multiple Choice and Single Choice */}
                                 {(question.type === "multiple-choice" ||
                                   question.type === "single-choice") && (
@@ -1301,7 +1254,7 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                                               <Label className="text-sm font-medium">
                                                 Display Mode
                                               </Label>
-                                              <Select
+                                              <RadioGroup
                                                 value={
                                                   question.customAnswer
                                                     .displayMode
@@ -1315,26 +1268,63 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                                                     value
                                                   )
                                                 }
+                                                className="space-y-3"
                                               >
-                                                <SelectTrigger>
-                                                  <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                  <SelectItem value="always">
-                                                    <div className="flex items-center gap-2">
-                                                      <Eye className="w-4 h-4" />
-                                                      Always show custom input
-                                                    </div>
-                                                  </SelectItem>
-                                                  <SelectItem value="on-select">
-                                                    <div className="flex items-center gap-2">
-                                                      <EyeOff className="w-4 h-4" />
-                                                      Show when "Other" is
-                                                      selected
-                                                    </div>
-                                                  </SelectItem>
-                                                </SelectContent>
-                                              </Select>
+                                                <div className="flex items-center space-x-3">
+                                                  <RadioGroupItem
+                                                    value="always"
+                                                    id={`${question.id}-always`}
+                                                  />
+                                                  <Label
+                                                    htmlFor={`${question.id}-always`}
+                                                    className="flex items-center gap-2 cursor-pointer font-normal"
+                                                  >
+                                                    <Eye className="w-4 h-4" />
+                                                    Always Show
+                                                  </Label>
+                                                </div>
+                                                <div className="flex items-center space-x-3">
+                                                  <RadioGroupItem
+                                                    value="on-select"
+                                                    id={`${question.id}-on-select`}
+                                                  />
+                                                  <Label
+                                                    htmlFor={`${question.id}-on-select`}
+                                                    className="flex items-center gap-2 cursor-pointer font-normal"
+                                                  >
+                                                    <EyeOff className="w-4 h-4" />
+                                                    When "Others" is selected
+                                                  </Label>
+                                                </div>
+                                              </RadioGroup>
+                                              {question.customAnswer
+                                                .displayMode ===
+                                                "on-select" && (
+                                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-2">
+                                                  <div className="flex items-start gap-2">
+                                                    <div className="w-4 h-4 rounded-full bg-blue-500 flex-shrink-0 mt-0.5"></div>
+                                                    <p className="text-xs text-blue-700">
+                                                      An "Others" option will be
+                                                      automatically added to
+                                                      your answer choices.
+                                                    </p>
+                                                  </div>
+                                                </div>
+                                              )}
+                                              {question.customAnswer
+                                                .displayMode === "always" && (
+                                                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-2">
+                                                  <div className="flex items-start gap-2">
+                                                    <div className="w-4 h-4 rounded-full bg-amber-500 flex-shrink-0 mt-0.5"></div>
+                                                    <p className="text-xs text-amber-700">
+                                                      Any "Others" option will
+                                                      be automatically removed
+                                                      since the custom input is
+                                                      always visible.
+                                                    </p>
+                                                  </div>
+                                                </div>
+                                              )}
                                             </div>
 
                                             <div className="space-y-2">
@@ -1411,7 +1401,6 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                                       )}
                                   </div>
                                 )}
-
                                 <div className="flex items-center justify-between pt-4 border-t">
                                   <div className="flex items-center gap-2">
                                     <Label className="text-sm font-medium">

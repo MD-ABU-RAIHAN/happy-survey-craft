@@ -1,9 +1,16 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Monitor,
   Smartphone,
@@ -11,6 +18,10 @@ import {
   Star,
   X,
   ArrowRight,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Settings2,
 } from "lucide-react";
 
 interface SurveyQuestion {
@@ -18,32 +29,34 @@ interface SurveyQuestion {
   type:
     | "multiple-choice"
     | "single-choice"
-    | "dropdown"
-    | "binary-choice"
     | "text"
     | "rating"
     | "satisfaction"
-    | "nps"
-    | "email"
-    | "phone"
-    | "date"
-    | "short-answer";
+    | "point-scale"
+    | "date";
   title: string;
   description?: string;
   required: boolean;
   options?: string[];
   isCollapsed: boolean;
   placeholder?: string;
-  // New properties for specific question types
+  imageUrl?: string;
+  imageName?: string;
+  customAnswer?: {
+    enabled: boolean;
+    displayMode: "always" | "on-select";
+    placeholder: string;
+    description?: string;
+  };
   dateFormat?: "MM/DD/YYYY" | "DD/MM/YYYY" | "YYYY-MM-DD";
-  satisfactionScale?: {
+  textInputType?: "single-line" | "multi-line";
+  // Satisfaction properties
+  satisfactionEmojis?: string[];
+  // Point scale properties
+  pointScale?: {
     min: number;
     max: number;
-    minLabel: string;
-    maxLabel: string;
-    showNumbers: boolean;
   };
-  maxLength?: number; // For short answer
 }
 
 interface PostPurchaseSettings {
@@ -91,12 +104,45 @@ interface PostPurchaseSettings {
       | "slide-right"
       | "slide-left";
   };
-  appearance: {
+  button: {
+    enabled: boolean;
     backgroundColor: string;
     textColor: string;
-    buttonColor: string;
     borderRadius: number;
+    fontSize: number;
+    fontWeight: string;
+    backgroundHoverColor: string;
     shadow: boolean;
+  };
+  section: {
+    primaryText: string;
+    secondaryText: string;
+    accentColor: string;
+    backgroundColor: string;
+    backgroundType: "solid" | "gradient" | "image";
+    gradientFrom: string;
+    gradientTo: string;
+    gradientDirection:
+      | "to-r"
+      | "to-br"
+      | "to-b"
+      | "to-bl"
+      | "to-l"
+      | "to-tl"
+      | "to-t"
+      | "to-tr";
+    backgroundImage: string;
+    backgroundImageOpacity: number;
+    backgroundImagePosition:
+      | "center"
+      | "top"
+      | "bottom"
+      | "left"
+      | "right"
+      | "cover"
+      | "contain";
+    customCss: string;
+    enableCustomCss: boolean;
   };
 }
 
@@ -131,10 +177,34 @@ interface BrandedSurveySettings {
     shadow: boolean;
   };
   section: {
-    primaryTextColor: string;
-    secondaryTextColor: string;
-    headingColor: string;
-    linkColor: string;
+    primaryText: string;
+    secondaryText: string;
+    accentColor: string;
+    backgroundColor: string;
+    backgroundType: "solid" | "gradient" | "image";
+    gradientFrom: string;
+    gradientTo: string;
+    gradientDirection:
+      | "to-r"
+      | "to-br"
+      | "to-b"
+      | "to-bl"
+      | "to-l"
+      | "to-tl"
+      | "to-t"
+      | "to-tr";
+    backgroundImage: string;
+    backgroundImageOpacity: number;
+    backgroundImagePosition:
+      | "center"
+      | "top"
+      | "bottom"
+      | "left"
+      | "right"
+      | "cover"
+      | "contain";
+    customCss: string;
+    enableCustomCss: boolean;
   };
   background: {
     type: "solid" | "gradient" | "image";
@@ -310,6 +380,29 @@ interface SurveyPreviewProps {
     | "exit-intent"
     | "email-campaign"
     | "branded-survey";
+  previewDistribution:
+    | "branded-survey"
+    | "post-purchase"
+    | "exit-intent"
+    | "email-campaign"
+    | "onsite-popup";
+  setPreviewDistribution: (
+    distribution:
+      | "branded-survey"
+      | "post-purchase"
+      | "exit-intent"
+      | "email-campaign"
+      | "onsite-popup"
+  ) => void;
+  distributionTypes: Array<{
+    id: string;
+    name: string;
+    description: string;
+    icon: React.ComponentType<{ className?: string }>;
+    color: string;
+    bgColor: string;
+    borderColor: string;
+  }>;
   discountEnabled: boolean;
   discountType: "percentage" | "fixed";
   discountValue: string;
@@ -317,6 +410,11 @@ interface SurveyPreviewProps {
   postPurchaseSettings?: PostPurchaseSettings;
   exitIntentSettings?: ExitIntentSettings;
   emailCampaignSettings?: EmailCampaignSettings;
+  // Pagination settings
+  paginationEnabled?: boolean;
+  questionsPerPage?: number;
+  onPaginationChange?: (enabled: boolean) => void;
+  onQuestionsPerPageChange?: (count: number) => void;
 }
 
 const SurveyPreview: React.FC<SurveyPreviewProps> = ({
@@ -324,6 +422,9 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
   previewDevice,
   setPreviewDevice,
   distributionType,
+  previewDistribution,
+  setPreviewDistribution,
+  distributionTypes,
   discountEnabled,
   discountType,
   discountValue,
@@ -331,9 +432,41 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
   postPurchaseSettings,
   exitIntentSettings,
   emailCampaignSettings,
+  paginationEnabled = false,
+  questionsPerPage = 1,
+  onPaginationChange,
+  onQuestionsPerPageChange,
 }) => {
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(0);
+  const [showPaginationSettings, setShowPaginationSettings] = useState(false);
+
+  // Calculate pagination
+  const totalPages = paginationEnabled
+    ? Math.ceil(questions.length / questionsPerPage)
+    : 1;
+
+  const currentQuestions = paginationEnabled
+    ? questions.slice(
+        currentPage * questionsPerPage,
+        (currentPage + 1) * questionsPerPage
+      )
+    : questions;
+
+  // Reset to first page when questions change or pagination settings change
+  React.useEffect(() => {
+    setCurrentPage(0);
+  }, [questions.length, paginationEnabled, questionsPerPage]);
+  // Helper function to map previewDistribution to legacy distributionType
+  const getDistributionType = (): typeof distributionType => {
+    return previewDistribution === "onsite-popup"
+      ? "onsite"
+      : previewDistribution;
+  };
+
   const getPreviewTitle = () => {
-    switch (distributionType) {
+    const type = getDistributionType();
+    switch (type) {
       case "post-purchase":
         return "Thank you for your purchase!";
       case "onsite":
@@ -350,7 +483,8 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
   };
 
   const getPreviewSubtitle = () => {
-    switch (distributionType) {
+    const type = getDistributionType();
+    switch (type) {
       case "post-purchase":
         return "Help us improve your experience with a quick survey";
       case "onsite":
@@ -367,7 +501,8 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
   };
 
   const getPreviewStyle = () => {
-    if (distributionType === "branded-survey" && brandedSurveySettings) {
+    const type = getDistributionType();
+    if (type === "branded-survey" && brandedSurveySettings) {
       const { background } = brandedSurveySettings;
 
       if (background.type === "solid") {
@@ -380,7 +515,7 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
       }
     }
 
-    switch (distributionType) {
+    switch (type) {
       case "post-purchase":
         return "bg-primary text-primary-foreground";
       case "onsite":
@@ -395,16 +530,18 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
   };
 
   const getBrandedBackgroundStyle = () => {
-    if (distributionType !== "branded-survey" || !brandedSurveySettings) {
+    const type = getDistributionType();
+    if (type !== "branded-survey" || !brandedSurveySettings) {
       return {};
     }
 
-    const { background } = brandedSurveySettings;
+    const { section, background } = brandedSurveySettings;
     const style: React.CSSProperties = {};
 
-    if (background.type === "solid") {
-      style.backgroundColor = background.solidColor;
-    } else if (background.type === "gradient") {
+    // Use section background settings if available, otherwise fall back to background settings
+    if (section.backgroundType === "solid") {
+      style.backgroundColor = section.backgroundColor;
+    } else if (section.backgroundType === "gradient") {
       const directions: { [key: string]: string } = {
         "to-r": "to right",
         "to-l": "to left",
@@ -415,30 +552,63 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
         "to-tr": "to top right",
         "to-tl": "to top left",
       };
-      const direction = directions[background.gradientDirection] || "to right";
-      style.background = `linear-gradient(${direction}, ${background.gradientStart}, ${background.gradientEnd})`;
-    } else if (background.type === "image" && background.imageUrl) {
-      style.backgroundImage = `url(${background.imageUrl})`;
-      style.backgroundPosition = background.imagePosition;
-      style.backgroundSize = background.imageSize;
+      const direction = directions[section.gradientDirection] || "to right";
+      style.background = `linear-gradient(${direction}, ${section.gradientFrom}, ${section.gradientTo})`;
+    } else if (section.backgroundType === "image" && section.backgroundImage) {
+      const overlayOpacity = 1 - section.backgroundImageOpacity / 100;
+      style.background = `linear-gradient(rgba(255,255,255,${overlayOpacity}), rgba(255,255,255,${overlayOpacity})), url(${section.backgroundImage})`;
+      style.backgroundPosition =
+        section.backgroundImagePosition === "cover" ||
+        section.backgroundImagePosition === "contain"
+          ? "center"
+          : section.backgroundImagePosition;
+      style.backgroundSize =
+        section.backgroundImagePosition === "cover" ||
+        section.backgroundImagePosition === "contain"
+          ? section.backgroundImagePosition
+          : "auto";
       style.backgroundRepeat = "no-repeat";
+    } else {
+      // Fallback to old background system
+      if (background.type === "solid") {
+        style.backgroundColor = background.solidColor;
+      } else if (background.type === "gradient") {
+        const directions: { [key: string]: string } = {
+          "to-r": "to right",
+          "to-l": "to left",
+          "to-t": "to top",
+          "to-b": "to bottom",
+          "to-br": "to bottom right",
+          "to-bl": "to bottom left",
+          "to-tr": "to top right",
+          "to-tl": "to top left",
+        };
+        const direction =
+          directions[background.gradientDirection] || "to right";
+        style.background = `linear-gradient(${direction}, ${background.gradientStart}, ${background.gradientEnd})`;
+      } else if (background.type === "image" && background.imageUrl) {
+        style.backgroundImage = `url(${background.imageUrl})`;
+        style.backgroundPosition = background.imagePosition;
+        style.backgroundSize = background.imageSize;
+        style.backgroundRepeat = "no-repeat";
 
-      if (background.overlay) {
-        const overlayColor = background.overlayColor || "#000000";
-        const overlayOpacity = background.overlayOpacity || 0.3;
-        style.background = `linear-gradient(rgba(${parseInt(
-          overlayColor.slice(1, 3),
-          16
-        )}, ${parseInt(overlayColor.slice(3, 5), 16)}, ${parseInt(
-          overlayColor.slice(5, 7),
-          16
-        )}, ${overlayOpacity}), rgba(${parseInt(
-          overlayColor.slice(1, 3),
-          16
-        )}, ${parseInt(overlayColor.slice(3, 5), 16)}, ${parseInt(
-          overlayColor.slice(5, 7),
-          16
-        )}, ${overlayOpacity})), url(${background.imageUrl})`;
+        if (background.overlay) {
+          const overlayColor = background.overlayColor || "#000000";
+          const overlayOpacity = background.overlayOpacity || 0.3;
+          style.background = `linear-gradient(rgba(${parseInt(
+            overlayColor.slice(1, 3),
+            16
+          )}, ${parseInt(overlayColor.slice(3, 5), 16)}, ${parseInt(
+            overlayColor.slice(5, 7),
+            16
+          )}, ${overlayOpacity}), rgba(${parseInt(
+            overlayColor.slice(1, 3),
+            16
+          )}, ${parseInt(overlayColor.slice(3, 5), 16)}, ${parseInt(
+            overlayColor.slice(5, 7),
+            16
+          )}, ${overlayOpacity})), url(${background.imageUrl})`;
+        }
       }
     }
 
@@ -446,7 +616,8 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
   };
 
   const getExitIntentBackgroundStyle = () => {
-    if (distributionType !== "exit-intent" || !exitIntentSettings) {
+    const type = getDistributionType();
+    if (type !== "exit-intent" || !exitIntentSettings) {
       return {};
     }
 
@@ -456,22 +627,24 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
   };
 
   const getPostPurchaseBackgroundStyle = () => {
-    if (distributionType !== "post-purchase" || !postPurchaseSettings) {
+    const type = getDistributionType();
+    if (type !== "post-purchase" || !postPurchaseSettings) {
       return {};
     }
 
     return {
-      backgroundColor: postPurchaseSettings.appearance.backgroundColor,
-      color: postPurchaseSettings.appearance.textColor,
-      borderRadius: `${postPurchaseSettings.appearance.borderRadius}px`,
-      boxShadow: postPurchaseSettings.appearance.shadow
+      backgroundColor: postPurchaseSettings.section.backgroundColor,
+      color: postPurchaseSettings.section.accentColor,
+      borderRadius: `${postPurchaseSettings.button.borderRadius}px`,
+      boxShadow: postPurchaseSettings.button.shadow
         ? "0 4px 6px rgba(0, 0, 0, 0.1)"
         : "none",
     };
   };
 
   const getBrandedTextStyle = () => {
-    if (distributionType !== "branded-survey" || !brandedSurveySettings) {
+    const type = getDistributionType();
+    if (type !== "branded-survey" || !brandedSurveySettings) {
       return {};
     }
 
@@ -484,7 +657,8 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
   };
 
   const getButtonStyle = () => {
-    if (distributionType === "branded-survey" && brandedSurveySettings) {
+    const type = getDistributionType();
+    if (type === "branded-survey" && brandedSurveySettings) {
       const { button } = brandedSurveySettings;
       return {
         backgroundColor: button.backgroundColor,
@@ -496,7 +670,7 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
       };
     }
 
-    if (distributionType === "exit-intent" && exitIntentSettings) {
+    if (type === "exit-intent" && exitIntentSettings) {
       const { button } = exitIntentSettings;
       return {
         backgroundColor: button.backgroundColor,
@@ -511,7 +685,8 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
   };
 
   const getEmailCampaignBackgroundStyle = () => {
-    if (distributionType !== "email-campaign" || !emailCampaignSettings) {
+    const type = getDistributionType();
+    if (type !== "email-campaign" || !emailCampaignSettings) {
       return {};
     }
 
@@ -541,7 +716,8 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
   };
 
   const getEmailCampaignButtonStyle = () => {
-    if (distributionType === "email-campaign" && emailCampaignSettings) {
+    const type = getDistributionType();
+    if (type === "email-campaign" && emailCampaignSettings) {
       const { button } = emailCampaignSettings;
       return {
         backgroundColor: button.backgroundColor,
@@ -598,7 +774,7 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
             <div className="space-y-2">
               {question.options.map((option, optionIndex) => (
                 <div key={optionIndex} className="flex items-center space-x-2">
-                  <div className="w-3 h-3 border border-muted-foreground rounded-full"></div>
+                  <div className="w-3 h-3 border rounded-full"></div>
                   <span className="text-sm text-muted-foreground">
                     {option}
                   </span>
@@ -619,7 +795,7 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
             <div className="space-y-2">
               {question.options.map((option, optionIndex) => (
                 <div key={optionIndex} className="flex items-center space-x-2">
-                  <div className="w-3 h-3 border border-muted-foreground rounded-full"></div>
+                  <div className="w-3 h-3 border rounded-full"></div>
                   <span className="text-sm text-muted-foreground">
                     {option}
                   </span>
@@ -630,24 +806,20 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
 
           {question.type === "text" && (
             <div className="space-y-2">
-              <Input
-                placeholder={question.placeholder || "Your answer..."}
-                className="h-8 text-sm"
-                disabled
-              />
-            </div>
-          )}
-
-          {question.type === "short-answer" && (
-            <div className="space-y-2">
-              <Input
-                placeholder={question.placeholder || "Brief answer..."}
-                className="h-8 text-sm"
-                disabled
-              />
-              <div className="text-xs text-muted-foreground">
-                Max {question.maxLength || 100} characters
-              </div>
+              {question.textInputType === "single-line" ? (
+                <Input
+                  placeholder={question.placeholder || "Your answer..."}
+                  className="h-8 text-sm"
+                  disabled
+                />
+              ) : (
+                <Textarea
+                  placeholder={question.placeholder || "Your answer..."}
+                  className="text-sm resize-none"
+                  rows={3}
+                  disabled
+                />
+              )}
             </div>
           )}
 
@@ -673,6 +845,63 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
             </div>
           )}
 
+          {question.type === "satisfaction" && (
+            <div className="space-y-2">
+              <div className="flex justify-center space-x-4">
+                {(
+                  question.satisfactionEmojis || ["😢", "🙁", "😐", "🙂", "😄"]
+                ).map((emoji, index) => (
+                  <button
+                    key={index}
+                    className="text-3xl p-2 rounded-lg hover:bg-muted transition-colors"
+                    disabled
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+              <div className="flex justify-between text-xs text-muted-foreground px-2">
+                <span>Very Dissatisfied</span>
+                <span>Very Satisfied</span>
+              </div>
+            </div>
+          )}
+
+          {question.type === "point-scale" && (
+            <div className="space-y-2">
+              <div className="flex flex-wrap justify-center gap-1">
+                {Array.from(
+                  {
+                    length:
+                      (question.pointScale?.max || 10) -
+                      (question.pointScale?.min || 1) +
+                      1,
+                  },
+                  (_, i) => (question.pointScale?.min || 1) + i
+                ).map((value) => (
+                  <button
+                    key={value}
+                    className="w-10 h-10 border rounded text-sm flex items-center justify-center hover:bg-muted transition-colors"
+                    style={{
+                      borderColor:
+                        getDistributionType() === "branded-survey" &&
+                        brandedSurveySettings?.section.accentColor
+                          ? brandedSurveySettings.section.accentColor
+                          : "#6b7280",
+                    }}
+                    disabled
+                  >
+                    {value}
+                  </button>
+                ))}
+              </div>
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Minimum ({question.pointScale?.min || 1})</span>
+                <span>Maximum ({question.pointScale?.max || 10})</span>
+              </div>
+            </div>
+          )}
+
           {question.type === "date" && (
             <div className="space-y-2">
               <Input type="date" className="h-8 text-sm" disabled />
@@ -687,61 +916,16 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
               {[1, 2, 3, 4, 5].map((star) => (
                 <Star
                   key={star}
-                  className="w-5 h-5 text-survey-warning cursor-pointer hover:fill-current"
+                  className="w-5 h-5 cursor-pointer hover:fill-current"
+                  style={{
+                    color:
+                      getDistributionType() === "branded-survey" &&
+                      brandedSurveySettings?.section.accentColor
+                        ? brandedSurveySettings.section.accentColor
+                        : "#f59e0b",
+                  }}
                 />
               ))}
-            </div>
-          )}
-
-          {question.type === "satisfaction" && (
-            <div className="space-y-2">
-              <div className="flex flex-wrap gap-1">
-                {Array.from(
-                  {
-                    length:
-                      (question.satisfactionScale?.max || 5) -
-                      (question.satisfactionScale?.min || 1) +
-                      1,
-                  },
-                  (_, i) => (question.satisfactionScale?.min || 1) + i
-                ).map((value) => (
-                  <button
-                    key={value}
-                    className="px-3 py-2 border border-muted-foreground rounded text-sm flex items-center justify-center hover:bg-muted"
-                    disabled
-                  >
-                    {question.satisfactionScale?.showNumbers ? value : "😐"}
-                  </button>
-                ))}
-              </div>
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>
-                  {question.satisfactionScale?.minLabel || "Very Dissatisfied"}
-                </span>
-                <span>
-                  {question.satisfactionScale?.maxLabel || "Very Satisfied"}
-                </span>
-              </div>
-            </div>
-          )}
-
-          {question.type === "nps" && (
-            <div className="space-y-2">
-              <div className="flex flex-wrap gap-1">
-                {[...Array(11)].map((_, i) => (
-                  <button
-                    key={i}
-                    className="w-8 h-8 border border-muted-foreground rounded text-xs flex items-center justify-center hover:bg-muted"
-                    disabled
-                  >
-                    {i}
-                  </button>
-                ))}
-              </div>
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Not likely</span>
-                <span>Very likely</span>
-              </div>
             </div>
           )}
         </div>
@@ -763,35 +947,156 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
               Live
             </Badge>
           </div>
-        </div>
-        <div className="flex items-center space-x-1 bg-muted p-1 rounded-lg">
+
+          {/* Pagination Settings Button */}
           <Button
-            variant={previewDevice === "desktop" ? "secondary" : "ghost"}
+            variant="outline"
             size="sm"
-            onClick={() => setPreviewDevice("desktop")}
-            className="h-8 px-3"
+            onClick={() => setShowPaginationSettings(!showPaginationSettings)}
+            className="flex items-center gap-2"
           >
-            <Monitor className="w-4 h-4" />
-          </Button>
-          <Button
-            variant={previewDevice === "mobile" ? "secondary" : "ghost"}
-            size="sm"
-            onClick={() => setPreviewDevice("mobile")}
-            className="h-8 px-3"
-          >
-            <Smartphone className="w-4 h-4" />
-          </Button>
-          <Button
-            variant={previewDevice === "full" ? "secondary" : "ghost"}
-            size="sm"
-            onClick={() => setPreviewDevice("full")}
-            className="h-8 px-3"
-          >
-            <Maximize className="w-4 h-4" />
+            <Settings2 className="w-4 h-4" />
+            Pagination
           </Button>
         </div>
-        <div className="text-sm text-muted-foreground capitalize">
-          {distributionType.replace("-", " ")} Survey
+
+        {/* Pagination Settings Panel */}
+        {showPaginationSettings && (
+          <div className="border rounded-lg p-4 space-y-4 bg-muted/20">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <h4 className="text-sm font-medium">Question Display Mode</h4>
+                <p className="text-xs text-muted-foreground">
+                  Choose how questions are displayed to customers
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id="show-all"
+                  name="pagination-mode"
+                  checked={!paginationEnabled}
+                  onChange={() => onPaginationChange?.(false)}
+                  className="w-4 h-4"
+                />
+                <label htmlFor="show-all" className="text-sm">
+                  Show all questions on one page
+                </label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id="pagination"
+                  name="pagination-mode"
+                  checked={paginationEnabled}
+                  onChange={() => onPaginationChange?.(true)}
+                  className="w-4 h-4"
+                />
+                <label htmlFor="pagination" className="text-sm">
+                  Use pagination (one question per page)
+                </label>
+              </div>
+
+              {paginationEnabled && (
+                <div className="ml-6 space-y-2">
+                  <label className="text-xs font-medium text-muted-foreground">
+                    Questions per page:
+                  </label>
+                  <Select
+                    value={questionsPerPage?.toString()}
+                    onValueChange={(value) =>
+                      onQuestionsPerPageChange?.(parseInt(value))
+                    }
+                  >
+                    <SelectTrigger className="w-20 h-8">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1</SelectItem>
+                      <SelectItem value="2">2</SelectItem>
+                      <SelectItem value="3">3</SelectItem>
+                      <SelectItem value="5">5</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Total pages: {totalPages}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Distribution Selector and Preview Icons Row */}
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex-1">
+            <Select
+              value={previewDistribution}
+              onValueChange={(value) =>
+                setPreviewDistribution(value as typeof previewDistribution)
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {distributionTypes.map((type) => {
+                  const Icon = type.icon;
+                  return (
+                    <SelectItem key={type.id} value={type.id}>
+                      <div className="flex items-center gap-2">
+                        <Icon className="w-4 h-4" />
+                        <span>{type.name}</span>
+                      </div>
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center space-x-1 bg-muted p-1 rounded-lg">
+            <Button
+              variant={previewDevice === "desktop" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setPreviewDevice("desktop")}
+              className={`h-8 px-3 ${
+                previewDevice === "desktop"
+                  ? "bg-primary text-primary-foreground"
+                  : "hover:bg-muted-foreground/10"
+              }`}
+            >
+              <Monitor className="w-4 h-4" />
+            </Button>
+            <Button
+              variant={previewDevice === "mobile" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setPreviewDevice("mobile")}
+              className={`h-8 px-3 ${
+                previewDevice === "mobile"
+                  ? "bg-primary text-primary-foreground"
+                  : "hover:bg-muted-foreground/10"
+              }`}
+            >
+              <Smartphone className="w-4 h-4" />
+            </Button>
+            <Button
+              variant={previewDevice === "full" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setPreviewDevice("full")}
+              className={`h-8 px-3 ${
+                previewDevice === "full"
+                  ? "bg-primary text-primary-foreground"
+                  : "hover:bg-muted-foreground/10"
+              }`}
+            >
+              <Maximize className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </CardHeader>
 
@@ -805,19 +1110,19 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
               : "w-full"
           } transition-all duration-300 shadow-lg rounded-lg overflow-hidden border relative`}
           style={
-            distributionType === "branded-survey"
+            getDistributionType() === "branded-survey"
               ? getBrandedBackgroundStyle()
-              : distributionType === "post-purchase"
+              : getDistributionType() === "post-purchase"
               ? getPostPurchaseBackgroundStyle()
-              : distributionType === "exit-intent"
+              : getDistributionType() === "exit-intent"
               ? getExitIntentBackgroundStyle()
-              : distributionType === "email-campaign"
+              : getDistributionType() === "email-campaign"
               ? getEmailCampaignBackgroundStyle()
               : { backgroundColor: "white" }
           }
         >
           {/* Progress Bar */}
-          {distributionType === "branded-survey" &&
+          {getDistributionType() === "branded-survey" &&
             brandedSurveySettings?.progressBar.enabled &&
             brandedSurveySettings.progressBar.position === "top" && (
               <div
@@ -830,7 +1135,9 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                 <div
                   className="h-full transition-all duration-500"
                   style={{
-                    backgroundColor: brandedSurveySettings.progressBar.color,
+                    backgroundColor:
+                      brandedSurveySettings.section.accentColor ||
+                      brandedSurveySettings.progressBar.color,
                     width: questions.length > 0 ? "33%" : "0%",
                   }}
                 />
@@ -838,7 +1145,7 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
             )}
 
           {/* Side Logo for Branded Survey */}
-          {distributionType === "branded-survey" &&
+          {getDistributionType() === "branded-survey" &&
             brandedSurveySettings?.sideLogo.enabled &&
             brandedSurveySettings.sideLogo.url && (
               <div
@@ -863,7 +1170,7 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
             )}
 
           {/* Side Logo for Post-Purchase */}
-          {distributionType === "post-purchase" &&
+          {getDistributionType() === "post-purchase" &&
             postPurchaseSettings?.sideLogo.enabled &&
             postPurchaseSettings.sideLogo.url && (
               <div
@@ -888,7 +1195,7 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
             )}
 
           {/* Side Logo for Exit Intent */}
-          {distributionType === "exit-intent" &&
+          {getDistributionType() === "exit-intent" &&
             exitIntentSettings?.sideLogo.enabled &&
             exitIntentSettings.sideLogo.url && (
               <div
@@ -913,7 +1220,7 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
             )}
 
           {/* Header Logo for Email Campaign */}
-          {distributionType === "email-campaign" &&
+          {getDistributionType() === "email-campaign" &&
             emailCampaignSettings?.headerLogo.enabled &&
             emailCampaignSettings.headerLogo.url && (
               <div
@@ -942,17 +1249,19 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
           {/* Survey Header */}
           <div
             className={`${
-              distributionType === "branded-survey" ||
-              distributionType === "post-purchase"
+              getDistributionType() === "branded-survey" ||
+              getDistributionType() === "post-purchase"
                 ? ""
                 : getPreviewStyle()
             } p-6 relative`}
             style={
-              distributionType === "branded-survey" ? getBrandedTextStyle() : {}
+              getDistributionType() === "branded-survey"
+                ? getBrandedTextStyle()
+                : {}
             }
           >
             {/* Header Logo for Branded Survey */}
-            {distributionType === "branded-survey" &&
+            {getDistributionType() === "branded-survey" &&
               brandedSurveySettings?.headerLogo.enabled &&
               brandedSurveySettings.headerLogo.url && (
                 <div
@@ -978,7 +1287,7 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                 </div>
               )}
 
-            {distributionType === "exit-intent" && (
+            {getDistributionType() === "exit-intent" && (
               <button className="absolute top-4 right-4 text-white/80 hover:text-white">
                 <X className="w-5 h-5" />
               </button>
@@ -988,14 +1297,16 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
               <h3
                 className="text-lg font-semibold"
                 style={
-                  distributionType === "branded-survey" && brandedSurveySettings
-                    ? { color: brandedSurveySettings.section.headingColor }
-                    : distributionType === "post-purchase" &&
+                  getDistributionType() === "branded-survey" &&
+                  brandedSurveySettings
+                    ? { color: brandedSurveySettings.section.primaryText }
+                    : getDistributionType() === "post-purchase" &&
                       postPurchaseSettings
-                    ? { color: postPurchaseSettings.appearance.textColor }
-                    : distributionType === "exit-intent" && exitIntentSettings
+                    ? { color: postPurchaseSettings.section.accentColor }
+                    : getDistributionType() === "exit-intent" &&
+                      exitIntentSettings
                     ? { color: exitIntentSettings.section.primaryTextColor }
-                    : distributionType === "email-campaign" &&
+                    : getDistributionType() === "email-campaign" &&
                       emailCampaignSettings
                     ? { color: "#1f2937" }
                     : {}
@@ -1006,22 +1317,24 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
               <p
                 className="text-sm opacity-90"
                 style={
-                  distributionType === "branded-survey" && brandedSurveySettings
+                  getDistributionType() === "branded-survey" &&
+                  brandedSurveySettings
                     ? {
-                        color: brandedSurveySettings.section.secondaryTextColor,
+                        color: brandedSurveySettings.section.secondaryText,
                       }
-                    : distributionType === "post-purchase" &&
+                    : getDistributionType() === "post-purchase" &&
                       postPurchaseSettings
                     ? {
-                        color: postPurchaseSettings.appearance.textColor,
+                        color: postPurchaseSettings.section.accentColor,
                         opacity: 0.8,
                       }
-                    : distributionType === "exit-intent" && exitIntentSettings
+                    : getDistributionType() === "exit-intent" &&
+                      exitIntentSettings
                     ? {
                         color: exitIntentSettings.section.secondaryTextColor,
                         opacity: 0.9,
                       }
-                    : distributionType === "email-campaign" &&
+                    : getDistributionType() === "email-campaign" &&
                       emailCampaignSettings
                     ? {
                         color: "#6b7280",
@@ -1034,7 +1347,7 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
               </p>
             </div>
 
-            {discountEnabled && distributionType === "exit-intent" && (
+            {discountEnabled && getDistributionType() === "exit-intent" && (
               <div className="mt-4 bg-white/20 rounded-lg p-3">
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <span>🎉</span>
@@ -1054,7 +1367,9 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
           <div
             className="p-6 space-y-4 max-h-96 overflow-y-auto"
             style={
-              distributionType === "branded-survey" ? getBrandedTextStyle() : {}
+              getDistributionType() === "branded-survey"
+                ? getBrandedTextStyle()
+                : {}
             }
           >
             {questions.length === 0 ? (
@@ -1071,294 +1386,413 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
               </div>
             ) : (
               <div className="space-y-4">
-                {questions.map((question, index) => (
-                  <div
-                    key={question.id}
-                    className="space-y-3 pb-4 border-b border-border last:border-b-0"
-                  >
-                    <div className="flex items-start space-x-2">
-                      <span className="text-sm font-medium text-muted-foreground mt-1">
-                        {index + 1}.
-                      </span>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <p
-                            className="font-medium text-sm"
-                            style={
-                              distributionType === "branded-survey" &&
-                              brandedSurveySettings
-                                ? {
-                                    color:
-                                      brandedSurveySettings.section
-                                        .primaryTextColor,
-                                  }
-                                : {}
-                            }
-                          >
-                            {question.title}
-                          </p>
-                          {question.required && (
-                            <span className="text-destructive text-xs">*</span>
-                          )}
-                        </div>
-                        {question.description && (
-                          <p
-                            className="text-xs mt-1"
-                            style={
-                              distributionType === "branded-survey" &&
-                              brandedSurveySettings
-                                ? {
-                                    color:
-                                      brandedSurveySettings.section
-                                        .secondaryTextColor,
-                                  }
-                                : {}
-                            }
-                          >
-                            {question.description}
-                          </p>
-                        )}
-                      </div>
-                    </div>
+                {currentQuestions.map((question, questionIndex) => {
+                  // Calculate the global index for proper numbering
+                  const globalIndex = paginationEnabled
+                    ? currentPage * questionsPerPage + questionIndex
+                    : questionIndex;
 
-                    <div className="ml-6 space-y-2">
-                      {question.type === "multiple-choice" &&
-                        question.options && (
-                          <div className="space-y-2">
-                            {question.options.map((option, optionIndex) => (
-                              <div
-                                key={optionIndex}
-                                className="flex items-center space-x-2"
-                              >
-                                <div className="w-3 h-3 border border-muted-foreground rounded-sm"></div>
-                                <span
-                                  className="text-sm"
-                                  style={
-                                    distributionType === "branded-survey" &&
-                                    brandedSurveySettings
-                                      ? {
-                                          color:
-                                            brandedSurveySettings.section
-                                              .primaryTextColor,
-                                        }
-                                      : {}
-                                  }
-                                >
-                                  {option}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                      {question.type === "single-choice" &&
-                        question.options && (
-                          <div className="space-y-2">
-                            {question.options.map((option, optionIndex) => (
-                              <div
-                                key={optionIndex}
-                                className="flex items-center space-x-2"
-                              >
-                                <div className="w-3 h-3 border border-muted-foreground rounded-full"></div>
-                                <span
-                                  className="text-sm"
-                                  style={
-                                    distributionType === "branded-survey" &&
-                                    brandedSurveySettings
-                                      ? {
-                                          color:
-                                            brandedSurveySettings.section
-                                              .primaryTextColor,
-                                        }
-                                      : {}
-                                  }
-                                >
-                                  {option}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                      {question.type === "dropdown" && question.options && (
-                        <div className="space-y-2">
-                          <div className="border border-muted-foreground rounded px-3 py-2 text-sm bg-muted/20">
-                            <span
+                  return (
+                    <div
+                      key={question.id}
+                      className="space-y-3 pb-4 border-b border-border last:border-b-0"
+                    >
+                      <div className="flex items-start space-x-3">
+                        <span className="font-medium text-muted-foreground min-w-[24px]">
+                          {globalIndex + 1}.
+                        </span>
+                        <div className="flex-1">
+                          <div className="flex items-start gap-2">
+                            <p
+                              className="font-medium text-sm leading-relaxed"
                               style={
-                                distributionType === "branded-survey" &&
+                                getDistributionType() === "branded-survey" &&
                                 brandedSurveySettings
                                   ? {
                                       color:
                                         brandedSurveySettings.section
-                                          .secondaryTextColor,
+                                          .primaryText,
                                     }
                                   : {}
                               }
                             >
-                              Select an option...
-                            </span>
+                              {question.title}
+                            </p>
+                            {question.required && (
+                              <span className="text-destructive text-xs">
+                                *
+                              </span>
+                            )}
                           </div>
+                          {question.description && (
+                            <p
+                              className="text-xs mt-1"
+                              style={
+                                getDistributionType() === "branded-survey" &&
+                                brandedSurveySettings
+                                  ? {
+                                      color:
+                                        brandedSurveySettings.section
+                                          .secondaryText,
+                                    }
+                                  : {}
+                              }
+                            >
+                              {question.description}
+                            </p>
+                          )}
                         </div>
-                      )}
+                      </div>
 
-                      {question.type === "binary-choice" &&
-                        question.options && (
-                          <div className="space-y-2">
-                            {question.options.map((option, optionIndex) => (
-                              <div
-                                key={optionIndex}
-                                className="flex items-center space-x-2"
-                              >
-                                <div className="w-3 h-3 border border-muted-foreground rounded-full"></div>
-                                <span
-                                  className="text-sm"
-                                  style={
-                                    distributionType === "branded-survey" &&
-                                    brandedSurveySettings
-                                      ? {
-                                          color:
-                                            brandedSurveySettings.section
-                                              .primaryTextColor,
-                                        }
-                                      : {}
-                                  }
+                      <div className="ml-6 space-y-2">
+                        {question.type === "multiple-choice" &&
+                          question.options && (
+                            <div className="space-y-2">
+                              {question.options.map((option, optionIndex) => (
+                                <div
+                                  key={optionIndex}
+                                  className="flex items-center space-x-2"
                                 >
-                                  {option}
-                                </span>
-                              </div>
-                            ))}
+                                  <div className="w-3 h-3 border border-muted-foreground rounded-sm"></div>
+                                  <span
+                                    className="text-sm"
+                                    style={
+                                      getDistributionType() ===
+                                        "branded-survey" &&
+                                      brandedSurveySettings
+                                        ? {
+                                            color:
+                                              brandedSurveySettings.section
+                                                .primaryText,
+                                          }
+                                        : {}
+                                    }
+                                  >
+                                    {option}
+                                  </span>
+                                </div>
+                              ))}
+                              {/* Custom Answer Field */}
+                              {question.customAnswer?.enabled && (
+                                <div className="mt-3">
+                                  {question.customAnswer.displayMode ===
+                                  "always" ? (
+                                    <div className="space-y-1">
+                                      <label className="text-xs text-muted-foreground">
+                                        Custom Answer:
+                                      </label>
+                                      <Input
+                                        placeholder={
+                                          question.customAnswer.placeholder ||
+                                          "Please specify..."
+                                        }
+                                        className="h-8 text-sm"
+                                        disabled
+                                      />
+                                    </div>
+                                  ) : (
+                                    <div className="text-xs text-muted-foreground italic">
+                                      Custom input will appear when "Others" is
+                                      selected
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                        {question.type === "single-choice" &&
+                          question.options && (
+                            <div className="space-y-2">
+                              {question.options.map((option, optionIndex) => (
+                                <div
+                                  key={optionIndex}
+                                  className="flex items-center space-x-2"
+                                >
+                                  <div className="w-3 h-3 border rounded-full"></div>
+                                  <span
+                                    className="text-sm"
+                                    style={
+                                      getDistributionType() ===
+                                        "branded-survey" &&
+                                      brandedSurveySettings
+                                        ? {
+                                            color:
+                                              brandedSurveySettings.section
+                                                .primaryText,
+                                          }
+                                        : {}
+                                    }
+                                  >
+                                    {option}
+                                  </span>
+                                </div>
+                              ))}
+                              {/* Custom Answer Field */}
+                              {question.customAnswer?.enabled && (
+                                <div className="mt-3">
+                                  {question.customAnswer.displayMode ===
+                                  "always" ? (
+                                    <div className="space-y-1">
+                                      <label className="text-xs text-muted-foreground">
+                                        Custom Answer:
+                                      </label>
+                                      <Input
+                                        placeholder={
+                                          question.customAnswer.placeholder ||
+                                          "Please specify..."
+                                        }
+                                        className="h-8 text-sm"
+                                        disabled
+                                      />
+                                    </div>
+                                  ) : (
+                                    <div className="text-xs text-muted-foreground italic">
+                                      Custom input will appear when "Others" is
+                                      selected
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                        {question.type === "dropdown" && question.options && (
+                          <div className="space-y-2">
+                            <div className="border border-muted-foreground rounded px-3 py-2 text-sm bg-muted/20">
+                              <span
+                                style={
+                                  getDistributionType() === "branded-survey" &&
+                                  brandedSurveySettings
+                                    ? {
+                                        color:
+                                          brandedSurveySettings.section
+                                            .secondaryText,
+                                      }
+                                    : {}
+                                }
+                              >
+                                Select an option...
+                              </span>
+                            </div>
                           </div>
                         )}
 
-                      {(question.type === "text" ||
-                        question.type === "short-answer" ||
-                        question.type === "email" ||
-                        question.type === "phone") && (
-                        <div className="space-y-2">
-                          <Input
-                            type={
-                              question.type === "email"
-                                ? "email"
-                                : question.type === "phone"
-                                ? "tel"
-                                : "text"
-                            }
-                            placeholder={
-                              question.placeholder ||
-                              (question.type === "email"
-                                ? "your.email@example.com"
-                                : question.type === "phone"
-                                ? "+1 (555) 123-4567"
-                                : question.type === "short-answer"
-                                ? "Brief answer..."
-                                : "Your answer...")
-                            }
-                            className="h-8 text-sm"
-                            disabled
-                          />
-                          {question.type === "short-answer" && (
-                            <div className="text-xs text-muted-foreground">
-                              Max {question.maxLength || 100} characters
+                        {question.type === "binary-choice" &&
+                          question.options && (
+                            <div className="space-y-2">
+                              {question.options.map((option, optionIndex) => (
+                                <div
+                                  key={optionIndex}
+                                  className="flex items-center space-x-2"
+                                >
+                                  <div className="w-3 h-3 border border-muted-foreground rounded-full"></div>
+                                  <span
+                                    className="text-sm"
+                                    style={
+                                      getDistributionType() ===
+                                        "branded-survey" &&
+                                      brandedSurveySettings
+                                        ? {
+                                            color:
+                                              brandedSurveySettings.section
+                                                .primaryText,
+                                          }
+                                        : {}
+                                    }
+                                  >
+                                    {option}
+                                  </span>
+                                </div>
+                              ))}
                             </div>
                           )}
-                        </div>
-                      )}
 
-                      {question.type === "date" && (
-                        <div className="space-y-2">
-                          <Input type="date" className="h-8 text-sm" disabled />
-                          <div className="text-xs text-muted-foreground">
-                            Format: {question.dateFormat || "MM/DD/YYYY"}
+                        {(question.type === "text" ||
+                          question.type === "email" ||
+                          question.type === "phone") && (
+                          <div className="space-y-2">
+                            {question.type === "text" ? (
+                              question.textInputType === "single-line" ? (
+                                <Input
+                                  placeholder={
+                                    question.placeholder || "Your answer..."
+                                  }
+                                  className="h-8 text-sm"
+                                  disabled
+                                />
+                              ) : (
+                                <Textarea
+                                  placeholder={
+                                    question.placeholder || "Your answer..."
+                                  }
+                                  className="text-sm resize-none"
+                                  rows={3}
+                                  disabled
+                                />
+                              )
+                            ) : (
+                              <Input
+                                type={
+                                  question.type === "email"
+                                    ? "email"
+                                    : question.type === "phone"
+                                    ? "tel"
+                                    : "text"
+                                }
+                                placeholder={
+                                  question.placeholder ||
+                                  (question.type === "email"
+                                    ? "your.email@example.com"
+                                    : question.type === "phone"
+                                    ? "+1 (555) 123-4567"
+                                    : "Your answer...")
+                                }
+                                className="h-8 text-sm"
+                                disabled
+                              />
+                            )}
                           </div>
-                        </div>
-                      )}
+                        )}
 
-                      {question.type === "rating" && (
-                        <div className="flex space-x-1">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <Star
-                              key={star}
-                              className="w-5 h-5 text-survey-warning cursor-pointer hover:fill-current"
+                        {question.type === "satisfaction" && (
+                          <div className="space-y-2">
+                            <div className="flex justify-center space-x-3">
+                              {(
+                                question.satisfactionEmojis || [
+                                  "😢",
+                                  "🙁",
+                                  "😐",
+                                  "🙂",
+                                  "😄",
+                                ]
+                              ).map((emoji, index) => (
+                                <button
+                                  key={index}
+                                  className="text-2xl p-2 rounded-lg hover:bg-muted-foreground/10 transition-colors"
+                                  disabled
+                                >
+                                  {emoji}
+                                </button>
+                              ))}
+                            </div>
+                            <div className="flex justify-between text-xs text-muted-foreground px-1">
+                              <span>Very Dissatisfied</span>
+                              <span>Very Satisfied</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {question.type === "point-scale" && (
+                          <div className="space-y-2">
+                            <div className="flex flex-wrap justify-center gap-1">
+                              {Array.from(
+                                {
+                                  length:
+                                    (question.pointScale?.max || 10) -
+                                    (question.pointScale?.min || 1) +
+                                    1,
+                                },
+                                (_, i) => (question.pointScale?.min || 1) + i
+                              ).map((value) => (
+                                <button
+                                  key={value}
+                                  className="w-8 h-8 border border-muted-foreground rounded text-xs flex items-center justify-center hover:bg-muted-foreground/10 transition-colors"
+                                  disabled
+                                >
+                                  {value}
+                                </button>
+                              ))}
+                            </div>
+                            <div className="flex justify-between text-xs text-muted-foreground">
+                              <span>{question.pointScale?.min || 1}</span>
+                              <span>{question.pointScale?.max || 10}</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {question.type === "date" && (
+                          <div className="space-y-2">
+                            <Input
+                              type="date"
+                              className="h-8 text-sm"
+                              disabled
                             />
-                          ))}
-                        </div>
-                      )}
+                            <div className="text-xs text-muted-foreground">
+                              Format: {question.dateFormat || "MM/DD/YYYY"}
+                            </div>
+                          </div>
+                        )}
 
-                      {question.type === "satisfaction" && (
-                        <div className="space-y-2">
-                          <div className="flex flex-wrap gap-1">
-                            {Array.from(
-                              {
-                                length:
-                                  (question.satisfactionScale?.max || 5) -
-                                  (question.satisfactionScale?.min || 1) +
-                                  1,
-                              },
-                              (_, i) =>
-                                (question.satisfactionScale?.min || 1) + i
-                            ).map((value) => (
-                              <button
-                                key={value}
-                                className="px-3 py-2 border border-muted-foreground rounded text-sm flex items-center justify-center hover:bg-muted"
-                                disabled
-                              >
-                                {question.satisfactionScale?.showNumbers
-                                  ? value
-                                  : "😐"}
-                              </button>
+                        {question.type === "rating" && (
+                          <div className="flex space-x-1">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <Star
+                                key={star}
+                                className="w-5 h-5 text-amber-400 cursor-pointer hover:fill-current"
+                              />
                             ))}
                           </div>
-                          <div className="flex justify-between text-xs text-muted-foreground">
-                            <span>
-                              {question.satisfactionScale?.minLabel ||
-                                "Very Dissatisfied"}
-                            </span>
-                            <span>
-                              {question.satisfactionScale?.maxLabel ||
-                                "Very Satisfied"}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-
-                      {question.type === "nps" && (
-                        <div className="space-y-2">
-                          <div className="flex flex-wrap gap-1">
-                            {[...Array(11)].map((_, i) => (
-                              <button
-                                key={i}
-                                className="w-8 h-8 border border-muted-foreground rounded text-xs flex items-center justify-center hover:bg-muted"
-                                disabled
-                              >
-                                {i}
-                              </button>
-                            ))}
-                          </div>
-                          <div className="flex justify-between text-xs text-muted-foreground">
-                            <span>Not likely</span>
-                            <span>Very likely</span>
-                          </div>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
+                  );
+                })}
+
+                {/* Pagination Controls */}
+                {paginationEnabled && totalPages > 1 && (
+                  <div className="flex items-center justify-between pt-4 border-t border-border">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(0, prev - 1))
+                      }
+                      disabled={currentPage === 0}
+                      className="flex items-center gap-2"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      Previous
+                    </Button>
+
+                    <div className="flex items-center">
+                      <span className="w-8 h-8 rounded bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium">
+                        {currentPage + 1}
+                      </span>
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setCurrentPage((prev) =>
+                          Math.min(totalPages - 1, prev + 1)
+                        )
+                      }
+                      disabled={currentPage === totalPages - 1}
+                      className="flex items-center gap-2"
+                    >
+                      Next
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
                   </div>
-                ))}
+                )}
 
                 <div className="pt-4 space-y-3">
                   <Button
                     className="w-full"
                     style={
-                      distributionType === "branded-survey"
+                      getDistributionType() === "branded-survey"
                         ? getButtonStyle()
-                        : distributionType === "post-purchase" &&
+                        : getDistributionType() === "post-purchase" &&
                           postPurchaseSettings
                         ? {
                             backgroundColor:
-                              postPurchaseSettings.appearance.buttonColor,
-                            color: "#ffffff",
-                            borderRadius: `${postPurchaseSettings.appearance.borderRadius}px`,
+                              postPurchaseSettings.button.backgroundColor,
+                            color: postPurchaseSettings.button.textColor,
+                            borderRadius: `${postPurchaseSettings.button.borderRadius}px`,
                           }
-                        : distributionType === "exit-intent" &&
+                        : getDistributionType() === "exit-intent" &&
                           exitIntentSettings
                         ? {
                             backgroundColor:
@@ -1366,7 +1800,7 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                             color: exitIntentSettings.button.textColor,
                             borderRadius: "6px",
                           }
-                        : distributionType === "email-campaign"
+                        : getDistributionType() === "email-campaign"
                         ? getEmailCampaignButtonStyle()
                         : {}
                     }
@@ -1375,25 +1809,26 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
 
-                  {discountEnabled && distributionType === "post-purchase" && (
-                    <div className="text-center">
-                      <div className="bg-survey-success-light rounded-lg p-3">
-                        <p className="text-sm text-survey-success font-medium">
-                          🎉 Get{" "}
-                          {discountType === "percentage"
-                            ? `${discountValue}%`
-                            : `$${discountValue}`}{" "}
-                          off your next order!
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Discount code will be sent to your email
-                        </p>
+                  {discountEnabled &&
+                    getDistributionType() === "post-purchase" && (
+                      <div className="text-center">
+                        <div className="bg-survey-success-light rounded-lg p-3">
+                          <p className="text-sm text-survey-success font-medium">
+                            🎉 Get{" "}
+                            {discountType === "percentage"
+                              ? `${discountValue}%`
+                              : `$${discountValue}`}{" "}
+                            off your next order!
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Discount code will be sent to your email
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
                   {/* Trust Signals */}
-                  {distributionType === "branded-survey" &&
+                  {getDistributionType() === "branded-survey" &&
                     brandedSurveySettings?.trustSignals && (
                       <div className="flex justify-center items-center space-x-4 pt-2">
                         {brandedSurveySettings.trustSignals.showSSL && (
@@ -1421,7 +1856,7 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
           </div>
 
           {/* Bottom Progress Bar */}
-          {distributionType === "branded-survey" &&
+          {getDistributionType() === "branded-survey" &&
             brandedSurveySettings?.progressBar.enabled &&
             brandedSurveySettings.progressBar.position === "bottom" && (
               <div
@@ -1434,7 +1869,9 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                 <div
                   className="h-full transition-all duration-500"
                   style={{
-                    backgroundColor: brandedSurveySettings.progressBar.color,
+                    backgroundColor:
+                      brandedSurveySettings.section.accentColor ||
+                      brandedSurveySettings.progressBar.color,
                     width: questions.length > 0 ? "33%" : "0%",
                   }}
                 />

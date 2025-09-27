@@ -30,41 +30,25 @@ const AppearanceSettingsComponent: React.FC<AppearanceSettingsProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label className="text-sm">Primary Color</Label>
-          <div className="flex space-x-2">
-            <Input
-              type="color"
-              value={settings.primaryColor}
-              onChange={(e) =>
-                onSettingsChange("appearance.primaryColor", e.target.value)
-              }
-              className="w-16"
-            />
-            <Input
-              value={settings.primaryColor}
-              onChange={(e) =>
-                onSettingsChange("appearance.primaryColor", e.target.value)
-              }
-            />
-          </div>
+          <Input
+            type="color"
+            value={settings.primaryColor}
+            onChange={(e) =>
+              onSettingsChange("appearance.primaryColor", e.target.value)
+            }
+            className="w-16"
+          />
         </div>
         <div className="space-y-2">
           <Label className="text-sm">Background Color</Label>
-          <div className="flex space-x-2">
-            <Input
-              type="color"
-              value={settings.backgroundColor}
-              onChange={(e) =>
-                onSettingsChange("appearance.backgroundColor", e.target.value)
-              }
-              className="w-16"
-            />
-            <Input
-              value={settings.backgroundColor}
-              onChange={(e) =>
-                onSettingsChange("appearance.backgroundColor", e.target.value)
-              }
-            />
-          </div>
+          <Input
+            type="color"
+            value={settings.backgroundColor}
+            onChange={(e) =>
+              onSettingsChange("appearance.backgroundColor", e.target.value)
+            }
+            className="w-16"
+          />
         </div>
         <div className="space-y-2">
           <Label className="text-sm">Border Radius</Label>

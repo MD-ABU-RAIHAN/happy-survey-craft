@@ -3,13 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import {
-  Link,
-  RotateCcw,
-  Zap,
-  Copy,
-  Check,
-} from "lucide-react";
+import { Link, RotateCcw, Zap, Copy, Check } from "lucide-react";
 
 interface BrandedSurveySettings {
   useCustomDomain: boolean;
@@ -56,14 +50,14 @@ const SurveyUrlSection: React.FC<SurveyUrlSectionProps> = ({
       </div>
 
       <div className="space-y-3">
-        <div className="flex items-center space-x-2">
+        <div className="flex justify-between space-x-2">
+          <Label className="text-sm">Use Custom Domain</Label>
           <Switch
             checked={settings.useCustomDomain}
             onCheckedChange={(checked) =>
               onSettingsChange("useCustomDomain", checked)
             }
           />
-          <Label className="text-sm">Use Custom Domain</Label>
         </div>
 
         {settings.useCustomDomain && (
@@ -83,7 +77,9 @@ const SurveyUrlSection: React.FC<SurveyUrlSectionProps> = ({
             <div className="flex-1 flex items-center bg-muted rounded-md px-3 py-2 text-sm">
               <span className="text-muted-foreground">
                 {settings.useCustomDomain
-                  ? `https://${settings.customDomain || "surveys.yourcompany.com"}/`
+                  ? `https://${
+                      settings.customDomain || "surveys.yourcompany.com"
+                    }/`
                   : "https://yoursurveyapp.com/s/"}
               </span>
               <Input
@@ -107,12 +103,8 @@ const SurveyUrlSection: React.FC<SurveyUrlSectionProps> = ({
       </div>
 
       <div className="bg-white/60 p-3 rounded-lg border border-muted text-sm">
-        <div className="font-medium text-foreground mb-1">
-          Preview URL:
-        </div>
-        <div className="text-muted-foreground break-all">
-          {fullUrl}
-        </div>
+        <div className="font-medium text-foreground mb-1">Preview URL:</div>
+        <div className="text-muted-foreground break-all">{fullUrl}</div>
       </div>
     </div>
   );

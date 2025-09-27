@@ -34,10 +34,34 @@ interface BrandedSurveySettings {
     shadow: boolean;
   };
   section: {
+    primaryText: string;
+    secondaryText: string;
+    accentColor: string;
     backgroundColor: string;
-    textColor: string;
-    borderColor: string;
-    borderRadius: number;
+    backgroundType: "solid" | "gradient" | "image";
+    gradientFrom: string;
+    gradientTo: string;
+    gradientDirection:
+      | "to-r"
+      | "to-br"
+      | "to-b"
+      | "to-bl"
+      | "to-l"
+      | "to-tl"
+      | "to-t"
+      | "to-tr";
+    backgroundImage: string;
+    backgroundImageOpacity: number;
+    backgroundImagePosition:
+      | "center"
+      | "top"
+      | "bottom"
+      | "left"
+      | "right"
+      | "cover"
+      | "contain";
+    customCss: string;
+    enableCustomCss: boolean;
   };
   background: {
     type: "color" | "gradient" | "image";
@@ -81,12 +105,6 @@ interface PostPurchaseSettings {
     position: "center" | "bottom-right" | "top-center";
     showOnPages: string[];
   };
-  appearance: {
-    primaryColor: string;
-    backgroundColor: string;
-    borderRadius: number;
-    shadow: boolean;
-  };
   sideLogo: {
     enabled: boolean;
     url: string;
@@ -94,8 +112,45 @@ interface PostPurchaseSettings {
     height: number;
     position: "left" | "right" | "center";
   };
-  advancedFeatures: {
-    minimized: boolean;
+  button: {
+    enabled: boolean;
+    backgroundColor: string;
+    textColor: string;
+    borderRadius: number;
+    fontSize: number;
+    fontWeight: string;
+    backgroundHoverColor: string;
+    shadow: boolean;
+  };
+  section: {
+    primaryText: string;
+    secondaryText: string;
+    accentColor: string;
+    backgroundColor: string;
+    backgroundType: "solid" | "gradient" | "image";
+    gradientFrom: string;
+    gradientTo: string;
+    gradientDirection:
+      | "to-r"
+      | "to-br"
+      | "to-b"
+      | "to-bl"
+      | "to-l"
+      | "to-tl"
+      | "to-t"
+      | "to-tr";
+    backgroundImage: string;
+    backgroundImageOpacity: number;
+    backgroundImagePosition:
+      | "center"
+      | "top"
+      | "bottom"
+      | "left"
+      | "right"
+      | "cover"
+      | "contain";
+    customCss: string;
+    enableCustomCss: boolean;
   };
 }
 
@@ -114,16 +169,44 @@ interface ExitIntentSettings {
     minimized: boolean;
   };
   button: {
-    textColor: string;
+    enabled: boolean;
     backgroundColor: string;
+    textColor: string;
+    borderRadius: number;
+    fontSize: number;
+    fontWeight: string;
     backgroundHoverColor: string;
-    minimized: boolean;
+    shadow: boolean;
   };
   section: {
-    primaryTextColor: string;
-    secondaryTextColor: string;
+    primaryText: string;
+    secondaryText: string;
     accentColor: string;
     backgroundColor: string;
+    backgroundType: "solid" | "gradient" | "image";
+    gradientFrom: string;
+    gradientTo: string;
+    gradientDirection:
+      | "to-r"
+      | "to-br"
+      | "to-b"
+      | "to-bl"
+      | "to-l"
+      | "to-tl"
+      | "to-t"
+      | "to-tr";
+    backgroundImage: string;
+    backgroundImageOpacity: number;
+    backgroundImagePosition:
+      | "center"
+      | "top"
+      | "bottom"
+      | "left"
+      | "right"
+      | "cover"
+      | "contain";
+    customCss: string;
+    enableCustomCss: boolean;
   };
 }
 
@@ -158,32 +241,44 @@ interface EmailCampaignSettings {
     body: string; // Rich text HTML content
   };
   button: {
-    textColor: string;
+    enabled: boolean;
     backgroundColor: string;
+    textColor: string;
+    borderRadius: number;
+    fontSize: number;
+    fontWeight: string;
     backgroundHoverColor: string;
-    minimized: boolean;
+    shadow: boolean;
   };
-  background: {
-    type: "solid" | "gradient" | "image";
-    solidColor: string;
-    gradientStart: string;
-    gradientEnd: string;
+  section: {
+    primaryText: string;
+    secondaryText: string;
+    accentColor: string;
+    backgroundColor: string;
+    backgroundType: "solid" | "gradient" | "image";
+    gradientFrom: string;
+    gradientTo: string;
     gradientDirection:
       | "to-r"
-      | "to-l"
-      | "to-t"
-      | "to-b"
       | "to-br"
+      | "to-b"
       | "to-bl"
-      | "to-tr"
-      | "to-tl";
-    imageUrl: string;
-    imageFile: File | null;
-    imagePosition: "center" | "top" | "bottom" | "left" | "right";
-    imageSize: "cover" | "contain" | "auto";
-    overlay: boolean;
-    overlayColor: string;
-    overlayOpacity: number;
+      | "to-l"
+      | "to-tl"
+      | "to-t"
+      | "to-tr";
+    backgroundImage: string;
+    backgroundImageOpacity: number;
+    backgroundImagePosition:
+      | "center"
+      | "top"
+      | "bottom"
+      | "left"
+      | "right"
+      | "cover"
+      | "contain";
+    customCss: string;
+    enableCustomCss: boolean;
   };
 }
 
@@ -217,21 +312,48 @@ interface OnSitePopupSettings {
     url: string;
     file: File | null;
     size: "small" | "medium" | "large";
-    position: "left" | "right" | "center";
+    position: "left" | "right";
     minimized: boolean;
   };
   button: {
     enabled: boolean;
-    textColor: string;
     backgroundColor: string;
+    textColor: string;
+    borderRadius: number;
+    fontSize: number;
+    fontWeight: string;
     backgroundHoverColor: string;
-    minimized: boolean;
+    shadow: boolean;
   };
   section: {
-    primaryTextColor: string;
-    secondaryTextColor: string;
+    primaryText: string;
+    secondaryText: string;
     accentColor: string;
     backgroundColor: string;
+    backgroundType: "solid" | "gradient" | "image";
+    gradientFrom: string;
+    gradientTo: string;
+    gradientDirection:
+      | "to-r"
+      | "to-br"
+      | "to-b"
+      | "to-bl"
+      | "to-l"
+      | "to-tl"
+      | "to-t"
+      | "to-tr";
+    backgroundImage: string;
+    backgroundImageOpacity: number;
+    backgroundImagePosition:
+      | "center"
+      | "top"
+      | "bottom"
+      | "left"
+      | "right"
+      | "cover"
+      | "contain";
+    customCss: string;
+    enableCustomCss: boolean;
   };
 }
 
