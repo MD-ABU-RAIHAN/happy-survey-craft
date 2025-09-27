@@ -573,8 +573,6 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                   <CircleDot className="w-4 h-4 mr-2" />
                   Single Choice
                 </Button>
-              </div>
-              <div className="flex flex-wrap gap-2 justify-center">
                 <Button
                   onClick={() => addQuestion("text")}
                   variant="outline"
@@ -584,20 +582,22 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                   Text Response
                 </Button>
                 <Button
-                  onClick={() => addQuestion("rating")}
-                  variant="outline"
-                  size="sm"
-                >
-                  <Star className="w-4 h-4 mr-2" />
-                  Rating Scale
-                </Button>
-                <Button
                   onClick={() => addQuestion("satisfaction")}
                   variant="outline"
                   size="sm"
                 >
                   <Smile className="w-4 h-4 mr-2" />
                   Satisfaction
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-2 justify-center">
+                <Button
+                  onClick={() => addQuestion("rating")}
+                  variant="outline"
+                  size="sm"
+                >
+                  <Star className="w-4 h-4 mr-2" />
+                  Rating Scale
                 </Button>
                 <Button
                   onClick={() => addQuestion("point-scale")}
@@ -607,8 +607,6 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                   <Hash className="w-4 h-4 mr-2" />
                   Point Scale
                 </Button>
-              </div>
-              <div className="flex flex-wrap gap-2 justify-center">
                 <Button
                   onClick={() => addQuestion("date")}
                   variant="outline"
