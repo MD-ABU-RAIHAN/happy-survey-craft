@@ -1,7 +1,7 @@
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { SlimSwitch } from "@/components/ui/slim-switch";
 import { Palette } from "lucide-react";
 
 interface AppearanceSettings {
@@ -66,7 +66,7 @@ const AppearanceSettingsComponent: React.FC<AppearanceSettingsProps> = ({
           />
         </div>
         <div className="space-y-2 flex items-center">
-          <Switch
+          <SlimSwitch
             checked={settings.shadow}
             onCheckedChange={(checked) =>
               onSettingsChange("appearance.shadow", checked)

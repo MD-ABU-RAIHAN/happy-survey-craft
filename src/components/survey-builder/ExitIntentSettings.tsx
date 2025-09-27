@@ -1,7 +1,7 @@
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { SlimSwitch } from "@/components/ui/slim-switch";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -103,7 +103,7 @@ const ExitIntentSettingsComponent: React.FC<ExitIntentSettingsProps> = ({
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <Label className="text-sm">Show when cart is empty</Label>
-            <Switch
+            <SlimSwitch
               checked={settings.showPopup.emptyCart}
               onCheckedChange={(checked) =>
                 updateSetting("showPopup.emptyCart", checked)
@@ -112,7 +112,7 @@ const ExitIntentSettingsComponent: React.FC<ExitIntentSettingsProps> = ({
           </div>
           <div className="flex items-center justify-between">
             <Label className="text-sm">Show when cart has products</Label>
-            <Switch
+            <SlimSwitch
               checked={settings.showPopup.hasProducts}
               onCheckedChange={(checked) =>
                 updateSetting("showPopup.hasProducts", checked)
@@ -147,7 +147,7 @@ const ExitIntentSettingsComponent: React.FC<ExitIntentSettingsProps> = ({
       >
         <div className="flex items-center justify-between mb-4">
           <Label className="font-medium">Enable Side Logo</Label>
-          <Switch
+          <SlimSwitch
             checked={settings.sideLogo.enabled}
             onCheckedChange={(checked) =>
               updateSetting("sideLogo.enabled", checked)
@@ -204,7 +204,7 @@ const ExitIntentSettingsComponent: React.FC<ExitIntentSettingsProps> = ({
 
             <div className="flex items-center justify-between">
               <Label className="text-sm">Minimized</Label>
-              <Switch
+              <SlimSwitch
                 checked={settings.sideLogo.minimized}
                 onCheckedChange={(checked) =>
                   updateSetting("sideLogo.minimized", checked)

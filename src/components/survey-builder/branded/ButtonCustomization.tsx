@@ -1,7 +1,7 @@
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { SlimSwitch } from "@/components/ui/slim-switch";
 import {
   Select,
   SelectContent,
@@ -38,7 +38,7 @@ const ButtonCustomization: React.FC<ButtonCustomizationProps> = ({
           <Type className="w-5 h-5 text-survey-success" />
           Button Customization
         </h5>
-        <Switch
+        <SlimSwitch
           checked={settings.enabled}
           onCheckedChange={(checked) =>
             onSettingsChange("button.enabled", checked)

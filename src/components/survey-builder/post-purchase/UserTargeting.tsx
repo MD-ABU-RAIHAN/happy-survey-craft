@@ -1,6 +1,6 @@
 import React from "react";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { SlimSwitch } from "@/components/ui/slim-switch";
 import {
   Select,
   SelectContent,
@@ -102,7 +102,7 @@ const UserTargeting: React.FC<UserTargetingProps> = ({
           <div className="space-y-4 ml-6">
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
-                <Switch
+                <SlimSwitch
                   checked={settings.userTag.enabled}
                   onCheckedChange={(checked) =>
                     onSettingsChange("userTargeting.userTag.enabled", checked)
@@ -150,7 +150,7 @@ const UserTargeting: React.FC<UserTargetingProps> = ({
 
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
-                <Switch
+                <SlimSwitch
                   checked={settings.productPurchase.enabled}
                   onCheckedChange={(checked) =>
                     onSettingsChange("userTargeting.productPurchase.enabled", checked)

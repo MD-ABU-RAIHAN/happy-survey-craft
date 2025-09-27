@@ -2,7 +2,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { SlimSwitch } from "@/components/ui/slim-switch";
 import { Link, RotateCcw, Zap, Copy, Check } from "lucide-react";
 
 interface BrandedSurveySettings {
@@ -52,7 +52,7 @@ const SurveyUrlSection: React.FC<SurveyUrlSectionProps> = ({
       <div className="space-y-3">
         <div className="flex justify-between space-x-2">
           <Label className="text-sm">Use Custom Domain</Label>
-          <Switch
+          <SlimSwitch
             checked={settings.useCustomDomain}
             onCheckedChange={(checked) =>
               onSettingsChange("useCustomDomain", checked)

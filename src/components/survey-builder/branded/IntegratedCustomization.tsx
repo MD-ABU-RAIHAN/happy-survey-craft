@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { SlimSwitch } from "@/components/ui/slim-switch";
 import {
   Select,
   SelectContent,
@@ -432,7 +432,7 @@ const IntegratedCustomization: React.FC<IntegratedCustomizationProps> = ({
                     </div>
                     <div className="flex items-center space-x-2">
                       <Label className="text-xs">Enable</Label>
-                      <Switch
+                      <SlimSwitch
                         checked={sectionSettings.enableCustomCss}
                         onCheckedChange={(checked) =>
                           onSettingsChange("section.enableCustomCss", checked)

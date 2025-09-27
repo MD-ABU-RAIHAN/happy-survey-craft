@@ -1,6 +1,6 @@
 import React from "react";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { SlimSwitch } from "@/components/ui/slim-switch";
 import {
   Select,
   SelectContent,
@@ -449,7 +449,7 @@ const OnSitePopupSettingsRefactored: React.FC<
       >
         <div className="space-y-4">
           <div className="flex items-center space-x-2">
-            <Switch
+            <SlimSwitch
               checked={settings.sideLogo.enabled}
               onCheckedChange={(checked) =>
                 updateSetting("sideLogo.enabled", checked)

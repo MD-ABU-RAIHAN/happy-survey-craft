@@ -2,7 +2,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { SlimSwitch } from "@/components/ui/slim-switch";
 import {
   Select,
   SelectContent,
@@ -175,7 +175,7 @@ const PostPurchaseSettingsComponent: React.FC<PostPurchaseSettingsProps> = ({
             <div className="space-y-4 ml-6">
               <div className="space-y-3">
                 <div className="flex items-center space-x-2">
-                  <Switch
+                  <SlimSwitch
                     checked={settings.userTargeting.userTag.enabled}
                     onCheckedChange={(checked) =>
                       updateSetting("userTargeting.userTag.enabled", checked)
@@ -223,7 +223,7 @@ const PostPurchaseSettingsComponent: React.FC<PostPurchaseSettingsProps> = ({
 
               <div className="space-y-3">
                 <div className="flex items-center space-x-2">
-                  <Switch
+                  <SlimSwitch
                     checked={settings.userTargeting.productPurchase.enabled}
                     onCheckedChange={(checked) =>
                       updateSetting(
@@ -379,7 +379,7 @@ const PostPurchaseSettingsComponent: React.FC<PostPurchaseSettingsProps> = ({
             />
           </div>
           <div className="space-y-2 flex items-center">
-            <Switch
+            <SlimSwitch
               checked={settings.appearance.shadow}
               onCheckedChange={(checked) =>
                 updateSetting("appearance.shadow", checked)
@@ -394,7 +394,7 @@ const PostPurchaseSettingsComponent: React.FC<PostPurchaseSettingsProps> = ({
       <div className="bg-white/60 rounded-lg p-6 space-y-4 border border-muted">
         <div className="flex items-center justify-between">
           <Label className="font-medium">Side Logo</Label>
-          <Switch
+          <SlimSwitch
             checked={settings.sideLogo.enabled}
             onCheckedChange={(checked) =>
               updateSetting("sideLogo.enabled", checked)

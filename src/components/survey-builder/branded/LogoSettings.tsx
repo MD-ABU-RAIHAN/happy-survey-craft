@@ -2,7 +2,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { SlimSwitch } from "@/components/ui/slim-switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Image, Upload } from "lucide-react";
 import FileUpload from "../shared/FileUpload";
@@ -42,7 +42,7 @@ const LogoSettings: React.FC<LogoSettingsProps> = ({
         <TabsContent value="header" className="space-y-4">
           <div className="flex items-center justify-between">
             <Label className="font-medium">Header Logo Settings</Label>
-            <Switch
+            <SlimSwitch
               checked={headerLogo.enabled}
               onCheckedChange={(checked) =>
                 onSettingsChange("headerLogo.enabled", checked)
@@ -99,7 +99,7 @@ const LogoSettings: React.FC<LogoSettingsProps> = ({
         <TabsContent value="side" className="space-y-4">
           <div className="flex items-center justify-between">
             <Label className="font-medium">Side Logo Settings</Label>
-            <Switch
+            <SlimSwitch
               checked={sideLogo.enabled}
               onCheckedChange={(checked) =>
                 onSettingsChange("sideLogo.enabled", checked)

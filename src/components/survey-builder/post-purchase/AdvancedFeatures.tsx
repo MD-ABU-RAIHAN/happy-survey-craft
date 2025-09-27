@@ -1,5 +1,5 @@
 import React from "react";
-import { Switch } from "@/components/ui/switch";
+import { SlimSwitch } from "@/components/ui/slim-switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -97,7 +97,7 @@ const AdvancedFeatures: React.FC<AdvancedFeaturesProps> = ({
                 Automatically adjust survey timing based on purchase value and
                 customer behavior.
               </p>
-              <Switch defaultChecked />
+              <SlimSwitch defaultChecked />
             </div>
             <div className="bg-white/80 rounded-lg p-4">
               <h6 className="font-medium text-sm mb-2 flex items-center gap-2">
@@ -107,7 +107,7 @@ const AdvancedFeatures: React.FC<AdvancedFeaturesProps> = ({
               <p className="text-xs text-muted-foreground mb-3">
                 Show survey when customer is about to leave the thank you page.
               </p>
-              <Switch />
+              <SlimSwitch />
             </div>
             <div className="bg-white/80 rounded-lg p-4">
               <h6 className="font-medium text-sm mb-2 flex items-center gap-2">
@@ -118,7 +118,7 @@ const AdvancedFeatures: React.FC<AdvancedFeaturesProps> = ({
                 Automatically optimize survey layout and interactions for mobile
                 devices.
               </p>
-              <Switch defaultChecked />
+              <SlimSwitch defaultChecked />
             </div>
             <div className="bg-white/80 rounded-lg p-4">
               <h6 className="font-medium text-sm mb-2 flex items-center gap-2">
@@ -129,7 +129,7 @@ const AdvancedFeatures: React.FC<AdvancedFeaturesProps> = ({
                 Test different survey designs and timing to optimize response
                 rates.
               </p>
-              <Switch />
+              <SlimSwitch />
             </div>
             <div className="bg-white/80 rounded-lg p-4">
               <h6 className="font-medium text-sm mb-2 flex items-center gap-2">
@@ -140,7 +140,7 @@ const AdvancedFeatures: React.FC<AdvancedFeaturesProps> = ({
                 Automatically detect customer location and show survey in their
                 language.
               </p>
-              <Switch />
+              <SlimSwitch />
             </div>
             <div className="bg-white/80 rounded-lg p-4">
               <h6 className="font-medium text-sm mb-2 flex items-center gap-2">
@@ -152,7 +152,7 @@ const AdvancedFeatures: React.FC<AdvancedFeaturesProps> = ({
                 surveys.
               </p>
               <div className="flex items-center justify-between">
-                <Switch defaultChecked />
+                <SlimSwitch defaultChecked />
                 <Select defaultValue="30-days">
                   <SelectTrigger className="w-24 h-6 text-xs">
                     <SelectValue />

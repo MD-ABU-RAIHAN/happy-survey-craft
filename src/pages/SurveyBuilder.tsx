@@ -1604,15 +1604,8 @@ const SurveyBuilder = () => {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           {/* Main Content - 60% */}
           <div className="lg:col-span-3 space-y-6">
-            <Card className="shadow-xl border-0">
-              <CardHeader className="bg-gradient-to-r from-white to-survey-success-light/20">
-                <CardTitle className="text-xl">Create Survey</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Design and configure your customer survey with advanced
-                  targeting and incentives
-                </p>
-              </CardHeader>
-              <CardContent className="p-0">
+            <Card className="shadow-xl border-0 ">
+              <CardContent className=" p-0 pt-1">
                 <Tabs defaultValue="builder" className="w-full">
                   <TabsList className="grid grid-cols-3 m-6 mb-0">
                     <TabsTrigger
@@ -1719,6 +1712,9 @@ const SurveyBuilder = () => {
                 discountEnabled={isDiscountEnabled}
                 discountType={discountType}
                 discountValue={discountValue}
+                discountCode={discountPrefix}
+                discountDescription={discountDescription}
+                discountExpiryDays={discountExpiry}
                 brandedSurveySettings={brandedSurveySettings}
                 postPurchaseSettings={postPurchaseSettings}
                 exitIntentSettings={exitIntentSettings}

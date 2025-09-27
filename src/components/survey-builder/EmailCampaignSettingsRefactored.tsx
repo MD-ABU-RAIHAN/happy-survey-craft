@@ -4,7 +4,7 @@ import "react-quill/dist/quill.snow.css";
 import "../../styles/quill-custom.css";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { SlimSwitch } from "@/components/ui/slim-switch";
 import {
   Select,
   SelectContent,
@@ -182,7 +182,7 @@ const EmailCampaignSettingsRefactored: React.FC<
             <div className="space-y-4 pl-4 border-l-2 border-blue-200">
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
-                  <Switch
+                  <SlimSwitch
                     checked={settings.userTargeting.userTag.enabled}
                     onCheckedChange={(checked) =>
                       updateSetting("userTargeting.userTag.enabled", checked)
@@ -305,7 +305,7 @@ const EmailCampaignSettingsRefactored: React.FC<
       >
         <div className="space-y-4">
           <div className="flex items-center space-x-2">
-            <Switch
+            <SlimSwitch
               checked={settings.headerLogo.enabled}
               onCheckedChange={(checked) =>
                 updateSetting("headerLogo.enabled", checked)

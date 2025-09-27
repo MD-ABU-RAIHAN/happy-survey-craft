@@ -1,7 +1,7 @@
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { SlimSwitch } from "@/components/ui/slim-switch";
 import {
   Select,
   SelectContent,
@@ -124,7 +124,7 @@ const ExitIntentSettingsRefactored: React.FC<
             <Label className="text-sm font-medium">Show Popup When</Label>
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
-                <Switch
+                <SlimSwitch
                   checked={settings.showPopup.emptyCart}
                   onCheckedChange={(checked) =>
                     updateSetting("showPopup.emptyCart", checked)
@@ -133,7 +133,7 @@ const ExitIntentSettingsRefactored: React.FC<
                 <Label className="text-sm">Cart is empty</Label>
               </div>
               <div className="flex items-center space-x-2">
-                <Switch
+                <SlimSwitch
                   checked={settings.showPopup.hasProducts}
                   onCheckedChange={(checked) =>
                     updateSetting("showPopup.hasProducts", checked)
@@ -179,7 +179,7 @@ const ExitIntentSettingsRefactored: React.FC<
       >
         <div className="space-y-4">
           <div className="flex items-center space-x-2">
-            <Switch
+            <SlimSwitch
               checked={settings.sideLogo.enabled}
               onCheckedChange={(checked) =>
                 updateSetting("sideLogo.enabled", checked)

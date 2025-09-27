@@ -1,7 +1,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
+import { CustomSwitch } from "@/components/ui/custom-switch";
 import {
   Collapsible,
   CollapsibleContent,
@@ -93,7 +93,7 @@ const DistributionItem: React.FC<DistributionItemProps> = ({
               </div>
             </div>
             <div className="flex items-center">
-              <Switch checked={isEnabled} onCheckedChange={onToggleEnabled} />
+              <CustomSwitch checked={isEnabled} onCheckedChange={onToggleEnabled} />
             </div>
           </div>
         </CardHeader>

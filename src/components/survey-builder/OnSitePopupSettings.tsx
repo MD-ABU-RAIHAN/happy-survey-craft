@@ -1,6 +1,6 @@
 import React from "react";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { SlimSwitch } from "@/components/ui/slim-switch";
 import {
   Select,
   SelectContent,
@@ -393,7 +393,7 @@ const OnSitePopupSettingsComponent: React.FC<OnSitePopupSettingsProps> = ({
       >
         <div className="flex items-center justify-between mb-4">
           <Label className="font-medium">Enable Side Logo</Label>
-          <Switch
+          <SlimSwitch
             checked={settings.sideLogo.enabled}
             onCheckedChange={(checked) =>
               updateSetting("sideLogo.enabled", checked)
@@ -451,7 +451,7 @@ const OnSitePopupSettingsComponent: React.FC<OnSitePopupSettingsProps> = ({
 
             <div className="flex items-center justify-between">
               <Label className="text-sm">Minimized</Label>
-              <Switch
+              <SlimSwitch
                 checked={settings.sideLogo.minimized}
                 onCheckedChange={(checked) =>
                   updateSetting("sideLogo.minimized", checked)

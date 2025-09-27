@@ -1,9 +1,14 @@
 import React from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
-import { Gift } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { CustomSwitch } from "@/components/ui/custom-switch";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Gift, ChevronDown, ChevronRight } from "lucide-react";
 import DiscountConfiguration from "./incentives/DiscountConfiguration";
-import DiscountPreview from "./incentives/DiscountPreview";
 
 interface IncentivesTabRefactoredProps {
   isDiscountEnabled: boolean;
@@ -34,6 +39,17 @@ const IncentivesTabRefactored: React.FC<IncentivesTabRefactoredProps> = ({
   discountExpiryDays,
   setDiscountExpiryDays,
 }) => {
+  const [isCollapsed, setIsCollapsed] = React.useState(!isDiscountEnabled);
+
+  // Auto-expand when enabled, auto-collapse when disabled
+  React.useEffect(() => {
+    if (isDiscountEnabled) {
+      setIsCollapsed(false);
+    } else {
+      setIsCollapsed(true);
+    }
+  }, [isDiscountEnabled]);
+
   return (
     <div className="p-6 pt-4 space-y-6">
       <div>
@@ -43,60 +59,88 @@ const IncentivesTabRefactored: React.FC<IncentivesTabRefactoredProps> = ({
         </p>
       </div>
 
-      <Card
-        className={`border-2 transition-all ${
-          isDiscountEnabled
-            ? "border-primary bg-survey-success-light/30"
-            : "border-dashed border-muted"
-        }`}
-      >
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div>
-                <h4 className="font-semibold flex items-center gap-2">
-                  <Gift className="w-4 h-4 text-survey-purple" />
-                  Discount Incentives
-                </h4>
-                <p className="text-sm text-muted-foreground">
-                  {isDiscountEnabled
-                    ? "Customers will receive a discount code after survey completion"
-                    : "Enable discount rewards to boost survey completion rates"}
-                </p>
+      <Collapsible open={!isCollapsed} onOpenChange={(open) => setIsCollapsed(!open)}>
+        <Card
+          className={`transition-all duration-300 border-2 ${
+            isDiscountEnabled
+              ? "border-primary/20 shadow-lg"
+              : "border-muted hover:border-muted-foreground/20"
+          }`}
+        >
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <CollapsibleTrigger className="p-2 hover:bg-muted/50 rounded-lg transition-colors">
+                  {isCollapsed ? (
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                  )}
+                </CollapsibleTrigger>
+                <div
+                  className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                    isDiscountEnabled ? "bg-primary/10" : "bg-muted"
+                  }`}
+                >
+                  <Gift
+                    className={`w-5 h-5 ${
+                      isDiscountEnabled ? "text-primary" : "text-muted-foreground"
+                    }`}
+                  />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold flex items-center gap-2">
+                    Discount Incentives
+                    {isDiscountEnabled ? (
+                      <Badge
+                        variant="secondary"
+                        className="text-xs bg-primary/10 text-primary"
+                      >
+                        Active
+                      </Badge>
+                    ) : (
+                      <Badge
+                        variant="secondary"
+                        className="text-xs bg-muted text-muted-foreground"
+                      >
+                        Inactive
+                      </Badge>
+                    )}
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    {isDiscountEnabled
+                      ? "Customers will receive a discount code after survey completion"
+                      : "Enable discount rewards to boost survey completion rates"}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center">
+                <CustomSwitch
+                  checked={isDiscountEnabled}
+                  onCheckedChange={setIsDiscountEnabled}
+                />
               </div>
             </div>
-            <Switch
-              checked={isDiscountEnabled}
-              onCheckedChange={setIsDiscountEnabled}
-            />
-          </div>
-        </CardHeader>
+          </CardHeader>
 
-        {isDiscountEnabled && (
-          <CardContent className="space-y-6">
-            <DiscountConfiguration
-              discountType={discountType}
-              setDiscountType={setDiscountType}
-              discountValue={discountValue}
-              setDiscountValue={setDiscountValue}
-              discountCode={discountCode}
-              setDiscountCode={setDiscountCode}
-              discountExpiryDays={discountExpiryDays}
-              setDiscountExpiryDays={setDiscountExpiryDays}
-              discountDescription={discountDescription}
-              setDiscountDescription={setDiscountDescription}
-            />
-
-            <DiscountPreview
-              discountType={discountType}
-              discountValue={discountValue}
-              discountCode={discountCode}
-              discountExpiryDays={discountExpiryDays}
-              discountDescription={discountDescription}
-            />
-          </CardContent>
-        )}
-      </Card>
+          <CollapsibleContent className="data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
+            <CardContent className="pt-0 space-y-6">
+              <DiscountConfiguration
+                discountType={discountType}
+                setDiscountType={setDiscountType}
+                discountValue={discountValue}
+                setDiscountValue={setDiscountValue}
+                discountCode={discountCode}
+                setDiscountCode={setDiscountCode}
+                discountExpiryDays={discountExpiryDays}
+                setDiscountExpiryDays={setDiscountExpiryDays}
+                discountDescription={discountDescription}
+                setDiscountDescription={setDiscountDescription}
+              />
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
     </div>
   );
 };

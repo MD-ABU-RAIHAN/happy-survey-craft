@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { CustomSwitch } from "@/components/ui/custom-switch";
 import {
   Select,
   SelectContent,
@@ -76,7 +76,7 @@ const IncentivesTab: React.FC<IncentivesTabProps> = ({
                 </p>
               </div>
             </div>
-            <Switch
+            <CustomSwitch
               checked={isDiscountEnabled}
               onCheckedChange={setIsDiscountEnabled}
             />

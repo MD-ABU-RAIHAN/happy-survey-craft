@@ -2,7 +2,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { SlimSwitch } from "@/components/ui/slim-switch";
 import {
   Select,
   SelectContent,
@@ -31,7 +31,7 @@ const SideLogo: React.FC<SideLogoProps> = ({ settings, onSettingsChange }) => {
     <div className="bg-white/60 rounded-lg p-6 space-y-4 border border-muted">
       <div className="flex items-center justify-between">
         <Label className="font-medium">Side Logo</Label>
-        <Switch
+        <SlimSwitch
           checked={settings.enabled}
           onCheckedChange={(checked) =>
             onSettingsChange("sideLogo.enabled", checked)

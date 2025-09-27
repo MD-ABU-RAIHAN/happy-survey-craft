@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
+import { SlimSwitch } from "@/components/ui/slim-switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ColorPicker from "../shared/ColorPicker";
 import FileUpload from "../shared/FileUpload";
@@ -321,7 +321,7 @@ const SectionCustomization: React.FC<SectionCustomizationProps> = ({
             </div>
             <div className="flex items-center space-x-2">
               <Label className="text-xs">Enable</Label>
-              <Switch
+              <SlimSwitch
                 checked={settings.enableCustomCss}
                 onCheckedChange={(checked) =>
                   onSettingsChange("section.enableCustomCss", checked)

@@ -2,7 +2,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { SlimSwitch } from "@/components/ui/slim-switch";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -133,7 +133,7 @@ const BrandedSurveySettingsComponent: React.FC<BrandedSurveySettingsProps> = ({
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <Label className="text-sm">Use Custom Domain</Label>
-            <Switch
+            <SlimSwitch
               checked={settings.useCustomDomain}
               onCheckedChange={(checked) =>
                 updateSetting("useCustomDomain", checked)
@@ -200,7 +200,7 @@ const BrandedSurveySettingsComponent: React.FC<BrandedSurveySettingsProps> = ({
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <Label className="font-medium">Header Logo</Label>
-            <Switch
+            <SlimSwitch
               checked={settings.headerLogo.enabled}
               onCheckedChange={(checked) =>
                 updateSetting("headerLogo.enabled", checked)
@@ -270,7 +270,7 @@ const BrandedSurveySettingsComponent: React.FC<BrandedSurveySettingsProps> = ({
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <Label className="font-medium">Side Logo</Label>
-            <Switch
+            <SlimSwitch
               checked={settings.sideLogo.enabled}
               onCheckedChange={(checked) =>
                 updateSetting("sideLogo.enabled", checked)
@@ -338,7 +338,7 @@ const BrandedSurveySettingsComponent: React.FC<BrandedSurveySettingsProps> = ({
             <Type className="w-5 h-5 text-survey-success" />
             Button Customization
           </h5>
-          <Switch
+          <SlimSwitch
             checked={settings.button.enabled}
             onCheckedChange={(checked) =>
               updateSetting("button.enabled", checked)

@@ -4,7 +4,7 @@ import "react-quill/dist/quill.snow.css";
 import "../../styles/quill-custom.css";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { SlimSwitch } from "@/components/ui/slim-switch";
 import {
   Select,
   SelectContent,
@@ -201,7 +201,7 @@ const EmailCampaignSettingsComponent: React.FC<EmailCampaignSettingsProps> = ({
             <div className="space-y-4 ml-6">
               <div className="space-y-3">
                 <div className="flex items-center space-x-2">
-                  <Switch
+                  <SlimSwitch
                     checked={settings.userTargeting.userTag.enabled}
                     onCheckedChange={(checked) =>
                       updateSetting("userTargeting.userTag.enabled", checked)
@@ -249,7 +249,7 @@ const EmailCampaignSettingsComponent: React.FC<EmailCampaignSettingsProps> = ({
 
               <div className="space-y-3">
                 <div className="flex items-center space-x-2">
-                  <Switch
+                  <SlimSwitch
                     checked={settings.userTargeting.productPurchase.enabled}
                     onCheckedChange={(checked) =>
                       updateSetting(
@@ -360,7 +360,7 @@ const EmailCampaignSettingsComponent: React.FC<EmailCampaignSettingsProps> = ({
       >
         <div className="flex items-center justify-between mb-4">
           <Label className="font-medium">Enable Header Logo</Label>
-          <Switch
+          <SlimSwitch
             checked={settings.headerLogo.enabled}
             onCheckedChange={(checked) =>
               updateSetting("headerLogo.enabled", checked)
@@ -620,7 +620,7 @@ const EmailCampaignSettingsComponent: React.FC<EmailCampaignSettingsProps> = ({
               </div>
               <div className="flex items-center justify-between">
                 <Label className="text-sm">Overlay</Label>
-                <Switch
+                <SlimSwitch
                   checked={settings.background.overlay}
                   onCheckedChange={(checked) =>
                     updateSetting("background.overlay", checked)
