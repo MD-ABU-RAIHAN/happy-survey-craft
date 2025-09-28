@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import "../styles/quill-custom.css";
@@ -76,6 +76,9 @@ import SurveyPreview from "@/components/SurveyPreview";
 import SimpleHeader from "@/components/SimpleHeader";
 import DistributionTabRefactored from "@/components/survey-builder/DistributionTabRefactored";
 import IncentivesTabRefactored from "@/components/survey-builder/IncentivesTabRefactored";
+import AdvancedLogicTab from "@/components/survey-builder/AdvancedLogicTab";
+import LogicBuilder from "@/components/survey-builder/LogicBuilder";
+import { SurveyLogic } from "@/types/logic";
 
 interface SurveyQuestion {
   id: string;
@@ -1149,6 +1152,79 @@ const SurveyBuilder = () => {
   ];
 
   const [copiedUrl, setCopiedUrl] = useState(false);
+  const [showLogicBuilder, setShowLogicBuilder] = useState(false);
+  const [editingLogicId, setEditingLogicId] = useState<string | null>(null);
+  const [surveyLogic, setSurveyLogic] = useState<SurveyLogic[]>([]);
+  const [activeLogicId, setActiveLogicId] = useState<string | null>(null);
+
+  // Load saved logic flows from localStorage on component mount
+  React.useEffect(() => {
+    const savedLogic = localStorage.getItem('survey-logic-flows');
+    if (savedLogic) {
+      try {
+        setSurveyLogic(JSON.parse(savedLogic));
+      } catch (error) {
+        console.error('Failed to load saved logic flows:', error);
+      }
+    }
+  }, []);
+
+  // Save logic flows to localStorage whenever they change
+  React.useEffect(() => {
+    localStorage.setItem('survey-logic-flows', JSON.stringify(surveyLogic));
+  }, [surveyLogic]);
+
+  // Handle saving logic from builder
+  const handleSaveLogic = (logic: SurveyLogic, logicName: string, logicDescription: string) => {
+    const logicFlow = {
+      id: editingLogicId || `logic-${Date.now()}`,
+      name: logicName,
+      description: logicDescription,
+      logic,
+      status: 'active' as const,
+      type: 'conditional' as const,
+      nodes: logic.nodes.length,
+      connections: logic.edges.length,
+      lastModified: 'Just now',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    setSurveyLogic(prev => {
+      if (editingLogicId) {
+        // Update existing logic
+        return prev.map(l => l.id === editingLogicId ? logicFlow : l);
+      } else {
+        // Add new logic
+        return [logicFlow, ...prev];
+      }
+    });
+
+    console.log('Logic saved:', logicFlow);
+  };
+
+  // Handle deleting logic
+  const handleDeleteLogic = (logicId: string) => {
+    setSurveyLogic(prev => prev.filter(l => l.id !== logicId));
+    if (activeLogicId === logicId) {
+      setActiveLogicId(null);
+    }
+  };
+
+  // Handle activating/deactivating logic for preview
+  const handleToggleLogicActive = (logicId: string) => {
+    if (activeLogicId === logicId) {
+      setActiveLogicId(null); // Deactivate if already active
+    } else {
+      setActiveLogicId(logicId); // Activate this logic
+    }
+  };
+
+  // Get currently active logic
+  const getActiveLogic = () => {
+    if (!activeLogicId) return null;
+    return surveyLogic.find(l => l.id === activeLogicId)?.logic || null;
+  };
 
   // Distribution types configuration
   const distributionTypes = [
@@ -1682,7 +1758,7 @@ const SurveyBuilder = () => {
             <Card className="shadow-xl border-0 ">
               <CardContent className=" p-0 pt-1">
                 <Tabs defaultValue="builder" className="w-full">
-                  <TabsList className="grid grid-cols-3 m-6 mb-0">
+                  <TabsList className="grid grid-cols-4 m-6 mb-0">
                     <TabsTrigger
                       value="builder"
                       className="data-[state=active]:!bg-primary data-[state=active]:!text-primary-foreground data-[state=active]:!shadow-lg transition-all duration-200 ease-in-out hover:bg-muted/50"
@@ -1703,6 +1779,13 @@ const SurveyBuilder = () => {
                     >
                       <Gift className="w-4 h-4 mr-2 transition-transform duration-200 group-hover:scale-105" />
                       Incentives
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="logic"
+                      className="data-[state=active]:!bg-primary data-[state=active]:!text-primary-foreground data-[state=active]:!shadow-lg transition-all duration-200 ease-in-out hover:bg-muted/50"
+                    >
+                      <Zap className="w-4 h-4 mr-2 transition-transform duration-200 group-hover:scale-105" />
+                      Advanced Logic
                     </TabsTrigger>
                   </TabsList>
 
@@ -1765,6 +1848,28 @@ const SurveyBuilder = () => {
                       setDiscountExpiryDays={setDiscountExpiry}
                     />
                   </TabsContent>
+
+                  <TabsContent
+                    value="logic"
+                    className="animate-in fade-in-0 duration-300"
+                  >
+                    <AdvancedLogicTab
+                      questions={questions}
+                      surveyId="survey-123"
+                      logicFlows={surveyLogic}
+                      activeLogicId={activeLogicId}
+                      onSave={(logic) => {
+                        console.log("Saving logic:", logic);
+                        // Here you would save to your backend
+                      }}
+                      onOpenBuilder={(logicId) => {
+                        setEditingLogicId(logicId || null);
+                        setShowLogicBuilder(true);
+                      }}
+                      onDeleteLogic={handleDeleteLogic}
+                      onToggleLogicActive={handleToggleLogicActive}
+                    />
+                  </TabsContent>
                 </Tabs>
               </CardContent>
             </Card>
@@ -1777,6 +1882,8 @@ const SurveyBuilder = () => {
                 questions={questions}
                 previewDevice={previewDevice}
                 setPreviewDevice={setPreviewDevice}
+                activeLogic={getActiveLogic()}
+                activeLogicName={activeLogicId ? surveyLogic.find(l => l.id === activeLogicId)?.name : null}
                 distributionType={
                   previewDistribution === "onsite-popup"
                     ? "onsite"
@@ -1805,6 +1912,31 @@ const SurveyBuilder = () => {
           </div>
         </div>
       </div>
+
+      {/* Full-Page Logic Builder */}
+      {showLogicBuilder && (
+        <div className="fixed inset-0 z-50 bg-white">
+          <LogicBuilder
+            questions={questions}
+            surveyId="survey-123"
+            logicId={editingLogicId || undefined}
+            existingLogic={editingLogicId ? surveyLogic.find(l => l.id === editingLogicId)?.logic : undefined}
+            onSave={(logic, logicName, logicDescription) => {
+              handleSaveLogic(logic, logicName, logicDescription);
+              setShowLogicBuilder(false);
+              setEditingLogicId(null);
+            }}
+            onCancel={() => {
+              setShowLogicBuilder(false);
+              setEditingLogicId(null);
+            }}
+            onBack={() => {
+              setShowLogicBuilder(false);
+              setEditingLogicId(null);
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 };

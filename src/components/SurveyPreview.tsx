@@ -22,7 +22,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Settings2,
+  Zap,
+  CheckCircle,
 } from "lucide-react";
+
+import { SurveyLogic, LogicNode, LogicEdge } from "@/types/logic";
 
 interface SurveyQuestion {
   id: string;
@@ -433,6 +437,9 @@ interface SurveyPreviewProps {
   onQuestionsPerPageChange?: (count: number) => void;
   // Active question sync
   expandedQuestionId?: string | null;
+  // Logic flow properties
+  activeLogic?: SurveyLogic | null;
+  activeLogicName?: string | null;
 }
 
 const SurveyPreview: React.FC<SurveyPreviewProps> = ({
@@ -458,6 +465,8 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
   onPaginationChange,
   onQuestionsPerPageChange,
   expandedQuestionId,
+  activeLogic,
+  activeLogicName,
 }) => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(0);
@@ -467,6 +476,9 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
   const [surveyResponses, setSurveyResponses] = useState<Record<string, any>>(
     {}
   );
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [questionHistory, setQuestionHistory] = useState<number[]>([0]);
+  const [isLogicMode, setIsLogicMode] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -476,7 +488,9 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
     ? Math.ceil(questions.length / questionsPerPage)
     : 1;
 
-  const currentQuestions = paginationEnabled
+  const currentQuestions = isLogicMode
+    ? [questions[currentQuestionIndex]].filter(Boolean) // Show only current question in logic mode
+    : paginationEnabled
     ? questions.slice(
         currentPage * questionsPerPage,
         (currentPage + 1) * questionsPerPage
@@ -501,12 +515,322 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
     }
   }, [expandedQuestionId, questions, paginationEnabled, questionsPerPage]);
 
+  // Initialize logic mode when active logic changes
+  React.useEffect(() => {
+    if (activeLogic) {
+      console.log('🎯 Activating logic mode with logic:', activeLogic);
+      console.log('📊 Logic has', activeLogic.nodes?.length, 'nodes and', activeLogic.edges?.length, 'edges');
+
+      setIsLogicMode(true);
+      setCurrentQuestionIndex(0);
+      setQuestionHistory([0]);
+
+      // Log all available questions for debugging
+      console.log('📝 Available questions:', questions.map(q => ({ id: q.id, title: q.title, type: q.type })));
+    } else {
+      console.log('❌ Deactivating logic mode');
+      setIsLogicMode(false);
+    }
+  }, [activeLogic, questions]);
+
+  // Logic execution engine
+  const evaluateCondition = (condition: any, questionId: string, response: any): boolean => {
+    if (!condition) {
+      console.log('⚠️ No condition provided, defaulting to true');
+      return true; // No condition means always true
+    }
+
+    console.log('🔍 Evaluating condition:', { condition, response, questionId });
+
+    const { operator, value, field } = condition;
+
+    // Handle different response types
+    let actualResponse = response;
+
+    // For multiple choice questions, response might be an array
+    if (Array.isArray(response)) {
+      console.log('📝 Response is array:', response);
+
+      // For contains operator, check if value is in array
+      if (operator === 'contains') {
+        const result = response.includes(value);
+        console.log(`✅ Array contains "${value}":`, result);
+        return result;
+      }
+
+      // For other operators, use the first selected value or join as string
+      actualResponse = response.length > 0 ? response[0] : '';
+      console.log('🔄 Using first array value:', actualResponse);
+    }
+
+    // Handle different operators
+    let result = false;
+
+    switch (operator) {
+      case 'equals':
+      case 'equal':
+      case '=':
+      case '==':
+        result = String(actualResponse).toLowerCase() === String(value).toLowerCase();
+        console.log(`📊 Equals check: "${actualResponse}" === "${value}" = ${result}`);
+        break;
+
+      case 'not_equals':
+      case 'not_equal':
+      case '!=':
+        result = String(actualResponse).toLowerCase() !== String(value).toLowerCase();
+        console.log(`📊 Not equals check: "${actualResponse}" !== "${value}" = ${result}`);
+        break;
+
+      case 'contains':
+        if (Array.isArray(response)) {
+          result = response.some(item => String(item).toLowerCase().includes(String(value).toLowerCase()));
+        } else {
+          result = String(actualResponse).toLowerCase().includes(String(value).toLowerCase());
+        }
+        console.log(`📊 Contains check: "${actualResponse}" contains "${value}" = ${result}`);
+        break;
+
+      case 'greater_than':
+      case '>':
+        result = Number(actualResponse) > Number(value);
+        console.log(`📊 Greater than: ${actualResponse} > ${value} = ${result}`);
+        break;
+
+      case 'less_than':
+      case '<':
+        result = Number(actualResponse) < Number(value);
+        console.log(`📊 Less than: ${actualResponse} < ${value} = ${result}`);
+        break;
+
+      case 'greater_than_or_equal':
+      case '>=':
+        result = Number(actualResponse) >= Number(value);
+        console.log(`📊 Greater than or equal: ${actualResponse} >= ${value} = ${result}`);
+        break;
+
+      case 'less_than_or_equal':
+      case '<=':
+        result = Number(actualResponse) <= Number(value);
+        console.log(`📊 Less than or equal: ${actualResponse} <= ${value} = ${result}`);
+        break;
+
+      case 'is_empty':
+      case 'empty':
+        result = !actualResponse || actualResponse === '' || (Array.isArray(response) && response.length === 0);
+        console.log(`📊 Is empty: ${result}`);
+        break;
+
+      case 'is_not_empty':
+      case 'not_empty':
+        result = actualResponse && actualResponse !== '' && (!Array.isArray(response) || response.length > 0);
+        console.log(`📊 Is not empty: ${result}`);
+        break;
+
+      default:
+        console.log(`⚠️ Unknown operator: ${operator}, defaulting to true`);
+        result = true;
+        break;
+    }
+
+    console.log(`🎯 Final condition result:`, result);
+    return result;
+  };
+
+  const findNextQuestionByLogic = (currentQuestionId: string, response: any): number | null => {
+    if (!activeLogic || !isLogicMode) {
+      console.log('🚫 Logic evaluation skipped:', { activeLogic: !!activeLogic, isLogicMode });
+      return null;
+    }
+
+    console.log('🔍 Finding logic for question:', currentQuestionId);
+    console.log('📚 Available nodes:', activeLogic.nodes);
+    console.log('🔗 Available edges:', activeLogic.edges);
+
+    // Find the current question node - try multiple methods
+    let currentNode = activeLogic.nodes.find((node: LogicNode) =>
+      node.questionId === currentQuestionId
+    );
+
+    // If not found by questionId, try finding by node data
+    if (!currentNode) {
+      currentNode = activeLogic.nodes.find((node: LogicNode) =>
+        node.meta?.questionId === currentQuestionId
+      );
+    }
+
+    // If still not found, try finding by question title/label
+    if (!currentNode) {
+      const currentQuestion = questions.find(q => q.id === currentQuestionId);
+      if (currentQuestion) {
+        currentNode = activeLogic.nodes.find((node: LogicNode) =>
+          node.meta?.title === currentQuestion.title ||
+          node.meta?.label === currentQuestion.title
+        );
+      }
+    }
+
+    console.log('📋 Current node found:', currentNode);
+
+    if (!currentNode) {
+      console.log('❌ No node found for question:', currentQuestionId);
+      console.log('🔍 Available question IDs in nodes:', activeLogic.nodes.map(n => ({ id: n.id, questionId: n.questionId, meta: n.meta })));
+      return null;
+    }
+
+    // Find outgoing edges from this node, sorted by priority
+    const outgoingEdges = activeLogic.edges
+      .filter((edge: LogicEdge) => edge.source === currentNode.id)
+      .sort((a: LogicEdge, b: LogicEdge) => (b.priority || 0) - (a.priority || 0));
+
+    console.log('🔗 Outgoing edges found:', outgoingEdges);
+
+    if (outgoingEdges.length === 0) {
+      console.log('⚠️ No outgoing edges found for node:', currentNode.id);
+      return null;
+    }
+
+    // Evaluate conditions to find the matching edge
+    for (const edge of outgoingEdges) {
+      console.log('🧪 Evaluating edge:', edge);
+      const conditionResult = evaluateCondition(edge.condition, currentQuestionId, response);
+      console.log('✅ Condition result:', conditionResult);
+
+      if (conditionResult) {
+        // Find the target question
+        const targetNode = activeLogic.nodes.find((node: LogicNode) =>
+          node.id === edge.target
+        );
+
+        console.log('🎯 Target node found:', targetNode);
+
+        if (targetNode) {
+          // Handle special target types first
+          if (targetNode.type === 'end') {
+            console.log('🔚 Target is end node');
+            return -1; // End survey
+          }
+
+          // Handle action nodes
+          if (targetNode.type === 'action') {
+            console.log('⚡ Target is action node, continuing to next question');
+            // For action nodes, we might want to continue to the next question
+            // or handle the action and then continue
+            const nextIndex = currentQuestionIndex + 1;
+            if (nextIndex < questions.length) {
+              return nextIndex;
+            }
+            return -1; // End if no more questions
+          }
+
+          // Try to find target question by questionId
+          if (targetNode.questionId) {
+            const targetIndex = questions.findIndex(q => q.id === targetNode.questionId);
+            console.log('📍 Target question index by questionId:', targetIndex);
+            if (targetIndex !== -1) {
+              return targetIndex;
+            }
+          }
+
+          // Try to find by meta data
+          if (targetNode.meta?.questionId) {
+            const targetIndex = questions.findIndex(q => q.id === targetNode.meta.questionId);
+            console.log('📍 Target question index by meta.questionId:', targetIndex);
+            if (targetIndex !== -1) {
+              return targetIndex;
+            }
+          }
+
+          // Try to find by title/label
+          if (targetNode.meta?.title || targetNode.meta?.label) {
+            const targetTitle = targetNode.meta.title || targetNode.meta.label;
+            const targetIndex = questions.findIndex(q => q.title === targetTitle);
+            console.log('📍 Target question index by title:', targetIndex);
+            if (targetIndex !== -1) {
+              return targetIndex;
+            }
+          }
+
+          console.log('❌ Could not map target node to question:', targetNode);
+        } else {
+          console.log('❌ Target node not found for edge target:', edge.target);
+        }
+      }
+    }
+
+    console.log('🚫 No matching edge condition found');
+    return null; // No matching condition, continue normally
+  };
+
   // Survey interaction helpers
   const handleQuestionResponse = (questionId: string, response: any) => {
+    console.log('📝 Question response received:', { questionId, response });
+
+    // Find the current question to understand its type
+    const currentQuestion = questions.find(q => q.id === questionId);
+    console.log('📋 Current question details:', currentQuestion);
+
+    // Store the response
     setSurveyResponses((prev) => ({
       ...prev,
       [questionId]: response,
     }));
+
+    // Add a small delay to ensure state is updated
+    setTimeout(() => {
+      // If logic is active, determine next question based on logic
+      if (activeLogic && isLogicMode) {
+        console.log('🔄 Logic Mode: Processing response', {
+          questionId,
+          response,
+          questionType: currentQuestion?.type,
+          currentQuestionIndex,
+          activeLogic
+        });
+
+        const nextQuestionIndex = findNextQuestionByLogic(questionId, response);
+        console.log('🎯 Next question index determined:', nextQuestionIndex);
+
+        if (nextQuestionIndex !== null) {
+          if (nextQuestionIndex === -1) {
+            // End survey
+            console.log('🏁 Survey ended by logic');
+            return;
+          }
+
+          // Navigate to the specific question determined by logic
+          console.log(`🚀 Navigating from question ${currentQuestionIndex} to question ${nextQuestionIndex}`);
+          setCurrentQuestionIndex(nextQuestionIndex);
+          setQuestionHistory(prev => [...prev, nextQuestionIndex]);
+
+          if (paginationEnabled) {
+            const targetPage = Math.floor(nextQuestionIndex / questionsPerPage);
+            setCurrentPage(targetPage);
+          }
+
+          return;
+        } else {
+          console.log('❌ No logic rule matched, using default behavior');
+        }
+      }
+
+      // Default behavior: go to next question sequentially
+      if (!isLogicMode) {
+        if (paginationEnabled) {
+          // Handle pagination normally
+        } else {
+          // Move to next question
+          const nextIndex = currentQuestionIndex + 1;
+          if (nextIndex < questions.length) {
+            setCurrentQuestionIndex(nextIndex);
+            setQuestionHistory(prev => [...prev, nextIndex]);
+          }
+        }
+      } else {
+        // In logic mode but no rule matched, stay on current question
+        console.log('🔒 Staying on current question in logic mode');
+      }
+    }, 100); // Small delay to ensure state updates
   };
 
   const isQuestionAnswered = (question: SurveyQuestion): boolean => {
@@ -597,6 +921,23 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
     setActiveQuestionId(null);
     setIsSubmitting(false);
     setCurrentPage(0);
+    setCurrentQuestionIndex(0);
+    setQuestionHistory([0]);
+  };
+
+  // Handle going back in logic mode
+  const handleLogicBack = () => {
+    if (questionHistory.length > 1) {
+      const newHistory = questionHistory.slice(0, -1);
+      const previousIndex = newHistory[newHistory.length - 1];
+      setQuestionHistory(newHistory);
+      setCurrentQuestionIndex(previousIndex);
+
+      if (paginationEnabled) {
+        const targetPage = Math.floor(previousIndex / questionsPerPage);
+        setCurrentPage(targetPage);
+      }
+    }
   };
   // Helper function to map previewDistribution to legacy distributionType
   const getDistributionType = (): typeof distributionType => {
@@ -1087,6 +1428,18 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
               <div className="w-2 h-2 bg-survey-success rounded-full animate-pulse mr-1"></div>
               Live
             </Badge>
+            {activeLogic && activeLogicName && (
+              <Badge
+                variant="secondary"
+                className="bg-blue-50 text-blue-700 border-blue-200 flex items-center gap-1"
+              >
+                <Zap className="w-3 h-3" />
+                {activeLogicName}
+                {isLogicMode && (
+                  <span className="ml-1 text-xs">(Active)</span>
+                )}
+              </Badge>
+            )}
           </div>
 
           {/* Pagination Settings Button */}
@@ -2198,8 +2551,36 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                     );
                   })}
 
+                  {/* Logic Mode Controls */}
+                  {isLogicMode && (
+                    <div className="flex items-center justify-between pt-4 border-t border-border">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleLogicBack}
+                        disabled={questionHistory.length <= 1}
+                        className="flex items-center gap-2"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        Back
+                      </Button>
+
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary" className="bg-blue-50 text-blue-700">
+                          <Zap className="w-3 h-3 mr-1" />
+                          Logic Mode
+                        </Badge>
+                        <span className="text-sm text-muted-foreground">
+                          Question {currentQuestionIndex + 1} of {questions.length}
+                        </span>
+                      </div>
+
+                      <div className="w-16"> {/* Spacer for alignment */}</div>
+                    </div>
+                  )}
+
                   {/* Pagination Controls */}
-                  {paginationEnabled && totalPages > 1 && (
+                  {!isLogicMode && paginationEnabled && totalPages > 1 && (
                     <div className="flex items-center justify-between pt-4 border-t border-border">
                       <Button
                         variant="outline"
