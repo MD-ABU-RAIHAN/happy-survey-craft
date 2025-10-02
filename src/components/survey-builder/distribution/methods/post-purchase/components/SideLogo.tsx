@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Upload } from "lucide-react";
-import FileUpload from "../shared/FileUpload";
+import { FileUpload } from "../../../shared";
 
 interface SideLogoSettings {
   enabled: boolean;

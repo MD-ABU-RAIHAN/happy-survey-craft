@@ -10,9 +10,8 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import SectionCard from "./shared/SectionCard";
-import LogoSettings from "./shared/LogoSettings";
-import IntegratedCustomization from "./branded/IntegratedCustomization";
+import { SectionCard, LogoSettings } from "../../shared";
+import { IntegratedCustomization } from "../branded-survey/components";
 import { Globe, Monitor, Upload } from "lucide-react";
 
 interface OnSitePopupSettings {

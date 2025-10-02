@@ -19,6 +19,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2 } from "lucide-react";
 import { SurveyQuestion, Condition, Clause, Operator } from "@/types/logic";
+import { OPERATOR_LABELS } from "../utils";
 
 interface ConditionEditorProps {
   isOpen: boolean;
@@ -28,33 +29,7 @@ interface ConditionEditorProps {
   onSave: (condition: Condition, label: string) => void;
 }
 
-const operatorLabels: Record<Operator, string> = {
-  equals: "equals",
-  not_equals: "does not equal",
-  contains: "contains",
-  not_contains: "does not contain",
-  gt: "is greater than",
-  gte: "is greater than or equal to",
-  lt: "is less than",
-  lte: "is less than or equal to",
-  in: "is one of",
-  not_in: "is not one of",
-  matches: "matches pattern",
-  exists: "exists",
-  not_exists: "does not exist",
-  // Enhanced operators
-  starts_with: "starts with",
-  ends_with: "ends with",
-  is_empty: "is empty",
-  is_not_empty: "is not empty",
-  between: "is between",
-  not_between: "is not between",
-  answered_within: "was answered within",
-  changed_answer: "changed answer",
-  sentiment_positive: "has positive sentiment",
-  sentiment_negative: "has negative sentiment",
-  sentiment_neutral: "has neutral sentiment",
-};
+const operatorLabels = OPERATOR_LABELS;
 
 const ConditionEditor: React.FC<ConditionEditorProps> = ({
   isOpen,

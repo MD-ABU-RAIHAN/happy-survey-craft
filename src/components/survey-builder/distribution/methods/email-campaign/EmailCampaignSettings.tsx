@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import QuillEditor from "./shared/QuillEditor";
+import { QuillEditor, SectionCard, UploadInput } from "../../shared";
+import { IntegratedCustomization } from "../branded-survey/components";
 import "react-quill/dist/quill.snow.css";
-import "../../styles/quill-custom.css";
+import "@/styles/quill-custom.css";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SlimSwitch } from "@/components/ui/slim-switch";
@@ -22,9 +23,6 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import SectionCard from "./shared/SectionCard";
-import UploadInput from "./shared/UploadInput";
-import IntegratedCustomization from "./branded/IntegratedCustomization";
 import {
   Mail,
   Users,

@@ -1,7 +1,9 @@
 import React from "react";
-import SurveyUrlSection from "./branded/SurveyUrlSection";
-import LogoSettings from "./branded/LogoSettings";
-import IntegratedCustomization from "./branded/IntegratedCustomization";
+import {
+  SurveyUrlSection,
+  LogoSettings,
+  IntegratedCustomization,
+} from "./components";
 
 interface BrandedSurveySettings {
   useCustomDomain: boolean;

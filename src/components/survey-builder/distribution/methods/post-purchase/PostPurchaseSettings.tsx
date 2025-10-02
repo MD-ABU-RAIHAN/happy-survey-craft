@@ -1,9 +1,11 @@
 import React from "react";
-import UserTargeting from "./post-purchase/UserTargeting";
-import DisplaySettings from "./post-purchase/DisplaySettings";
-import PageLocationSettings from "./post-purchase/PageLocationSettings";
-import LogoSettings from "./shared/LogoSettings";
-import IntegratedCustomization from "./branded/IntegratedCustomization";
+import {
+  UserTargeting,
+  DisplaySettings,
+  PageLocationSettings,
+} from "./components";
+import { LogoSettings } from "../../shared";
+import { IntegratedCustomization } from "../branded-survey/components";
 
 interface PostPurchaseSettings {
   userTargeting: {

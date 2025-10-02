@@ -1,11 +1,10 @@
 import React from "react";
-import DistributionItem from "./distribution/DistributionItem";
-import BrandedSurveySettingsRefactored from "./BrandedSurveySettingsRefactored";
-import PostPurchaseSettingsRefactored from "./PostPurchaseSettingsRefactored";
-import ExitIntentSettingsComponent from "./ExitIntentSettingsRefactored";
-import EmailCampaignSettingsComponent from "./EmailCampaignSettingsRefactored";
-import OnSitePopupSettingsComponent from "./OnSitePopupSettingsRefactored";
-import DefaultDistributionSettings from "./shared/DefaultDistributionSettings";
+import { DistributionItem, DefaultDistributionSettings } from "./shared";
+import { BrandedSurveySettings } from "./methods/branded-survey";
+import { PostPurchaseSettings } from "./methods/post-purchase";
+import { ExitIntentSettings } from "./methods/exit-intent";
+import { EmailCampaignSettings } from "./methods/email-campaign";
+import { OnSitePopupSettings } from "./methods/on-site-popup";
 
 interface DistributionType {
   id: string;
@@ -428,7 +427,7 @@ const DistributionTabRefactored: React.FC<DistributionTabRefactoredProps> = ({
   const renderDistributionContent = (distribution: DistributionType) => {
     if (distribution.id === "branded-survey") {
       return (
-        <BrandedSurveySettingsRefactored
+        <BrandedSurveySettings
           settings={brandedSurveySettings}
           onSettingsChange={onBrandedSurveySettingsChange}
           onResetToDefault={onResetToDefault}
@@ -439,28 +438,28 @@ const DistributionTabRefactored: React.FC<DistributionTabRefactoredProps> = ({
       );
     } else if (distribution.id === "post-purchase") {
       return (
-        <PostPurchaseSettingsRefactored
+        <PostPurchaseSettings
           settings={postPurchaseSettings}
           onSettingsChange={onPostPurchaseSettingsChange}
         />
       );
     } else if (distribution.id === "exit-intent") {
       return (
-        <ExitIntentSettingsComponent
+        <ExitIntentSettings
           settings={exitIntentSettings}
           onSettingsChange={onExitIntentSettingsChange}
         />
       );
     } else if (distribution.id === "email-campaign") {
       return (
-        <EmailCampaignSettingsComponent
+        <EmailCampaignSettings
           settings={emailCampaignSettings}
           onSettingsChange={onEmailCampaignSettingsChange}
         />
       );
     } else if (distribution.id === "onsite-popup") {
       return (
-        <OnSitePopupSettingsComponent
+        <OnSitePopupSettings
           settings={onSitePopupSettings}
           onSettingsChange={onOnSitePopupSettingsChange}
         />

@@ -74,10 +74,9 @@ import {
 import QuestionBuilder from "@/components/QuestionBuilder";
 import SurveyPreview from "@/components/SurveyPreview";
 import SimpleHeader from "@/components/SimpleHeader";
-import DistributionTabRefactored from "@/components/survey-builder/DistributionTabRefactored";
+import { DistributionTab } from "@/components/survey-builder/distribution";
 import IncentivesTabRefactored from "@/components/survey-builder/IncentivesTabRefactored";
-import AdvancedLogicTab from "@/components/survey-builder/AdvancedLogicTab";
-import LogicBuilder from "@/components/survey-builder/LogicBuilder";
+import { AdvancedLogicTab, LogicBuilder } from "@/components/survey-builder/advanced-logic";
 import { SurveyLogic } from "@/types/logic";
 
 interface SurveyQuestion {
@@ -1783,7 +1782,7 @@ const SurveyBuilder = () => {
                     value="distribution"
                     className="animate-in fade-in-0 duration-300"
                   >
-                    <DistributionTabRefactored
+                    <DistributionTab
                       distributionTypes={distributionTypes}
                       enabledDistributions={enabledDistributions}
                       expandedDistributionId={expandedDistributionId}

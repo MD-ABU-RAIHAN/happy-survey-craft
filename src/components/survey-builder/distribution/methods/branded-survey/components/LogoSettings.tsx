@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { SlimSwitch } from "@/components/ui/slim-switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Image, Upload } from "lucide-react";
-import FileUpload from "../shared/FileUpload";
+import { FileUpload } from "../../../shared";
 
 interface LogoSetting {
   enabled: boolean;

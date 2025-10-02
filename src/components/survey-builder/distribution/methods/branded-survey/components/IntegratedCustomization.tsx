@@ -24,8 +24,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import ColorPicker from "../shared/ColorPicker";
-import FileUpload from "../shared/FileUpload";
+import { ColorPicker, FileUpload } from "../../../shared";
 import {
   Palette,
   Type,

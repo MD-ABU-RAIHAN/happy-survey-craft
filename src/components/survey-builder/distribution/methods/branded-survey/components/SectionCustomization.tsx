@@ -18,8 +18,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { SlimSwitch } from "@/components/ui/slim-switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import ColorPicker from "../shared/ColorPicker";
-import FileUpload from "../shared/FileUpload";
+import { ColorPicker, FileUpload } from "../../../shared";
 import { Palette, Type, Image, Code, Layers } from "lucide-react";
 
 interface SectionCustomizationSettings {

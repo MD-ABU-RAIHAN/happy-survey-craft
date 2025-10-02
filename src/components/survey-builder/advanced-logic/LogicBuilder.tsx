@@ -57,22 +57,24 @@ import {
 } from "@/types/logic";
 
 // Component imports
-import LogicToolbar from './LogicToolbar';
-import NodePalette from "./NodePalette";
-import InspectorPanel from "./InspectorPanel";
-import SimulationPanel from "./SimulationPanel";
-import SmartSuggestions from "./SmartSuggestions";
+import {
+  LogicToolbar,
+  NodePalette,
+  InspectorPanel,
+  SimulationPanel,
+  SmartSuggestions,
+  EdgeLabel,
+  ConditionEditor,
+} from "./components";
 
 // Custom node components
-import QuestionNode from "./nodes/QuestionNode";
-import StartNode from "./nodes/StartNode";
-import EndNode from "./nodes/EndNode";
-import ActionNode from "./nodes/ActionNode";
-import ShopifyNode from "./nodes/ShopifyNode";
-
-// Custom edge components
-import EdgeLabel from "./EdgeLabel";
-import ConditionEditor from "./ConditionEditor";
+import {
+  QuestionNode,
+  StartNode,
+  EndNode,
+  ActionNode,
+  ShopifyNode,
+} from "./nodes";
 
 interface LogicBuilderProps {
   questions: SurveyQuestion[];
