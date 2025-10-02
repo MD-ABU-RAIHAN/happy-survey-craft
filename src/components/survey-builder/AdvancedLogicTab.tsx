@@ -16,6 +16,11 @@ import {
   Clock,
   CheckCircle,
   AlertTriangle,
+  FileQuestion,
+  Star,
+  Smile,
+  Type,
+  CircleDot,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -25,30 +30,12 @@ import {
   SurveyQuestion,
 } from "@/types/logic";
 
-interface LogicFlow {
-  id: string;
-  name: string;
-  description: string;
-  logic: SurveyLogic;
-  status: "active" | "draft" | "error";
-  type: "conditional" | "branching" | "sequential";
-  nodes: number;
-  connections: number;
-  lastModified: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
 interface AdvancedLogicTabProps {
   questions: SurveyQuestion[];
   onSave?: (logic: SurveyLogic) => void;
   surveyId: string;
-  initialLogic?: SurveyLogic;
-  onOpenBuilder?: (logicId?: string) => void;
-  logicFlows?: LogicFlow[];
-  activeLogicId?: string | null;
-  onDeleteLogic?: (logicId: string) => void;
-  onToggleLogicActive?: (logicId: string) => void;
+  surveyLogic?: SurveyLogic | null;
+  onOpenBuilder?: (questionId?: string) => void;
 }
 
 
@@ -56,99 +43,15 @@ const AdvancedLogicTab: React.FC<AdvancedLogicTabProps> = ({
   questions,
   onSave,
   surveyId,
-  initialLogic,
+  surveyLogic,
   onOpenBuilder,
-  logicFlows = [],
-  activeLogicId,
-  onDeleteLogic,
-  onToggleLogicActive,
 }) => {
-  const [selectedLogic, setSelectedLogic] = useState<string | null>(null);
-  const logics = logicFlows.length > 0 ? logicFlows : [];
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "active":
-        return <CheckCircle className="w-4 h-4 text-green-600" />;
-      case "draft":
-        return <Clock className="w-4 h-4 text-orange-600" />;
-      case "error":
-        return <AlertTriangle className="w-4 h-4 text-red-600" />;
-      default:
-        return <Clock className="w-4 h-4 text-gray-600" />;
-    }
-  };
-
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case "conditional":
-        return <GitBranch className="w-4 h-4 text-blue-600" />;
-      case "branching":
-        return <Zap className="w-4 h-4 text-purple-600" />;
-      case "sequential":
-        return <ChevronRight className="w-4 h-4 text-green-600" />;
-      default:
-        return <GitBranch className="w-4 h-4 text-gray-600" />;
-    }
-  };
-
-  const getTypeBadge = (type: string) => {
-    switch (type) {
-      case "conditional":
-        return { label: "Conditional", color: "bg-blue-100 text-blue-800" };
-      case "branching":
-        return { label: "Branching", color: "bg-purple-100 text-purple-800" };
-      case "sequential":
-        return { label: "Sequential", color: "bg-green-100 text-green-800" };
-      default:
-        return { label: "Custom", color: "bg-gray-100 text-gray-800" };
-    }
-  };
-
-  const handleEditLogic = (logicId: string) => {
-    onOpenBuilder?.(logicId);
-  };
-
-  const handleDeleteLogic = (logicId: string) => {
-    const logicToDelete = logics.find(l => l.id === logicId);
-    if (logicToDelete && onDeleteLogic) {
-      onDeleteLogic(logicId);
-      setSelectedLogic(null);
-      toast.success(`Logic flow "${logicToDelete.name}" has been deleted successfully.`);
-    }
-  };
-
-  const handleDuplicateLogic = (logicId: string) => {
-    const logicToDuplicate = logics.find(l => l.id === logicId);
-    if (logicToDuplicate) {
-      // For now, just show a message - duplication would need backend support
-      toast.info(`Duplication feature coming soon! Logic: "${logicToDuplicate.name}"`);
-    }
-  };
-
-  const handleTestLogic = (logicId: string) => {
-    const logicToTest = logics.find(l => l.id === logicId);
-    if (logicToTest) {
-      // Simulate testing
-      toast.info(`Testing logic flow "${logicToTest.name}"...`);
-      setTimeout(() => {
-        toast.success(`Logic flow "${logicToTest.name}" passed all tests successfully!`);
-      }, 2000);
-    }
-  };
-
-  const handleToggleActive = (logicId: string) => {
-    if (onToggleLogicActive) {
-      onToggleLogicActive(logicId);
-      const logic = logics.find(l => l.id === logicId);
-      if (logic) {
-        if (activeLogicId === logicId) {
-          toast.info(`Logic flow "${logic.name}" deactivated from preview.`);
-        } else {
-          toast.success(`Logic flow "${logic.name}" is now active in preview!`);
-        }
-      }
-    }
+  const hasLogicForQuestion = (questionId: string) => {
+    if (!surveyLogic) return false;
+    return surveyLogic.edges.some(edge =>
+      edge.source === questionId || edge.target === questionId
+    );
   };
 
   return (
@@ -162,238 +65,152 @@ const AdvancedLogicTab: React.FC<AdvancedLogicTabProps> = ({
           <div className="min-w-0">
             <h2 className="text-2xl font-bold text-slate-800">Advanced Logic</h2>
             <p className="text-slate-600 text-sm lg:text-base">
-              Create intelligent survey flows with conditional branching and dynamic responses
+              Questions automatically sync from Survey Builder. Add logic to control survey flow.
             </p>
           </div>
         </div>
-        <Button
-          onClick={() => onOpenBuilder?.()}
-          className="gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 text-base font-medium flex-shrink-0"
-          size="lg"
-        >
-          <Plus className="w-5 h-5" />
-          Build Your Logic
-        </Button>
       </div>
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
-        <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100/50">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-600 rounded-lg">
-                <GitBranch className="w-5 h-5 text-white" />
-              </div>
+      {/* Survey Questions */}
+      {questions.length > 0 && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-blue-700">Active Logics</p>
-                <p className="text-2xl font-bold text-blue-900">
-                  {logics.filter(l => l.status === 'active').length}
+                <CardTitle className="text-lg font-semibold">Survey Questions</CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Add logic to your questions to control survey flow
                 </p>
               </div>
+              <Badge variant="secondary" className="text-sm">
+                {questions.length} questions
+              </Badge>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-green-200 bg-gradient-to-br from-green-50 to-green-100/50">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-600 rounded-lg">
-                <CheckCircle className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-green-700">Total Flows</p>
-                <p className="text-2xl font-bold text-green-900">{logics.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-purple-100/50">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-600 rounded-lg">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-purple-700">Questions</p>
-                <p className="text-2xl font-bold text-purple-900">{questions.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Existing Logic Flows */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-lg font-semibold">Your Logic Flows</CardTitle>
-              <p className="text-sm text-muted-foreground mt-1">
-                Manage and edit your survey logic configurations
-              </p>
-            </div>
-            <Badge variant="secondary" className="text-sm">
-              {logics.length} flows
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {logics.length === 0 ? (
-            /* Empty State */
-            <div className="text-center py-12 pb-24">
-              <div className="p-4 mx-auto w-16 h-16 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-2xl mb-4 flex items-center justify-center">
-                <GitBranch className="w-8 h-8 text-blue-600" />
-              </div>
-              <h3 className="font-semibold text-lg text-slate-800 mb-2">
-                No Logic Flows Yet
-              </h3>
-              <p className="text-slate-600 mb-6 max-w-md mx-auto">
-                Create your first logic flow to add intelligent branching and conditional responses to your survey.
-              </p>
-              <Button
-                onClick={() => onOpenBuilder?.()}
-                className="gap-2 bg-blue-600 hover:bg-blue-700"
-              >
-                <Plus className="w-4 h-4" />
-                Create Your First Logic Flow
-              </Button>
-            </div>
-          ) : (
-            /* Logic Flows List */
+          </CardHeader>
+          <CardContent>
             <div className="space-y-3">
-              {logics.map((logic) => {
-                const typeBadge = getTypeBadge(logic.type);
+              {questions.map((question, index) => {
+                const getQuestionTypeIcon = (type: string) => {
+                  switch (type) {
+                    case "multiple-choice":
+                      return <CheckCircle className="w-4 h-4 text-blue-600" />;
+                    case "single-choice":
+                      return <CircleDot className="w-4 h-4 text-green-600" />;
+                    case "text":
+                      return <Type className="w-4 h-4 text-purple-600" />;
+                    case "rating":
+                      return <Star className="w-4 h-4 text-yellow-600" />;
+                    case "satisfaction":
+                      return <Smile className="w-4 h-4 text-pink-600" />;
+                    default:
+                      return <FileQuestion className="w-4 h-4 text-gray-600" />;
+                  }
+                };
+
                 return (
                   <div
-                    key={logic.id}
-                    className={`p-4 lg:p-6 border rounded-xl hover:shadow-md transition-all duration-200 cursor-pointer ${
-                      selectedLogic === logic.id
-                        ? 'border-blue-300 bg-blue-50/50'
-                        : activeLogicId === logic.id
-                        ? 'border-green-300 bg-green-50/30'
-                        : 'border-slate-200 hover:border-slate-300'
-                    }`}
-                    onClick={() => setSelectedLogic(logic.id)}
+                    key={question.id}
+                    className="p-4 border rounded-lg hover:shadow-md transition-all duration-200 bg-white"
                   >
-                    <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
-                      <div className="flex items-start gap-3 lg:gap-4 flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
                         <div className="p-2 bg-slate-100 rounded-lg">
-                          {getTypeIcon(logic.type)}
+                          {getQuestionTypeIcon(question.type)}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
-                            <h3 className="font-semibold text-slate-800 truncate">{logic.name}</h3>
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <Badge className={`text-xs ${typeBadge.color}`}>
-                                {typeBadge.label}
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-xs font-medium text-gray-500">Q{index + 1}</span>
+                            <Badge variant="outline" className="text-xs">
+                              {question.type.replace('-', ' ')}
+                            </Badge>
+                            {question.required && (
+                              <Badge variant="destructive" className="text-xs">
+                                Required
                               </Badge>
-                              {activeLogicId === logic.id && (
-                                <Badge className="text-xs bg-green-100 text-green-800">
-                                  Active in Preview
-                                </Badge>
-                              )}
-                              <div className="flex items-center gap-1">
-                                {getStatusIcon(logic.status)}
-                                <span className="text-sm text-slate-600 capitalize">
-                                  {logic.status}
-                                </span>
-                              </div>
-                            </div>
+                            )}
                           </div>
-                          <p className="text-slate-600 text-sm mb-3">{logic.description}</p>
-                          <div className="flex flex-wrap items-center gap-3 lg:gap-4 text-sm text-slate-500">
-                            <div className="flex items-center gap-1">
-                              <div className="w-2 h-2 bg-blue-400 rounded-full" />
-                              <span>{logic.nodes} nodes</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <div className="w-2 h-2 bg-indigo-400 rounded-full" />
-                              <span>{logic.connections} connections</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Clock className="w-3 h-3" />
-                              <span>Modified {logic.lastModified}</span>
-                            </div>
-                          </div>
+                          <h3 className="font-medium text-slate-800 truncate">{question.title}</h3>
+                          {question.description && (
+                            <p className="text-sm text-slate-600 mt-1 line-clamp-1">{question.description}</p>
+                          )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 lg:gap-2 flex-wrap lg:flex-nowrap">
-                        <Button
-                          variant={activeLogicId === logic.id ? "default" : "outline"}
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleToggleActive(logic.id);
-                          }}
-                          className={`gap-1 text-xs lg:text-sm ${
-                            activeLogicId === logic.id
-                              ? 'bg-green-600 hover:bg-green-700 text-white'
-                              : ''
-                          }`}
-                        >
-                          <Eye className="w-3 h-3" />
-                          <span className="hidden sm:inline">
-                            {activeLogicId === logic.id ? 'Active' : 'Activate'}
-                          </span>
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleTestLogic(logic.id);
-                          }}
-                          className="gap-1 text-xs lg:text-sm"
-                        >
-                          <Play className="w-3 h-3" />
-                          <span className="hidden sm:inline">Test</span>
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDuplicateLogic(logic.id);
-                          }}
-                          className="gap-1 text-xs lg:text-sm"
-                        >
-                          <Copy className="w-3 h-3" />
-                          <span className="hidden sm:inline">Duplicate</span>
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditLogic(logic.id);
-                          }}
-                          className="gap-1 text-xs lg:text-sm"
-                        >
-                          <Edit3 className="w-3 h-3" />
-                          <span className="hidden sm:inline">Edit</span>
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteLogic(logic.id);
-                          }}
-                          className="gap-1 text-red-600 hover:text-red-700 hover:bg-red-50 text-xs lg:text-sm"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                          <span className="hidden sm:inline">Delete</span>
-                        </Button>
-                      </div>
+                      <Button
+                        variant={hasLogicForQuestion(question.id) ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => {
+                          onOpenBuilder?.(question.id);
+                        }}
+                        className={`gap-2 text-xs ${
+                          hasLogicForQuestion(question.id)
+                            ? "bg-green-600 hover:bg-green-700 text-white"
+                            : "bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700"
+                        }`}
+                      >
+                        <GitBranch className="w-3 h-3" />
+                        {hasLogicForQuestion(question.id) ? "Edit Logic" : "Add Logic"}
+                      </Button>
                     </div>
                   </div>
                 );
               })}
+
+              {/* Thank You Message */}
+              <div className="p-4 border rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="p-2 bg-green-100 rounded-lg">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                          Thank You Page
+                        </Badge>
+                      </div>
+                      <h3 className="font-medium text-slate-800">Thank You Message</h3>
+                      <p className="text-sm text-slate-600 mt-1">Default completion message for all survey responses</p>
+                    </div>
+                  </div>
+                  <Button
+                    variant={hasLogicForQuestion("thank-you") ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => {
+                      onOpenBuilder?.("thank-you");
+                    }}
+                    className={`gap-2 text-xs ${
+                      hasLogicForQuestion("thank-you")
+                        ? "bg-green-600 hover:bg-green-700 text-white"
+                        : "bg-green-50 hover:bg-green-100 border-green-200 text-green-700"
+                    }`}
+                  >
+                    <GitBranch className="w-3 h-3" />
+                    {hasLogicForQuestion("thank-you") ? "Edit Logic" : "Add Logic"}
+                  </Button>
+                </div>
+              </div>
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Empty State for No Questions */}
+      {questions.length === 0 && (
+        <Card className="border-dashed border-2 border-muted">
+          <CardContent className="flex flex-col items-center justify-center py-16">
+            <div className="w-20 h-20 bg-muted/30 rounded-lg flex items-center justify-center mb-6">
+              <FileQuestion className="w-10 h-10 text-muted-foreground/50" />
+            </div>
+            <h3 className="text-xl font-semibold mb-2">No Survey Questions Yet</h3>
+            <p className="text-muted-foreground text-center mb-6 max-w-sm">
+              Add questions in the Survey Builder tab first. They will automatically appear here for logic configuration.
+            </p>
+            <Badge variant="outline" className="text-sm">
+              Switch to Survey Builder to get started
+            </Badge>
+          </CardContent>
+        </Card>
+      )}
 
     </div>
   );

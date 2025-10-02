@@ -57,32 +57,9 @@ interface LogicToolbarProps {
   edgeCount?: number;
 }
 
-const templates = [
-  {
-    id: "simple-feedback",
-    name: "Simple Feedback",
-    description: "Basic satisfaction survey flow",
-    nodeCount: 3,
-  },
-  {
-    id: "nps-flow",
-    name: "NPS Survey",
-    description: "Net Promoter Score with conditional follow-ups",
-    nodeCount: 5,
-  },
-  {
-    id: "conditional-survey",
-    name: "Conditional Logic",
-    description: "Advanced branching based on answers",
-    nodeCount: 7,
-  },
-  {
-    id: "customer-journey",
-    name: "Customer Journey",
-    description: "Multi-path customer experience survey",
-    nodeCount: 10,
-  },
-];
+import { logicTemplates } from '@/utils/logicTemplates';
+
+const templates = logicTemplates.slice(0, 6); // Show first 6 templates in dropdown
 
 const LogicToolbar: React.FC<LogicToolbarProps> = ({
   onSave,
@@ -171,13 +148,26 @@ const LogicToolbar: React.FC<LogicToolbarProps> = ({
                       <div className="flex flex-col gap-1 w-full">
                         <div className="flex items-center justify-between">
                           <span className="font-medium text-sm">{template.name}</span>
-                          <Badge variant="secondary" className="text-xs">
-                            {template.nodeCount} nodes
-                          </Badge>
+                          <div className="flex gap-1">
+                            <Badge variant="secondary" className="text-xs">
+                              {template.nodes.length} nodes
+                            </Badge>
+                            <Badge variant="outline" className="text-xs capitalize">
+                              {template.category}
+                            </Badge>
+                          </div>
                         </div>
                         <p className="text-xs text-muted-foreground leading-tight">
                           {template.description}
                         </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="outline" className="text-xs">
+                            {template.difficulty}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">
+                            ~{template.estimatedSetupTime}min setup
+                          </span>
+                        </div>
                       </div>
                     </DropdownMenuItem>
                   ))}

@@ -42,6 +42,18 @@ const operatorLabels: Record<Operator, string> = {
   matches: "matches pattern",
   exists: "exists",
   not_exists: "does not exist",
+  // Enhanced operators
+  starts_with: "starts with",
+  ends_with: "ends with",
+  is_empty: "is empty",
+  is_not_empty: "is not empty",
+  between: "is between",
+  not_between: "is not between",
+  answered_within: "was answered within",
+  changed_answer: "changed answer",
+  sentiment_positive: "has positive sentiment",
+  sentiment_negative: "has negative sentiment",
+  sentiment_neutral: "has neutral sentiment",
 };
 
 const ConditionEditor: React.FC<ConditionEditorProps> = ({
@@ -132,29 +144,119 @@ const ConditionEditor: React.FC<ConditionEditorProps> = ({
 
   const getSubjectOptions = () => {
     const options = [
+      // Individual questions
       ...questions.map((q) => ({ value: q.id, label: q.title })),
+
+      // Customer data
       { value: "customer.ltv", label: "Customer LTV" },
       { value: "customer.orderCount", label: "Order Count" },
+      { value: "customer.totalSpent", label: "Total Spent" },
+      { value: "customer.averageOrderValue", label: "Average Order Value" },
+      { value: "customer.loyaltyTier", label: "Loyalty Tier" },
+      { value: "customer.riskScore", label: "Risk Score" },
+      { value: "customer.tags", label: "Customer Tags" },
+
+      // Session & device data
       { value: "session.device", label: "Device Type" },
+      { value: "session.channel", label: "Channel" },
+      { value: "session.location.country", label: "Country" },
+      { value: "session.location.region", label: "Region" },
+      { value: "session.timeZone", label: "Time Zone" },
+
+      // Analytics & behavior
+      { value: "analytics.completionTime", label: "Time to Complete" },
+      { value: "analytics.engagementScore", label: "Engagement Score" },
+      { value: "analytics.qualityScore", label: "Response Quality" },
+      { value: "analytics.abandonmentRisk", label: "Abandonment Risk" },
+
+      // Multi-question aggregations
+      { value: "aggregate.rating_average", label: "Average Rating (All Questions)" },
+      { value: "aggregate.rating_sum", label: "Total Rating Score" },
+      { value: "aggregate.satisfaction_count", label: "Positive Responses Count" },
+      { value: "aggregate.completion_percentage", label: "Completion Percentage" },
+
+      // External data
+      { value: "external.weather.temperature", label: "Temperature" },
+      { value: "external.weather.condition", label: "Weather Condition" },
+      { value: "external.market.businessHours", label: "Business Hours" },
+      { value: "external.market.holiday", label: "Holiday" },
     ];
     return options;
   };
 
   const getOperatorOptions = (subject: string): Operator[] => {
-    if (subject.includes("ltv") || subject.includes("orderCount")) {
-      return ["equals", "not_equals", "gt", "gte", "lt", "lte"];
+    // Numeric fields (LTV, scores, counts, etc.)
+    if (subject.includes("ltv") || subject.includes("orderCount") || subject.includes("totalSpent") ||
+        subject.includes("averageOrderValue") || subject.includes("Score") || subject.includes("Risk") ||
+        subject.includes("completionTime") || subject.includes("temperature") || subject.includes("aggregate")) {
+      return ["equals", "not_equals", "gt", "gte", "lt", "lte", "between", "not_between"];
     }
-    if (subject.includes("device") || subject.includes("tag")) {
+
+    // Text fields that support advanced text operations
+    if (subject.includes("tags") || subject.includes("loyaltyTier") || subject.includes("channel") ||
+        subject.includes("device") || subject.includes("country") || subject.includes("region") ||
+        subject.includes("condition")) {
       return [
-        "equals",
-        "not_equals",
-        "contains",
-        "not_contains",
-        "in",
-        "not_in",
+        "equals", "not_equals", "contains", "not_contains", "in", "not_in",
+        "starts_with", "ends_with", "is_empty", "is_not_empty"
       ];
     }
+
+    // Boolean fields
+    if (subject.includes("businessHours") || subject.includes("holiday")) {
+      return ["equals", "not_equals"];
+    }
+
+    // Time-based analytics
+    if (subject.includes("analytics.") && (subject.includes("Time") || subject.includes("Duration"))) {
+      return ["equals", "not_equals", "gt", "gte", "lt", "lte", "between", "answered_within"];
+    }
+
+    // Behavioral analytics
+    if (subject.includes("analytics.") && (subject.includes("changed") || subject.includes("engagement"))) {
+      return ["equals", "not_equals", "gt", "gte", "lt", "lte", "changed_answer"];
+    }
+
+    // For individual questions, provide operators based on question type
+    const question = questions.find(q => q.id === subject);
+    if (question) {
+      if (question.type === "multiple-choice" || question.type === "single-choice") {
+        return ["equals", "not_equals", "in", "not_in"];
+      }
+      if (question.type === "rating" || question.type === "satisfaction" || question.type === "nps") {
+        return ["equals", "not_equals", "gt", "gte", "lt", "lte", "between"];
+      }
+      if (question.type === "text" || question.type === "short-answer") {
+        return [
+          "equals", "not_equals", "contains", "not_contains",
+          "starts_with", "ends_with", "is_empty", "is_not_empty",
+          "sentiment_positive", "sentiment_negative", "sentiment_neutral"
+        ];
+      }
+      if (question.type === "email" || question.type === "phone") {
+        return ["equals", "not_equals", "contains", "matches", "is_empty", "is_not_empty"];
+      }
+    }
+
+    // Default operators for unknown subjects
     return ["equals", "not_equals", "contains", "not_contains"];
+  };
+
+  const getValueOptions = (subject: string) => {
+    const question = questions.find(q => q.id === subject);
+    if (question && (question.type === "multiple-choice" || question.type === "single-choice")) {
+      return question.options || [];
+    }
+    if (question && question.type === "satisfaction") {
+      return ["Very Dissatisfied", "Dissatisfied", "Neutral", "Satisfied", "Very Satisfied"];
+    }
+    if (question && question.type === "rating") {
+      return ["1", "2", "3", "4", "5"];
+    }
+    if (question && question.type === "nps") {
+      return Array.from({length: 11}, (_, i) => i.toString());
+    }
+    return [];
   };
 
   return (
@@ -274,16 +376,42 @@ const ConditionEditor: React.FC<ConditionEditorProps> = ({
                         value="(not required)"
                         className="text-xs"
                       />
-                    ) : (
-                      <Input
-                        value={(clause.value as string) || ""}
-                        onChange={(e) =>
-                          updateClause(index, { value: e.target.value })
-                        }
-                        placeholder="Enter value..."
-                        className="text-xs"
-                      />
-                    )}
+                    ) : (() => {
+                      const valueOptions = getValueOptions(clause.subject);
+
+                      if (valueOptions.length > 0) {
+                        return (
+                          <Select
+                            value={(clause.value as string) || ""}
+                            onValueChange={(value) =>
+                              updateClause(index, { value })
+                            }
+                          >
+                            <SelectTrigger className="text-xs">
+                              <SelectValue placeholder="Select option..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {valueOptions.map((option, optIndex) => (
+                                <SelectItem key={optIndex} value={option}>
+                                  {option}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        );
+                      }
+
+                      return (
+                        <Input
+                          value={(clause.value as string) || ""}
+                          onChange={(e) =>
+                            updateClause(index, { value: e.target.value })
+                          }
+                          placeholder="Enter value..."
+                          className="text-xs"
+                        />
+                      );
+                    })()}
                   </div>
                 </div>
               </div>

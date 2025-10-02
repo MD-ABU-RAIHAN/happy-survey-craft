@@ -1,7 +1,8 @@
 import React from "react";
 import { Handle, Position, NodeProps } from "@xyflow/react";
 import { Badge } from "@/components/ui/badge";
-import { MessageCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { MessageCircle, GitBranch } from "lucide-react";
 
 interface QuestionNodeData {
   questionId?: string;
@@ -10,6 +11,8 @@ interface QuestionNodeData {
   required?: boolean;
   edgeCount?: number;
   label?: string;
+  onAddLogic?: (questionId: string) => void;
+  hasLogic?: boolean;
 }
 
 const QuestionNode: React.FC<NodeProps> = ({ data, selected }) => {
@@ -90,6 +93,28 @@ const QuestionNode: React.FC<NodeProps> = ({ data, selected }) => {
               </Badge>
             )}
           </div>
+        </div>
+
+        {/* Logic Button */}
+        <div className="mt-3 pt-3 border-t border-slate-100">
+          <Button
+            variant={nodeData.hasLogic ? "default" : "outline"}
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (nodeData.onAddLogic && nodeData.questionId) {
+                nodeData.onAddLogic(nodeData.questionId);
+              }
+            }}
+            className={`w-full gap-2 text-xs ${
+              nodeData.hasLogic
+                ? "bg-green-600 hover:bg-green-700 text-white"
+                : "bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700"
+            }`}
+          >
+            <GitBranch className="w-3 h-3" />
+            {nodeData.hasLogic ? "Edit Logic" : "Add Logic"}
+          </Button>
         </div>
       </div>
 

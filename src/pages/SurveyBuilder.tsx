@@ -1154,76 +1154,36 @@ const SurveyBuilder = () => {
   const [copiedUrl, setCopiedUrl] = useState(false);
   const [showLogicBuilder, setShowLogicBuilder] = useState(false);
   const [editingLogicId, setEditingLogicId] = useState<string | null>(null);
-  const [surveyLogic, setSurveyLogic] = useState<SurveyLogic[]>([]);
-  const [activeLogicId, setActiveLogicId] = useState<string | null>(null);
+  const [surveyLogic, setSurveyLogic] = useState<SurveyLogic | null>(null);
 
-  // Load saved logic flows from localStorage on component mount
+  // Load saved logic from localStorage on component mount
   React.useEffect(() => {
-    const savedLogic = localStorage.getItem('survey-logic-flows');
+    const savedLogic = localStorage.getItem("survey-logic");
     if (savedLogic) {
       try {
         setSurveyLogic(JSON.parse(savedLogic));
       } catch (error) {
-        console.error('Failed to load saved logic flows:', error);
+        console.error("Failed to load saved logic:", error);
       }
     }
   }, []);
 
-  // Save logic flows to localStorage whenever they change
+  // Save logic to localStorage whenever it changes
   React.useEffect(() => {
-    localStorage.setItem('survey-logic-flows', JSON.stringify(surveyLogic));
+    if (surveyLogic) {
+      localStorage.setItem("survey-logic", JSON.stringify(surveyLogic));
+    }
   }, [surveyLogic]);
 
   // Handle saving logic from builder
-  const handleSaveLogic = (logic: SurveyLogic, logicName: string, logicDescription: string) => {
-    const logicFlow = {
-      id: editingLogicId || `logic-${Date.now()}`,
-      name: logicName,
-      description: logicDescription,
-      logic,
-      status: 'active' as const,
-      type: 'conditional' as const,
-      nodes: logic.nodes.length,
-      connections: logic.edges.length,
-      lastModified: 'Just now',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-
-    setSurveyLogic(prev => {
-      if (editingLogicId) {
-        // Update existing logic
-        return prev.map(l => l.id === editingLogicId ? logicFlow : l);
-      } else {
-        // Add new logic
-        return [logicFlow, ...prev];
-      }
-    });
-
-    console.log('Logic saved:', logicFlow);
-  };
-
-  // Handle deleting logic
-  const handleDeleteLogic = (logicId: string) => {
-    setSurveyLogic(prev => prev.filter(l => l.id !== logicId));
-    if (activeLogicId === logicId) {
-      setActiveLogicId(null);
-    }
-  };
-
-  // Handle activating/deactivating logic for preview
-  const handleToggleLogicActive = (logicId: string) => {
-    if (activeLogicId === logicId) {
-      setActiveLogicId(null); // Deactivate if already active
-    } else {
-      setActiveLogicId(logicId); // Activate this logic
-    }
+  const handleSaveLogic = (logic: SurveyLogic) => {
+    setSurveyLogic(logic);
+    console.log("Logic saved with survey:", logic);
   };
 
   // Get currently active logic
   const getActiveLogic = () => {
-    if (!activeLogicId) return null;
-    return surveyLogic.find(l => l.id === activeLogicId)?.logic || null;
+    return surveyLogic;
   };
 
   // Distribution types configuration
@@ -1795,7 +1755,26 @@ const SurveyBuilder = () => {
                   >
                     <QuestionBuilder
                       questions={questions}
-                      onQuestionsChange={setQuestions}
+                      onQuestionsChange={(newQuestions) => {
+                        // Check if questions have actually changed
+                        const currentIds = questions.map((q) => q.id).sort();
+                        const newIds = newQuestions.map((q) => q.id).sort();
+                        const questionsChanged =
+                          JSON.stringify(currentIds) !== JSON.stringify(newIds);
+
+                        // Check if any questions were removed (more conservative approach)
+                        const questionsRemoved = questions.some(
+                          (q) => !newQuestions.find((nq) => nq.id === q.id)
+                        );
+
+                        setQuestions(newQuestions);
+
+                        // Only clear saved logic if questions were actually removed (not added)
+                        if (questionsRemoved) {
+                          setSurveyLogic(null);
+                          localStorage.removeItem("survey-logic");
+                        }
+                      }}
                       onExpandedQuestionChange={setExpandedQuestionId}
                     />
                   </TabsContent>
@@ -1856,18 +1835,14 @@ const SurveyBuilder = () => {
                     <AdvancedLogicTab
                       questions={questions}
                       surveyId="survey-123"
-                      logicFlows={surveyLogic}
-                      activeLogicId={activeLogicId}
+                      surveyLogic={surveyLogic}
                       onSave={(logic) => {
-                        console.log("Saving logic:", logic);
-                        // Here you would save to your backend
+                        handleSaveLogic(logic);
                       }}
-                      onOpenBuilder={(logicId) => {
-                        setEditingLogicId(logicId || null);
+                      onOpenBuilder={(questionId) => {
+                        setEditingLogicId(questionId || null);
                         setShowLogicBuilder(true);
                       }}
-                      onDeleteLogic={handleDeleteLogic}
-                      onToggleLogicActive={handleToggleLogicActive}
                     />
                   </TabsContent>
                 </Tabs>
@@ -1883,7 +1858,7 @@ const SurveyBuilder = () => {
                 previewDevice={previewDevice}
                 setPreviewDevice={setPreviewDevice}
                 activeLogic={getActiveLogic()}
-                activeLogicName={activeLogicId ? surveyLogic.find(l => l.id === activeLogicId)?.name : null}
+                activeLogicName={surveyLogic ? "Survey Logic" : null}
                 distributionType={
                   previewDistribution === "onsite-popup"
                     ? "onsite"
@@ -1920,9 +1895,9 @@ const SurveyBuilder = () => {
             questions={questions}
             surveyId="survey-123"
             logicId={editingLogicId || undefined}
-            existingLogic={editingLogicId ? surveyLogic.find(l => l.id === editingLogicId)?.logic : undefined}
-            onSave={(logic, logicName, logicDescription) => {
-              handleSaveLogic(logic, logicName, logicDescription);
+            existingLogic={surveyLogic}
+            onSave={(logic) => {
+              handleSaveLogic(logic);
               setShowLogicBuilder(false);
               setEditingLogicId(null);
             }}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   ReactFlow,
   Node,
@@ -20,6 +20,15 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   ArrowLeft,
   Save,
@@ -43,6 +52,8 @@ import {
   ValidationResult,
   NodeType,
   ValidationError,
+  Condition,
+  LogicSuggestion,
 } from "@/types/logic";
 
 // Component imports
@@ -50,6 +61,7 @@ import LogicToolbar from './LogicToolbar';
 import NodePalette from "./NodePalette";
 import InspectorPanel from "./InspectorPanel";
 import SimulationPanel from "./SimulationPanel";
+import SmartSuggestions from "./SmartSuggestions";
 
 // Custom node components
 import QuestionNode from "./nodes/QuestionNode";
@@ -60,6 +72,7 @@ import ShopifyNode from "./nodes/ShopifyNode";
 
 // Custom edge components
 import EdgeLabel from "./EdgeLabel";
+import ConditionEditor from "./ConditionEditor";
 
 interface LogicBuilderProps {
   questions: SurveyQuestion[];
@@ -67,7 +80,7 @@ interface LogicBuilderProps {
   logicId?: string;
   initialLogic?: SurveyLogic;
   existingLogic?: SurveyLogic;
-  onSave?: (logic: SurveyLogic, logicName: string, logicDescription: string) => void;
+  onSave?: (logic: SurveyLogic) => void;
   onCancel?: () => void;
   onBack?: () => void;
 }
@@ -96,6 +109,8 @@ const LogicBuilder: React.FC<LogicBuilderProps> = ({
   onCancel,
   onBack,
 }) => {
+  // Use existingLogic as the primary source, fallback to initialLogic
+  const savedLogic = existingLogic || initialLogic;
   // React Flow state
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -107,101 +122,283 @@ const LogicBuilder: React.FC<LogicBuilderProps> = ({
   const [validationErrors, setValidationErrors] = useState<ValidationResult | null>(null);
   const [isDirty, setIsDirty] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [logicName, setLogicName] = useState("");
-  const [logicDescription, setLogicDescription] = useState("");
+  const [showResetConfirmation, setShowResetConfirmation] = useState(false);
 
-  // Initialize logic name and description
-  useEffect(() => {
-    if (initialLogic) {
-      setLogicName(initialLogic.metadata?.name || "Unnamed Logic");
-      setLogicDescription(initialLogic.metadata?.description || "");
-    } else {
-      setLogicName("New Logic Flow");
-      setLogicDescription("Describe what this logic flow does...");
+  // Condition editing state
+  const [showConditionEditor, setShowConditionEditor] = useState(false);
+  const [editingCondition, setEditingCondition] = useState<Condition | undefined>(undefined);
+  const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
+
+  // Smart suggestions state
+  const [showSmartSuggestions, setShowSmartSuggestions] = useState(true);
+
+  // Handle applying smart suggestions
+  const handleApplySuggestion = useCallback((suggestion: LogicSuggestion) => {
+    if (suggestion.suggestedLogic && suggestion.applicableQuestions.length > 0) {
+      const sourceNodeId = suggestion.applicableQuestions[0];
+
+      // Find target node (preferably end node)
+      const targetNode = nodes.find(node => node.type === 'end') || nodes.find(node => node.id !== sourceNodeId);
+
+      if (targetNode) {
+        // Create new edge with suggested condition
+        const newEdge: Edge = {
+          id: `suggestion_${suggestion.id}_${Date.now()}`,
+          source: sourceNodeId,
+          target: targetNode.id,
+          label: suggestion.title,
+          markerEnd: "url(#arrow-closed-green)",
+          data: {
+            condition: suggestion.suggestedLogic,
+            action: { type: "goto", target: targetNode.id },
+            priority: 0,
+          },
+        };
+
+        setEdges((edges) => [...edges, newEdge]);
+        setIsDirty(true);
+
+        // Show success feedback
+        toast.success(`Applied suggestion: ${suggestion.title}`);
+      }
     }
-  }, [initialLogic]);
+  }, [nodes, setEdges]);
 
-  // Auto-generate nodes from questions if no initial logic
-  useEffect(() => {
-    if (!initialLogic && questions.length > 0) {
-      const questionNodes: Node[] = questions.map((question, index) => ({
-        id: question.id,
-        type: "question",
-        position: {
-          x: 200 + (index % 3) * 300,
-          y: 100 + Math.floor(index / 3) * 150,
-        },
-        data: {
-          questionId: question.id,
-          title: question.title,
-          type: question.type,
-          required: question.required,
-        },
-      }));
 
-      // Add start and end nodes
-      const startNode: Node = {
-        id: "start",
-        type: "start",
-        position: { x: 50, y: 200 },
-        data: { label: "Start" },
-      };
+  // Function to handle adding logic from node
+  const handleAddLogicFromNode = useCallback((questionId: string) => {
+    // Check if this node already has outgoing connections with conditions
+    const existingEdge = edges.find(edge => edge.source === questionId && edge.data?.condition);
 
-      const endNode: Node = {
-        id: "end",
-        type: "end",
-        position: { x: 800, y: 200 },
-        data: { label: "End" },
-      };
+    setEditingNodeId(questionId);
+    setEditingCondition(existingEdge?.data?.condition || undefined);
+    setShowConditionEditor(true);
+    setSelectedNode(questionId);
+    setSelectedEdge(null);
+  }, [edges]);
 
-      setNodes([startNode, ...questionNodes, endNode]);
+  // Check if a question has logic
+  const hasLogicForQuestion = useCallback((questionId: string) => {
+    return edges.some(edge =>
+      edge.source === questionId || edge.target === questionId
+    );
+  }, [edges]);
+
+  // Handle saving condition from editor
+  const handleConditionSave = useCallback((condition: Condition, label: string) => {
+    if (!editingNodeId) return;
+
+    // Find all possible target nodes (other questions and end nodes)
+    const targetNodes = nodes.filter(node =>
+      node.id !== editingNodeId &&
+      (node.type === 'question' || node.type === 'end' || node.id === 'thank-you')
+    );
+
+    if (targetNodes.length === 0) {
+      alert('No target nodes available. Please add more questions first.');
+      setShowConditionEditor(false);
+      return;
     }
-  }, [questions, initialLogic, setNodes]);
 
-  // Load initial logic
+    // Smart target selection: prefer 'thank-you' end node, then next question in sequence
+    let targetNode = targetNodes.find(node => node.id === 'thank-you');
+    if (!targetNode) {
+      // Find the next question node in the sequence
+      const currentNodeIndex = nodes.findIndex(node => node.id === editingNodeId);
+      const nextQuestionNodes = targetNodes.filter(node => node.type === 'question');
+      targetNode = nextQuestionNodes.length > 0 ? nextQuestionNodes[0] : targetNodes[0];
+    }
+
+    // Remove any existing conditional edge from this source
+    const filteredEdges = edges.filter(edge =>
+      !(edge.source === editingNodeId && edge.data?.condition)
+    );
+
+    // Create new edge with condition
+    const newEdge: Edge = {
+      id: `e_${editingNodeId}_${targetNode.id}_${Date.now()}`,
+      source: editingNodeId,
+      target: targetNode.id,
+      label: label,
+      markerEnd: "url(#arrow-closed-green)",
+      data: {
+        condition: condition,
+        action: { type: "goto", target: targetNode.id },
+        priority: 0,
+      },
+    };
+
+    setEdges([...filteredEdges, newEdge]);
+    setShowConditionEditor(false);
+    setEditingNodeId(null);
+    setEditingCondition(undefined);
+    setIsDirty(true);
+  }, [editingNodeId, nodes, edges, setEdges]);
+
+  // Track if we've already initialized to prevent multiple runs
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [lastQuestionIds, setLastQuestionIds] = useState<string[]>([]);
+
+  // Check if questions have changed (more precise detection)
+  const questionsChanged = useMemo(() => {
+    const currentQuestionIds = questions.map(q => q.id).sort();
+    const lastIds = lastQuestionIds.sort();
+    return JSON.stringify(currentQuestionIds) !== JSON.stringify(lastIds);
+  }, [questions, lastQuestionIds]);
+
+  // Check if any questions were removed (this requires clearing logic)
+  const questionsRemoved = useMemo(() => {
+    if (lastQuestionIds.length === 0) return false;
+    return lastQuestionIds.some(id => !questions.find(q => q.id === id));
+  }, [questions, lastQuestionIds]);
+
+  // Initialize nodes and edges - handle both new and changed questions
   useEffect(() => {
-    if (initialLogic) {
-      const reactFlowNodes: Node[] = initialLogic.nodes.map((node) => ({
+    // Only reset if questions were removed (not just added or reordered)
+    if (questionsRemoved && questions.length > 0) {
+      setIsInitialized(false);
+      setLastQuestionIds(questions.map(q => q.id));
+    } else if (questionsChanged && questions.length > 0) {
+      // Just update the tracking without resetting if only new questions added
+      setLastQuestionIds(questions.map(q => q.id));
+    }
+
+    if (isInitialized && !questionsChanged) return;
+
+    // Check if saved logic is valid for current questions
+    const isLogicValidForCurrentQuestions = savedLogic &&
+      savedLogic.nodes.filter(node => node.questionId).every(node =>
+        questions.some(q => q.id === node.questionId)
+      ) && (
+        savedLogic.nodes.filter(node => node.questionId).length > 0 ||
+        savedLogic.nodes.some(node => node.type === 'start' || node.type === 'end')
+      );
+
+    if (savedLogic && isLogicValidForCurrentQuestions && !questionsRemoved) {
+      // Load existing logic with enhanced functionality
+      const reactFlowNodes: Node[] = savedLogic.nodes.map((node) => ({
         id: node.id,
         type: node.type,
         position: node.position,
         data: {
           ...node.meta,
           questionId: node.questionId,
+          // Enhance nodes with interactive functionality
+          onAddLogic: handleAddLogicFromNode,
+          hasLogic: savedLogic.edges.some(edge =>
+            edge.source === node.id || edge.target === node.id
+          ),
         },
       }));
 
-      const reactFlowEdges: Edge[] = initialLogic.edges.map((edge) => ({
-        id: edge.id,
-        source: edge.source,
-        target: edge.target,
-        label: edge.label,
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-        },
-        data: {
-          condition: edge.condition,
-          action: edge.action,
-          priority: edge.priority,
-        },
-      }));
+      const reactFlowEdges: Edge[] = savedLogic.edges.map((edge) => {
+        const hasCondition = edge.condition && Object.keys(edge.condition).length > 0;
+        return {
+          id: edge.id,
+          source: edge.source,
+          target: edge.target,
+          label: edge.label,
+          markerEnd: hasCondition ? "url(#arrow-closed-green)" : "url(#arrow-closed-gray)",
+          data: {
+            condition: edge.condition,
+            action: edge.action,
+            priority: edge.priority,
+          },
+        };
+      });
 
       setNodes(reactFlowNodes);
       setEdges(reactFlowEdges);
-    }
-  }, [initialLogic, setNodes, setEdges]);
+      setIsInitialized(true);
+    } else if (questions.length > 0) {
+      // Auto-generate nodes from current questions (new or changed questions)
+      const questionNodes: Node[] = questions.map((question, index) => ({
+        id: question.id,
+        type: "question",
+        position: {
+          x: 150 + (index % 4) * 250,
+          y: 150 + Math.floor(index / 4) * 120,
+        },
+        data: {
+          questionId: question.id,
+          title: question.title,
+          type: question.type,
+          required: question.required,
+          onAddLogic: handleAddLogicFromNode,
+          hasLogic: false, // No logic for new questions initially
+        },
+      }));
 
-  // Handle new connections
+      // Add start node
+      const startNode: Node = {
+        id: "start",
+        type: "start",
+        position: { x: 50, y: 80 },
+        data: { label: "Start Survey" },
+      };
+
+      // Add Thank You message node
+      const thankYouNode: Node = {
+        id: "thank-you",
+        type: "end",
+        position: { x: 150 + (questions.length % 4) * 250, y: 150 + Math.floor(questions.length / 4) * 120 + 80 },
+        data: {
+          label: "Thank You Message",
+          message: "Thank you for taking our survey! Your feedback is valuable to us."
+        },
+      };
+
+      setNodes([startNode, ...questionNodes, thankYouNode]);
+      setEdges([]); // Clear edges for new/changed questions
+      setIsInitialized(true);
+    }
+  }, [savedLogic, questions, isInitialized, questionsChanged, questionsRemoved, lastQuestionIds, setNodes, setEdges, handleAddLogicFromNode]);
+
+  // Update button states when edges change (after initialization)
+  useEffect(() => {
+    if (isInitialized && nodes.length > 0) {
+      setNodes((currentNodes) =>
+        currentNodes.map((node) => ({
+          ...node,
+          data: {
+            ...node.data,
+            hasLogic: edges.some(edge =>
+              edge.source === node.id || edge.target === node.id
+            ),
+          },
+        }))
+      );
+    }
+  }, [edges, isInitialized, nodes.length, setNodes]);
+
+  // Handle new connections - with robust error handling
   const onConnect = useCallback(
     (connection: Connection) => {
-      if (!connection.source || !connection.target) return;
+      // Validate connection parameters
+      if (!connection.source || !connection.target) {
+        console.warn('Invalid connection attempt - missing source or target');
+        return;
+      }
+
+      // Prevent self-connections
+      if (connection.source === connection.target) {
+        console.warn('Self-connections are not allowed');
+        return;
+      }
+
+      // Check if nodes exist
+      const sourceNode = nodes.find(n => n.id === connection.source);
+      const targetNode = nodes.find(n => n.id === connection.target);
+
+      if (!sourceNode || !targetNode) {
+        console.warn('Connection attempted between non-existent nodes');
+        return;
+      }
 
       const newEdge: Edge = {
         ...connection,
         id: `e_${connection.source}_${connection.target}_${Date.now()}`,
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-        },
+        markerEnd: "url(#arrow-closed-gray)",
         data: {
           condition: null,
           action: { type: "goto", target: connection.target },
@@ -213,8 +410,9 @@ const LogicBuilder: React.FC<LogicBuilderProps> = ({
       setSelectedEdge(newEdge.id);
       setIsDirty(true);
     },
-    [setEdges]
+    [setEdges, nodes]
   );
+
 
   // Handle node selection
   const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
@@ -289,7 +487,7 @@ const LogicBuilder: React.FC<LogicBuilderProps> = ({
         }
       });
 
-      // Check for deleted questions
+      // Check for deleted questions (only for question nodes)
       const questionIds = new Set(questions.map((q) => q.id));
       logic.nodes.forEach((node) => {
         if (
@@ -302,6 +500,15 @@ const LogicBuilder: React.FC<LogicBuilderProps> = ({
             message: `Node references deleted question: ${node.questionId}`,
             nodeId: node.id,
           });
+        }
+      });
+
+      // System nodes (start, end, action, shopify) are always valid even without questionId
+      const systemNodeTypes = ['start', 'end', 'action', 'shopify'];
+      logic.nodes.forEach((node) => {
+        if (systemNodeTypes.includes(node.type) && !node.questionId) {
+          // This is expected and valid for system nodes - no action needed
+          return;
         }
       });
 
@@ -363,16 +570,8 @@ const LogicBuilder: React.FC<LogicBuilderProps> = ({
 
     const surveyLogic: SurveyLogic = {
       surveyId,
-      version: (initialLogic?.version || 0) + 1,
       nodes: logicNodes,
       edges: logicEdges,
-      metadata: {
-        name: logicName,
-        description: logicDescription,
-        lastEditedBy: "current-user",
-        updatedAt: new Date().toISOString(),
-        createdAt: initialLogic?.metadata?.createdAt || new Date().toISOString(),
-      },
     };
 
     // Validate before saving
@@ -381,22 +580,34 @@ const LogicBuilder: React.FC<LogicBuilderProps> = ({
 
     if (validation.isValid) {
       if (onSave) {
-        await onSave(surveyLogic, logicName, logicDescription);
+        await onSave(surveyLogic);
       }
       setIsDirty(false);
       onBack?.();
     }
-  }, [nodes, edges, surveyId, initialLogic, logicName, logicDescription, onSave, validateLogic, onBack]);
+  }, [nodes, edges, surveyId, onSave, validateLogic, onBack]);
 
-  // Reset to default
+  // Reset to default - show confirmation modal
   const handleReset = useCallback(() => {
-    setNodes([]);
+    setShowResetConfirmation(true);
+  }, []);
+
+  // Handle reset confirmation
+  const handleResetConfirm = useCallback(() => {
+    // Clear only edges, keep nodes (questions should remain)
     setEdges([]);
     setSelectedNode(null);
     setSelectedEdge(null);
     setValidationErrors(null);
     setIsDirty(true);
-  }, [setNodes, setEdges]);
+    setShowResetConfirmation(false);
+    toast.success("Logic connections have been reset successfully");
+  }, [setEdges]);
+
+  // Handle reset cancel
+  const handleResetCancel = useCallback(() => {
+    setShowResetConfirmation(false);
+  }, []);
 
   // Handle template loading
   const handleTemplateLoad = useCallback((templateId: string) => {
@@ -408,10 +619,18 @@ const LogicBuilder: React.FC<LogicBuilderProps> = ({
   const handleCancel = useCallback(() => {
     if (isDirty) {
       if (confirm("You have unsaved changes. Are you sure you want to leave?")) {
-        onCancel?.() || onBack?.();
+        if (onCancel) {
+          onCancel();
+        } else if (onBack) {
+          onBack();
+        }
       }
     } else {
-      onCancel?.() || onBack?.();
+      if (onCancel) {
+        onCancel();
+      } else if (onBack) {
+        onBack();
+      }
     }
   }, [isDirty, onCancel, onBack]);
 
@@ -473,41 +692,6 @@ const LogicBuilder: React.FC<LogicBuilderProps> = ({
           </div>
         </div>
 
-        {/* Logic Details */}
-        <div className="px-6 py-3 bg-slate-50/50">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="logic-name" className="text-xs font-medium text-slate-600">
-                Logic Name
-              </Label>
-              <Input
-                id="logic-name"
-                value={logicName}
-                onChange={(e) => {
-                  setLogicName(e.target.value);
-                  setIsDirty(true);
-                }}
-                placeholder="Enter logic name..."
-                className="mt-1 h-8 text-sm"
-              />
-            </div>
-            <div>
-              <Label htmlFor="logic-description" className="text-xs font-medium text-slate-600">
-                Description
-              </Label>
-              <Input
-                id="logic-description"
-                value={logicDescription}
-                onChange={(e) => {
-                  setLogicDescription(e.target.value);
-                  setIsDirty(true);
-                }}
-                placeholder="Describe what this logic does..."
-                className="mt-1 h-8 text-sm"
-              />
-            </div>
-          </div>
-        </div>
 
         {/* Compact Toolbar */}
         <div className="px-6 py-2 border-b bg-white">
@@ -566,31 +750,8 @@ const LogicBuilder: React.FC<LogicBuilderProps> = ({
 
       {/* Main Content Area */}
       <div className="flex flex-1 min-h-0">
-        {/* Node Palette - Fixed Width */}
-        <div className="w-64 border-r bg-slate-50/50 flex-shrink-0 overflow-y-auto">
-          <NodePalette
-            onNodeAdd={(type, position) => {
-              const newNode: Node = {
-                id: `${type}_${Date.now()}`,
-                type,
-                position: { x: 250, y: 150 }, // Center position
-                data: {
-                  label: type.charAt(0).toUpperCase() + type.slice(1),
-                  title: type === "question" && questions.length > 0 ? questions[0].title : undefined,
-                  questionId: type === "question" && questions.length > 0 ? questions[0].id : undefined,
-                  type: type === "question" && questions.length > 0 ? questions[0].type : undefined,
-                  required: type === "question" && questions.length > 0 ? questions[0].required : false,
-                  edgeCount: 0,
-                },
-              };
-              setNodes((nodes) => [...nodes, newNode]);
-              setIsDirty(true);
-            }}
-            onTemplateLoad={handleTemplateLoad}
-          />
-        </div>
 
-        {/* ReactFlow Canvas - Full Height */}
+        {/* ReactFlow Canvas - Full Width */}
         <div className="flex-1 relative">
           <div className="w-full h-full">
             <ReactFlow
@@ -607,6 +768,13 @@ const LogicBuilder: React.FC<LogicBuilderProps> = ({
               onConnect={onConnect}
               onNodeClick={onNodeClick}
               onEdgeClick={onEdgeClick}
+              // Ensure connections are always enabled
+              connectionMode="loose"
+              elementsSelectable={true}
+              nodesConnectable={true}
+              nodesDraggable={true}
+              edgesFocusable={true}
+              edgesUpdatable={true}
               nodeTypes={nodeTypes}
               edgeTypes={edgeTypes}
               defaultViewport={{ x: 0, y: 0, zoom: 1 }}
@@ -619,9 +787,52 @@ const LogicBuilder: React.FC<LogicBuilderProps> = ({
               selectionOnDrag={true}
               panOnDrag={[1, 2]}
               selectNodesOnDrag={false}
-              connectionLineStyle={{ stroke: '#3b82f6', strokeWidth: 2 }}
+              connectionLineStyle={{
+                stroke: '#3b82f6',
+                strokeWidth: 3,
+                strokeDasharray: '8,4'
+              }}
               connectionLineType="smoothstep"
             >
+              {/* Custom SVG Definitions for Arrow Markers */}
+              <svg style={{ position: 'absolute', top: 0, left: 0, width: 0, height: 0 }}>
+                <defs>
+                  <marker
+                    id="arrow-closed-blue"
+                    markerWidth="12"
+                    markerHeight="12"
+                    refX="10"
+                    refY="6"
+                    orient="auto"
+                    markerUnits="userSpaceOnUse"
+                  >
+                    <path d="M0,0 L0,12 L12,6 z" fill="#3b82f6" stroke="#3b82f6" strokeWidth="1"/>
+                  </marker>
+                  <marker
+                    id="arrow-closed-green"
+                    markerWidth="12"
+                    markerHeight="12"
+                    refX="10"
+                    refY="6"
+                    orient="auto"
+                    markerUnits="userSpaceOnUse"
+                  >
+                    <path d="M0,0 L0,12 L12,6 z" fill="#10b981" stroke="#10b981" strokeWidth="1"/>
+                  </marker>
+                  <marker
+                    id="arrow-closed-gray"
+                    markerWidth="12"
+                    markerHeight="12"
+                    refX="10"
+                    refY="6"
+                    orient="auto"
+                    markerUnits="userSpaceOnUse"
+                  >
+                    <path d="M0,0 L0,12 L12,6 z" fill="#94a3b8" stroke="#94a3b8" strokeWidth="1"/>
+                  </marker>
+                </defs>
+              </svg>
+
               <Background
                 variant="dots"
                 gap={20}
@@ -679,10 +890,10 @@ const LogicBuilder: React.FC<LogicBuilderProps> = ({
                     Start Building Your Logic
                   </h3>
                   <p className="text-slate-600 mb-4 text-sm leading-relaxed">
-                    Add nodes from the left panel and connect them to create your survey flow.
+                    Questions from your survey will automatically appear here. Connect them to create your survey flow.
                   </p>
                   <div className="space-y-1 text-xs text-slate-500">
-                    <div>• Drag nodes from the left palette</div>
+                    <div>• Questions are automatically added from Survey Builder</div>
                     <div>• Connect nodes by dragging from handles</div>
                     <div>• Click elements to edit properties</div>
                   </div>
@@ -692,8 +903,20 @@ const LogicBuilder: React.FC<LogicBuilderProps> = ({
           </div>
         </div>
 
-        {/* Inspector Panel - Fixed Width */}
+        {/* Right Sidebar */}
         <div className="w-80 border-l bg-white flex-shrink-0 overflow-y-auto">
+          {/* Smart Suggestions */}
+          {showSmartSuggestions && questions.length > 0 && (
+            <div className="p-4 border-b">
+              <SmartSuggestions
+                questions={questions}
+                onApplySuggestion={handleApplySuggestion}
+                onDismiss={() => setShowSmartSuggestions(false)}
+              />
+            </div>
+          )}
+
+          {/* Inspector Panel */}
           <InspectorPanel
             selectedNode={selectedNode}
             selectedEdge={selectedEdge}
@@ -736,6 +959,61 @@ const LogicBuilder: React.FC<LogicBuilderProps> = ({
           />
         </div>
       </div>
+
+      {/* Reset Confirmation Modal */}
+      <Dialog open={showResetConfirmation} onOpenChange={setShowResetConfirmation}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-destructive/10 rounded-full">
+                <AlertTriangle className="w-5 h-5 text-destructive" />
+              </div>
+              <DialogTitle>Reset Logic Flow</DialogTitle>
+            </div>
+            <DialogDescription className="text-left mt-4">
+              Are you sure you want to reset all logic connections?
+              <br /><br />
+              <strong>This will remove:</strong>
+              <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
+                <li>All connections between questions</li>
+                <li>All conditional logic rules</li>
+                <li>All custom flow paths</li>
+              </ul>
+              <br />
+              Your questions will remain unchanged.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleResetCancel}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleResetConfirm}
+              className="flex-1"
+            >
+              Reset Logic
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Condition Editor Modal */}
+      <ConditionEditor
+        isOpen={showConditionEditor}
+        onClose={() => {
+          setShowConditionEditor(false);
+          setEditingNodeId(null);
+          setEditingCondition(undefined);
+        }}
+        condition={editingCondition}
+        questions={questions}
+        onSave={handleConditionSave}
+      />
 
       {/* Simulation Modal */}
       {isSimulationActive && (
