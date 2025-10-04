@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { SlimSwitch } from "@/components/ui/slim-switch";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -81,6 +80,9 @@ interface SurveyQuestion {
   pointScale?: {
     min: number;
     max: number;
+    lowLabel: string;
+    highLabel: string;
+    reversed: boolean;
   };
 }
 
@@ -116,7 +118,7 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
     text: "Text Response",
     rating: "Rating Scale",
     satisfaction: "Satisfaction",
-    "point-scale": "Point Scale",
+    "point-scale": "Point Scale (NPS)",
     date: "Date",
   };
 
@@ -188,8 +190,11 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
         break;
       case "point-scale":
         newQuestion.pointScale = {
-          min: 1,
+          min: 0,
           max: 10,
+          lowLabel: "Not Likely",
+          highLabel: "Likely",
+          reversed: false,
         };
         break;
       case "date":
@@ -519,7 +524,7 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                   size="sm"
                 >
                   <Star className="w-4 h-4 mr-2" />
-                  Rating Scale
+                  Rating Scale(NPS)
                 </Button>
                 <Button
                   onClick={() => addQuestion("point-scale")}
@@ -663,6 +668,24 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                                     rows={2}
                                     className="resize-none"
                                   />
+                                </div>
+                                {/* Required Question Checkbox */}
+                                <div className="flex items-center space-x-2">
+                                  <Checkbox
+                                    id={`required-${question.id}`}
+                                    checked={question.required}
+                                    onCheckedChange={(checked) =>
+                                      updateQuestion(question.id, {
+                                        required: checked === true,
+                                      })
+                                    }
+                                  />
+                                  <Label
+                                    htmlFor={`required-${question.id}`}
+                                    className="text-sm font-normal cursor-pointer"
+                                  >
+                                    Required Question
+                                  </Label>
                                 </div>
                                 {/* Image Upload Section */}
                                 <div className="space-y-3">
@@ -958,9 +981,114 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                                       </div>
                                       <p className="text-xs text-muted-foreground text-center">
                                         Preview of scale (
-                                        {question.pointScale?.min || 1} to{" "}
+                                        {question.pointScale?.min || 0} to{" "}
                                         {question.pointScale?.max || 10})
                                       </p>
+                                    </div>
+
+                                    {/* Label Customization */}
+                                    <div className="grid grid-cols-2 gap-4">
+                                      <div className="space-y-2">
+                                        <Label className="text-sm font-medium">
+                                          Not likely text
+                                        </Label>
+                                        <Input
+                                          value={
+                                            question.pointScale?.lowLabel || ""
+                                          }
+                                          onChange={(e) =>
+                                            updateQuestion(question.id, {
+                                              pointScale: {
+                                                min:
+                                                  question.pointScale?.min || 0,
+                                                max:
+                                                  question.pointScale?.max ||
+                                                  10,
+                                                lowLabel: e.target.value,
+                                                highLabel:
+                                                  question.pointScale
+                                                    ?.highLabel || "",
+                                                reversed:
+                                                  question.pointScale
+                                                    ?.reversed || false,
+                                              },
+                                            })
+                                          }
+                                          placeholder="Not Likely"
+                                        />
+                                      </div>
+                                      <div className="space-y-2">
+                                        <Label className="text-sm font-medium">
+                                          Very likely text
+                                        </Label>
+                                        <Input
+                                          value={
+                                            question.pointScale?.highLabel || ""
+                                          }
+                                          onChange={(e) =>
+                                            updateQuestion(question.id, {
+                                              pointScale: {
+                                                min:
+                                                  question.pointScale?.min || 0,
+                                                max:
+                                                  question.pointScale?.max ||
+                                                  10,
+                                                lowLabel:
+                                                  question.pointScale
+                                                    ?.lowLabel || "",
+                                                highLabel: e.target.value,
+                                                reversed:
+                                                  question.pointScale
+                                                    ?.reversed || false,
+                                              },
+                                            })
+                                          }
+                                          placeholder="Likely"
+                                        />
+                                      </div>
+                                    </div>
+
+                                    {/* Reverse Scale Checkbox */}
+                                    <div className="flex items-center space-x-2">
+                                      <Checkbox
+                                        id={`reverse-scale-${question.id}`}
+                                        checked={
+                                          question.pointScale?.reversed || false
+                                        }
+                                        onCheckedChange={(checked) =>
+                                          updateQuestion(question.id, {
+                                            pointScale: {
+                                              min:
+                                                question.pointScale?.min || 0,
+                                              max:
+                                                question.pointScale?.max || 10,
+                                              lowLabel:
+                                                question.pointScale?.lowLabel ||
+                                                "Not Likely",
+                                              highLabel:
+                                                question.pointScale
+                                                  ?.highLabel || "Likely",
+                                              reversed: checked === true,
+                                            },
+                                          })
+                                        }
+                                      />
+                                      <div>
+                                        <Label
+                                          htmlFor={`reverse-scale-${question.id}`}
+                                          className="text-sm font-normal cursor-pointer"
+                                        >
+                                          Reverse the number scale
+                                        </Label>
+                                        <p className="text-xs text-muted-foreground">
+                                          Display as{" "}
+                                          {question.pointScale?.max || 10} to{" "}
+                                          {question.pointScale?.min || 0},
+                                          instead of{" "}
+                                          {question.pointScale?.min || 0} to{" "}
+                                          {question.pointScale?.max || 10}
+                                        </p>
+                                      </div>
                                     </div>
                                   </div>
                                 )}
@@ -1190,33 +1318,6 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                                     )}
                                   </div>
                                 )}
-                                <div className="flex items-center justify-between pt-4 border-t">
-                                  <div className="flex items-center gap-2">
-                                    <Label className="text-sm font-medium">
-                                      Required Question
-                                    </Label>
-                                    <Badge
-                                      variant={
-                                        question.required
-                                          ? "default"
-                                          : "secondary"
-                                      }
-                                      className="text-xs"
-                                    >
-                                      {question.required
-                                        ? "Required"
-                                        : "Optional"}
-                                    </Badge>
-                                  </div>
-                                  <SlimSwitch
-                                    checked={question.required}
-                                    onCheckedChange={(checked) =>
-                                      updateQuestion(question.id, {
-                                        required: checked,
-                                      })
-                                    }
-                                  />
-                                </div>
                               </div>
                             </CardContent>
                           )}

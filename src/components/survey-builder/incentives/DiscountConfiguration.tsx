@@ -156,16 +156,7 @@ const DiscountConfiguration: React.FC<DiscountConfigurationProps> = ({
         {/* Basic Configuration */}
         <TabsContent value="basic" className="space-y-6">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Gift className="w-5 h-5 text-primary" />
-                Discount Configuration
-              </CardTitle>
-              <CardDescription>
-                Set up your basic discount parameters
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 pt-6">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Discount Type</Label>
@@ -252,125 +243,8 @@ const DiscountConfiguration: React.FC<DiscountConfigurationProps> = ({
 
         {/* Smart Features */}
         <TabsContent value="smart" className="space-y-6">
-          {/* Smart Targeting */}
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Target className="w-5 h-5 text-blue-600" />
-                Smart Targeting
-                <Badge
-                  variant="secondary"
-                  className="bg-blue-100 text-blue-700"
-                >
-                  Exclusive
-                </Badge>
-              </CardTitle>
-              <CardDescription>
-                Advanced targeting based on response quality and customer
-                behavior
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Enable Smart Targeting</p>
-                  <p className="text-sm text-muted-foreground">
-                    Reward higher quality responses with better discounts
-                  </p>
-                </div>
-                <SlimSwitch
-                  checked={advancedSettings.smartTargeting}
-                  onCheckedChange={(checked) =>
-                    setAdvancedSettings((prev) => ({
-                      ...prev,
-                      smartTargeting: checked,
-                    }))
-                  }
-                />
-              </div>
-
-              {advancedSettings.smartTargeting && (
-                <div className="space-y-4 pl-4 border-l-2 border-blue-200">
-                  <div className="space-y-2">
-                    <Label>Response Quality Required</Label>
-                    <Select
-                      value={advancedSettings.responseQuality}
-                      onValueChange={(value) =>
-                        setAdvancedSettings((prev) => ({
-                          ...prev,
-                          responseQuality: value,
-                        }))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {responseQualityOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            <div>
-                              <div className="font-medium">{option.label}</div>
-                              <div className="text-xs text-muted-foreground">
-                                {option.desc}
-                              </div>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Customer Segment</Label>
-                    <Select
-                      value={advancedSettings.customerSegment}
-                      onValueChange={(value) =>
-                        setAdvancedSettings((prev) => ({
-                          ...prev,
-                          customerSegment: value,
-                        }))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {customerSegmentOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            <div>
-                              <div className="font-medium">{option.label}</div>
-                              <div className="text-xs text-muted-foreground">
-                                {option.desc}
-                              </div>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Fraud Prevention */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <AlertCircle className="w-5 h-5 text-orange-600" />
-                Fraud Prevention
-                <Badge
-                  variant="secondary"
-                  className="bg-orange-100 text-orange-700"
-                >
-                  Security
-                </Badge>
-              </CardTitle>
-              <CardDescription>
-                Protect against abuse and ensure genuine responses
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 pt-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">One Discount Per Customer</p>

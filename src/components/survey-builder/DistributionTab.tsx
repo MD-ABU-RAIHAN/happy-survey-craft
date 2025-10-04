@@ -223,7 +223,7 @@ const DistributionTab: React.FC<DistributionTabProps> = ({
                 <CollapsibleContent className="data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
                   <CardContent className="pt-0 space-y-6">
                     {isEnabled ? (
-                      distribution.id === "branded-survey" ? (
+                      distribution.id === "dedicated-survey-page" ? (
                         <BrandedSurveySettingsComponent
                           settings={brandedSurveySettings}
                           onSettingsChange={onBrandedSurveySettingsChange}

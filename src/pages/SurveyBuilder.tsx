@@ -75,7 +75,7 @@ import QuestionBuilder from "@/components/QuestionBuilder";
 import SurveyPreview from "@/components/SurveyPreview";
 import SimpleHeader from "@/components/SimpleHeader";
 import { DistributionTab } from "@/components/survey-builder/distribution";
-import IncentivesTabRefactored from "@/components/survey-builder/IncentivesTabRefactored";
+import DiscountTabRefactored from "@/components/survey-builder/IncentivesTabRefactored";
 import { AdvancedLogicTab, LogicBuilder } from "@/components/survey-builder/advanced-logic";
 import { SurveyLogic } from "@/types/logic";
 
@@ -631,12 +631,12 @@ const SurveyBuilder = () => {
 
   // State for tracking which distribution to preview
   const [previewDistribution, setPreviewDistribution] = useState<
-    | "branded-survey"
+    | "dedicated-survey-page"
     | "post-purchase"
     | "exit-intent"
     | "email-campaign"
     | "onsite-popup"
-  >("branded-survey");
+  >("dedicated-survey-page");
 
   // Pagination state
   const [paginationEnabled, setPaginationEnabled] = useState(true);
@@ -649,13 +649,13 @@ const SurveyBuilder = () => {
 
   // Distribution Settings
   const [enabledDistributions, setEnabledDistributions] = useState<string[]>([
-    "branded-survey",
+    "dedicated-survey-page",
   ]);
   const [expandedDistributionId, setExpandedDistributionId] = useState<
     string | null
   >(null);
   const [distributionSettings, setDistributionSettings] = useState({
-    "branded-survey": {
+    "dedicated-survey-page": {
       triggerDelay: "3",
       displayDuration: "30",
       targetAudience: "all-customers",
@@ -787,7 +787,7 @@ const SurveyBuilder = () => {
     "name"
   );
 
-  // Branded Survey Settings
+  // Dedicated Survey Page Settings
   const [brandedSurveySettings, setBrandedSurveySettings] =
     useState<BrandedSurveySettings>({
       customUrl: `survey-${Math.random().toString(36).substring(2, 8)}`,
@@ -1188,8 +1188,8 @@ const SurveyBuilder = () => {
   // Distribution types configuration
   const distributionTypes = [
     {
-      id: "branded-survey",
-      name: "Branded Survey",
+      id: "dedicated-survey-page",
+      name: "Dedicated Survey Page",
       description: "Customized survey with your brand colors and logo",
       icon: Monitor,
       color: "text-primary",
@@ -1283,7 +1283,7 @@ const SurveyBuilder = () => {
     }));
   };
 
-  // Branded Survey Helper Functions
+  // Dedicated Survey Page Helper Functions
   const updateBrandedSetting = (path: string, value: unknown) => {
     setBrandedSurveySettings((prev) => {
       const keys = path.split(".");
@@ -1737,7 +1737,7 @@ const SurveyBuilder = () => {
                       className="data-[state=active]:!bg-primary data-[state=active]:!text-primary-foreground data-[state=active]:!shadow-lg transition-all duration-200 ease-in-out hover:bg-muted/50"
                     >
                       <Gift className="w-4 h-4 mr-2 transition-transform duration-200 group-hover:scale-105" />
-                      Incentives
+                      Discount
                     </TabsTrigger>
                     <TabsTrigger
                       value="logic"
@@ -1811,7 +1811,7 @@ const SurveyBuilder = () => {
                     value="discount"
                     className="animate-in fade-in-0 duration-300"
                   >
-                    <IncentivesTabRefactored
+                    <DiscountTabRefactored
                       isDiscountEnabled={isDiscountEnabled}
                       setIsDiscountEnabled={setIsDiscountEnabled}
                       discountType={discountType}

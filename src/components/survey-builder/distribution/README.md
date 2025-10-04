@@ -11,7 +11,7 @@ distribution/
 ├── index.ts                      # Main exports
 │
 ├── methods/                      # Distribution Method Components
-│   ├── branded-survey/           # Branded Survey (Custom URL)
+│   ├── dedicated-survey-pagey/           # Branded Survey (Custom URL)
 │   │   ├── BrandedSurveySettings.tsx
 │   │   ├── components/
 │   │   │   ├── ButtonCustomization.tsx
@@ -66,7 +66,7 @@ distribution/
 
 ```typescript
 // Import the main DistributionTab
-import { DistributionTab } from '@/components/survey-builder/distribution';
+import { DistributionTab } from "@/components/survey-builder/distribution";
 
 // Use it in your component
 <DistributionTab
@@ -91,7 +91,7 @@ import { DistributionTab } from '@/components/survey-builder/distribution';
   onGenerateNewUrl={generateNewUrl}
   onCopyUrl={copyUrl}
   copiedUrl={copiedUrl}
-/>
+/>;
 ```
 
 ### Importing Distribution Methods
@@ -104,10 +104,10 @@ import {
   ExitIntentSettings,
   EmailCampaignSettings,
   OnSitePopupSettings,
-} from '@/components/survey-builder/distribution/methods';
+} from "@/components/survey-builder/distribution/methods";
 
 // Or import from specific method
-import { BrandedSurveySettings } from '@/components/survey-builder/distribution/methods/branded-survey';
+import { BrandedSurveySettings } from "@/components/survey-builder/distribution/methods/dedicated-survey-pagey";
 ```
 
 ### Importing Shared Components
@@ -120,21 +120,20 @@ import {
   LogoSettings,
   QuillEditor,
   UserTargeting,
-} from '@/components/survey-builder/distribution/shared';
+} from "@/components/survey-builder/distribution/shared";
 
 // Use in your component
-<ColorPicker
-  color={selectedColor}
-  onChange={handleColorChange}
-/>
+<ColorPicker color={selectedColor} onChange={handleColorChange} />;
 ```
 
 ## 🎯 Distribution Methods
 
 ### 1. **Branded Survey**
+
 Custom branded surveys with full customization options.
 
 **Features:**
+
 - Custom domain and URL configuration
 - Logo settings (header and side)
 - Button customization (colors, hover states, shadow)
@@ -145,9 +144,11 @@ Custom branded surveys with full customization options.
 **Component:** `BrandedSurveySettings`
 
 ### 2. **Post-Purchase Survey**
+
 Surveys triggered after customer purchase.
 
 **Features:**
+
 - User targeting (all users or segments)
 - User tag filtering
 - New vs returning customer targeting
@@ -159,9 +160,11 @@ Surveys triggered after customer purchase.
 **Component:** `PostPurchaseSettings`
 
 ### 3. **Exit-Intent Popup**
+
 Surveys triggered when user attempts to leave the site.
 
 **Features:**
+
 - Exit detection sensitivity
 - Trigger delay settings
 - Display customization
@@ -170,9 +173,11 @@ Surveys triggered when user attempts to leave the site.
 **Component:** `ExitIntentSettings`
 
 ### 4. **Email Campaign**
+
 Survey distribution via email campaigns.
 
 **Features:**
+
 - Email template customization
 - Subject line and preview text
 - Sender information
@@ -182,9 +187,11 @@ Survey distribution via email campaigns.
 **Component:** `EmailCampaignSettings`
 
 ### 5. **On-Site Popup**
+
 Surveys displayed as popups on the website.
 
 **Features:**
+
 - Trigger conditions (time-based, scroll-based, etc.)
 - Display position and animation
 - Frequency settings
@@ -196,17 +203,19 @@ Surveys displayed as popups on the website.
 ## 🛠️ Shared Components
 
 ### ColorPicker
+
 Advanced color picker with preset colors and custom color support.
 
 ```typescript
 <ColorPicker
   color="#3B82F6"
   onChange={(color) => console.log(color)}
-  presets={['#3B82F6', '#EF4444', '#10B981']}
+  presets={["#3B82F6", "#EF4444", "#10B981"]}
 />
 ```
 
 ### FileUpload
+
 Drag-and-drop file upload component with preview.
 
 ```typescript
@@ -218,6 +227,7 @@ Drag-and-drop file upload component with preview.
 ```
 
 ### LogoSettings
+
 Logo configuration component with size and position controls.
 
 ```typescript
@@ -231,6 +241,7 @@ Logo configuration component with size and position controls.
 ```
 
 ### QuillEditor
+
 Rich text editor based on Quill with custom toolbar.
 
 ```typescript
@@ -242,12 +253,13 @@ Rich text editor based on Quill with custom toolbar.
 ```
 
 ### UserTargeting
+
 User segmentation and targeting component.
 
 ```typescript
 <UserTargeting
   type="segment-users"
-  selectedTags={['vip', 'frequent-buyer']}
+  selectedTags={["vip", "frequent-buyer"]}
   newCustomer={true}
   returningCustomer={false}
   onChange={(targeting) => handleTargetingChange(targeting)}
@@ -255,6 +267,7 @@ User segmentation and targeting component.
 ```
 
 ### DistributionItem
+
 Collapsible card component for distribution methods.
 
 ```typescript
@@ -274,11 +287,13 @@ Collapsible card component for distribution methods.
 ### Separation of Concerns
 
 1. **Main Tab Component** (`DistributionTab.tsx`)
+
    - Manages overall state
    - Handles distribution method switching
    - Coordinates between different distribution types
 
 2. **Method Components** (`methods/`)
+
    - Self-contained distribution method settings
    - Each method has its own folder with sub-components
    - Isolated concerns for better maintainability
@@ -293,14 +308,16 @@ Collapsible card component for distribution methods.
 ### Adding a New Distribution Method
 
 1. **Create method folder:**
+
    ```bash
    mkdir -p methods/new-method/components
    ```
 
 2. **Create main settings component:**
+
    ```typescript
    // methods/new-method/NewMethodSettings.tsx
-   import React from 'react';
+   import React from "react";
 
    interface NewMethodSettings {
      // Define your settings interface
@@ -311,27 +328,28 @@ Collapsible card component for distribution methods.
      onSettingsChange: (settings: NewMethodSettings) => void;
    }
 
-   const NewMethodSettings: React.FC<Props> = ({ settings, onSettingsChange }) => {
-     return (
-       <div>
-         {/* Your settings UI */}
-       </div>
-     );
+   const NewMethodSettings: React.FC<Props> = ({
+     settings,
+     onSettingsChange,
+   }) => {
+     return <div>{/* Your settings UI */}</div>;
    };
 
    export default NewMethodSettings;
    ```
 
 3. **Create index file:**
+
    ```typescript
    // methods/new-method/index.ts
-   export { default as NewMethodSettings } from './NewMethodSettings';
+   export { default as NewMethodSettings } from "./NewMethodSettings";
    ```
 
 4. **Update methods index:**
+
    ```typescript
    // methods/index.ts
-   export * from './new-method';
+   export * from "./new-method";
    ```
 
 5. **Add to DistributionTab:**
@@ -357,6 +375,7 @@ Collapsible card component for distribution methods.
 ## 🎨 Styling
 
 All components use:
+
 - **Tailwind CSS** for styling
 - **Shadcn UI** components for consistency
 - **Lucide React** for icons
@@ -411,7 +430,7 @@ survey-builder/
 survey-builder/distribution/
 ├── DistributionTab.tsx
 ├── methods/
-│   ├── branded-survey/
+│   ├── dedicated-survey-pagey/
 │   ├── post-purchase/
 │   ├── exit-intent/
 │   ├── email-campaign/
@@ -433,13 +452,13 @@ import { BrandedSurveySettings } from "@/components/survey-builder/distribution/
 
 ## 🔍 Quick Reference
 
-| Distribution Method | Component | Primary Use Case |
-|-------------------|-----------|------------------|
-| **Branded Survey** | `BrandedSurveySettings` | Custom branded surveys with full control |
-| **Post-Purchase** | `PostPurchaseSettings` | After-checkout feedback collection |
-| **Exit-Intent** | `ExitIntentSettings` | Capture feedback before user leaves |
-| **Email Campaign** | `EmailCampaignSettings` | Email-based survey distribution |
-| **On-Site Popup** | `OnSitePopupSettings` | Active engagement on website |
+| Distribution Method | Component               | Primary Use Case                         |
+| ------------------- | ----------------------- | ---------------------------------------- |
+| **Branded Survey**  | `BrandedSurveySettings` | Custom branded surveys with full control |
+| **Post-Purchase**   | `PostPurchaseSettings`  | After-checkout feedback collection       |
+| **Exit-Intent**     | `ExitIntentSettings`    | Capture feedback before user leaves      |
+| **Email Campaign**  | `EmailCampaignSettings` | Email-based survey distribution          |
+| **On-Site Popup**   | `OnSitePopupSettings`   | Active engagement on website             |
 
 ---
 

@@ -425,7 +425,7 @@ const DistributionTabRefactored: React.FC<DistributionTabRefactoredProps> = ({
   copiedUrl,
 }) => {
   const renderDistributionContent = (distribution: DistributionType) => {
-    if (distribution.id === "branded-survey") {
+    if (distribution.id === "dedicated-survey-page") {
       return (
         <BrandedSurveySettings
           settings={brandedSurveySettings}

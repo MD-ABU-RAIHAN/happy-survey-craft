@@ -16,7 +16,7 @@ import {
   DollarSign,
 } from "lucide-react";
 
-interface IncentivesTabProps {
+interface DiscountTabProps {
   isDiscountEnabled: boolean;
   setIsDiscountEnabled: (enabled: boolean) => void;
   discountType: "percentage" | "fixed";
@@ -31,7 +31,7 @@ interface IncentivesTabProps {
   setDiscountExpiryDays: (days: string) => void;
 }
 
-const IncentivesTab: React.FC<IncentivesTabProps> = ({
+const DiscountTab: React.FC<DiscountTabProps> = ({
   isDiscountEnabled,
   setIsDiscountEnabled,
   discountType,
@@ -67,7 +67,7 @@ const IncentivesTab: React.FC<IncentivesTabProps> = ({
               <div>
                 <h4 className="font-semibold flex items-center gap-2">
                   <Gift className="w-4 h-4 text-survey-purple" />
-                  Discount Incentives
+                  Discount
                 </h4>
                 <p className="text-sm text-muted-foreground">
                   {isDiscountEnabled
@@ -189,4 +189,4 @@ const IncentivesTab: React.FC<IncentivesTabProps> = ({
   );
 };
 
-export default IncentivesTab;
+export default DiscountTab;

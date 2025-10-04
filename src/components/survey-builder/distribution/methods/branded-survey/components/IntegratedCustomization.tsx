@@ -113,34 +113,35 @@ const IntegratedCustomization: React.FC<IntegratedCustomizationProps> = ({
   ];
 
   return (
-    <Card>
-      <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
-        <CardHeader>
-          <CollapsibleTrigger asChild>
-            <div className="flex items-center justify-between cursor-pointer">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Settings className="w-5 h-5" />
-                  Customization
-                </CardTitle>
-                <CardDescription>
-                  Customize buttons, text colors, background, and appearance of
-                  your survey
-                </CardDescription>
+    <>
+      <Card>
+        <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
+          <CardHeader>
+            <CollapsibleTrigger asChild>
+              <div className="flex items-center justify-between cursor-pointer">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="w-5 h-5" />
+                    Customization
+                  </CardTitle>
+                  <CardDescription>
+                    Customize buttons, text colors, background, and appearance of
+                    your survey
+                  </CardDescription>
+                </div>
+                <Button variant="ghost" size="sm">
+                  {isExpanded ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                </Button>
               </div>
-              <Button variant="ghost" size="sm">
-                {isExpanded ? (
-                  <ChevronUp className="h-4 w-4" />
-                ) : (
-                  <ChevronDown className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
-          </CollapsibleTrigger>
-        </CardHeader>
+            </CollapsibleTrigger>
+          </CardHeader>
 
-        <CollapsibleContent>
-          <CardContent className="space-y-6">
+          <CollapsibleContent>
+            <CardContent className="space-y-6">
             <Tabs defaultValue="button" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger
@@ -446,52 +447,55 @@ const IntegratedCustomization: React.FC<IntegratedCustomizationProps> = ({
                     </TabsContent>
                   </Tabs>
                 </div>
-
-                {/* Custom CSS Section */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Code className="w-4 h-4" />
-                      <Label className="font-medium">Custom CSS</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Label className="text-xs">Enable</Label>
-                      <SlimSwitch
-                        checked={sectionSettings.enableCustomCss}
-                        onCheckedChange={(checked) =>
-                          onSettingsChange("section.enableCustomCss", checked)
-                        }
-                      />
-                    </div>
-                  </div>
-
-                  {sectionSettings.enableCustomCss && (
-                    <div className="space-y-2">
-                      <Label className="text-xs text-muted-foreground">
-                        Add custom CSS rules for advanced styling (use
-                        .survey-section as the base selector)
-                      </Label>
-                      <Textarea
-                        placeholder={`.survey-section {
-  /* Your custom styles here */
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}`}
-                        value={sectionSettings.customCss}
-                        onChange={(e) =>
-                          onSettingsChange("section.customCss", e.target.value)
-                        }
-                        className="min-h-[120px] font-mono text-sm"
-                      />
-                    </div>
-                  )}
-                </div>
               </TabsContent>
             </Tabs>
           </CardContent>
         </CollapsibleContent>
       </Collapsible>
     </Card>
+
+      {/* Custom CSS Section - Separate Card */}
+      <Card>
+        <CardContent className="space-y-4 pt-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Code className="w-4 h-4" />
+              <Label className="font-medium">Custom CSS</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Label className="text-xs">Enable</Label>
+              <SlimSwitch
+                checked={sectionSettings.enableCustomCss}
+                onCheckedChange={(checked) =>
+                  onSettingsChange("section.enableCustomCss", checked)
+                }
+              />
+            </div>
+          </div>
+
+          {sectionSettings.enableCustomCss && (
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">
+                Add custom CSS rules for advanced styling (use
+                .survey-section as the base selector)
+              </Label>
+              <Textarea
+                placeholder={`.survey-section {
+  /* Your custom styles here */
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}`}
+                value={sectionSettings.customCss}
+                onChange={(e) =>
+                  onSettingsChange("section.customCss", e.target.value)
+                }
+                className="min-h-[120px] font-mono text-sm"
+              />
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </>
   );
 };
 

@@ -10,7 +10,7 @@ import {
 import { Gift, ChevronDown, ChevronRight } from "lucide-react";
 import DiscountConfiguration from "./incentives/DiscountConfiguration";
 
-interface IncentivesTabRefactoredProps {
+interface DiscountTabRefactoredProps {
   isDiscountEnabled: boolean;
   setIsDiscountEnabled: (enabled: boolean) => void;
   discountType: "percentage" | "fixed";
@@ -25,7 +25,7 @@ interface IncentivesTabRefactoredProps {
   setDiscountExpiryDays: (days: string) => void;
 }
 
-const IncentivesTabRefactored: React.FC<IncentivesTabRefactoredProps> = ({
+const DiscountTabRefactored: React.FC<DiscountTabRefactoredProps> = ({
   isDiscountEnabled,
   setIsDiscountEnabled,
   discountType,
@@ -52,13 +52,6 @@ const IncentivesTabRefactored: React.FC<IncentivesTabRefactoredProps> = ({
 
   return (
     <div className="p-6 pt-4 space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold mb-4">Incentive Settings</h3>
-        <p className="text-sm text-muted-foreground mb-6">
-          Reward customers for completing your survey to increase response rates
-        </p>
-      </div>
-
       <Collapsible open={!isCollapsed} onOpenChange={(open) => setIsCollapsed(!open)}>
         <Card
           className={`transition-all duration-300 border-2 ${
@@ -90,7 +83,7 @@ const IncentivesTabRefactored: React.FC<IncentivesTabRefactoredProps> = ({
                 </div>
                 <div className="flex-1">
                   <h4 className="font-semibold flex items-center gap-2">
-                    Discount Incentives
+                    Discount
                     {isDiscountEnabled ? (
                       <Badge
                         variant="secondary"
@@ -145,4 +138,4 @@ const IncentivesTabRefactored: React.FC<IncentivesTabRefactoredProps> = ({
   );
 };
 
-export default IncentivesTabRefactored;
+export default DiscountTabRefactored;
