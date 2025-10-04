@@ -48,9 +48,8 @@ interface SurveyQuestion {
   imageName?: string;
   customAnswer?: {
     enabled: boolean;
-    displayMode: "always" | "on-select";
+    otherLabel: string;
     placeholder: string;
-    description?: string;
   };
   dateFormat?: "MM/DD/YYYY" | "DD/MM/YYYY" | "YYYY-MM-DD";
   textInputType?: "single-line" | "multi-line";
@@ -518,29 +517,46 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
   // Initialize logic mode when active logic changes
   React.useEffect(() => {
     if (activeLogic) {
-      console.log('🎯 Activating logic mode with logic:', activeLogic);
-      console.log('📊 Logic has', activeLogic.nodes?.length, 'nodes and', activeLogic.edges?.length, 'edges');
+      console.log("🎯 Activating logic mode with logic:", activeLogic);
+      console.log(
+        "📊 Logic has",
+        activeLogic.nodes?.length,
+        "nodes and",
+        activeLogic.edges?.length,
+        "edges"
+      );
 
       setIsLogicMode(true);
       setCurrentQuestionIndex(0);
       setQuestionHistory([0]);
 
       // Log all available questions for debugging
-      console.log('📝 Available questions:', questions.map(q => ({ id: q.id, title: q.title, type: q.type })));
+      console.log(
+        "📝 Available questions:",
+        questions.map((q) => ({ id: q.id, title: q.title, type: q.type }))
+      );
     } else {
-      console.log('❌ Deactivating logic mode');
+      console.log("❌ Deactivating logic mode");
       setIsLogicMode(false);
     }
   }, [activeLogic, questions]);
 
   // Logic execution engine
-  const evaluateCondition = (condition: any, questionId: string, response: any): boolean => {
+  const evaluateCondition = (
+    condition: any,
+    questionId: string,
+    response: any
+  ): boolean => {
     if (!condition) {
-      console.log('⚠️ No condition provided, defaulting to true');
+      console.log("⚠️ No condition provided, defaulting to true");
       return true; // No condition means always true
     }
 
-    console.log('🔍 Evaluating condition:', { condition, response, questionId });
+    console.log("🔍 Evaluating condition:", {
+      condition,
+      response,
+      questionId,
+    });
 
     const { operator, value, field } = condition;
 
@@ -549,81 +565,105 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
 
     // For multiple choice questions, response might be an array
     if (Array.isArray(response)) {
-      console.log('📝 Response is array:', response);
+      console.log("📝 Response is array:", response);
 
       // For contains operator, check if value is in array
-      if (operator === 'contains') {
+      if (operator === "contains") {
         const result = response.includes(value);
         console.log(`✅ Array contains "${value}":`, result);
         return result;
       }
 
       // For other operators, use the first selected value or join as string
-      actualResponse = response.length > 0 ? response[0] : '';
-      console.log('🔄 Using first array value:', actualResponse);
+      actualResponse = response.length > 0 ? response[0] : "";
+      console.log("🔄 Using first array value:", actualResponse);
     }
 
     // Handle different operators
     let result = false;
 
     switch (operator) {
-      case 'equals':
-      case 'equal':
-      case '=':
-      case '==':
-        result = String(actualResponse).toLowerCase() === String(value).toLowerCase();
-        console.log(`📊 Equals check: "${actualResponse}" === "${value}" = ${result}`);
+      case "equals":
+      case "equal":
+      case "=":
+      case "==":
+        result =
+          String(actualResponse).toLowerCase() === String(value).toLowerCase();
+        console.log(
+          `📊 Equals check: "${actualResponse}" === "${value}" = ${result}`
+        );
         break;
 
-      case 'not_equals':
-      case 'not_equal':
-      case '!=':
-        result = String(actualResponse).toLowerCase() !== String(value).toLowerCase();
-        console.log(`📊 Not equals check: "${actualResponse}" !== "${value}" = ${result}`);
+      case "not_equals":
+      case "not_equal":
+      case "!=":
+        result =
+          String(actualResponse).toLowerCase() !== String(value).toLowerCase();
+        console.log(
+          `📊 Not equals check: "${actualResponse}" !== "${value}" = ${result}`
+        );
         break;
 
-      case 'contains':
+      case "contains":
         if (Array.isArray(response)) {
-          result = response.some(item => String(item).toLowerCase().includes(String(value).toLowerCase()));
+          result = response.some((item) =>
+            String(item).toLowerCase().includes(String(value).toLowerCase())
+          );
         } else {
-          result = String(actualResponse).toLowerCase().includes(String(value).toLowerCase());
+          result = String(actualResponse)
+            .toLowerCase()
+            .includes(String(value).toLowerCase());
         }
-        console.log(`📊 Contains check: "${actualResponse}" contains "${value}" = ${result}`);
+        console.log(
+          `📊 Contains check: "${actualResponse}" contains "${value}" = ${result}`
+        );
         break;
 
-      case 'greater_than':
-      case '>':
+      case "greater_than":
+      case ">":
         result = Number(actualResponse) > Number(value);
-        console.log(`📊 Greater than: ${actualResponse} > ${value} = ${result}`);
+        console.log(
+          `📊 Greater than: ${actualResponse} > ${value} = ${result}`
+        );
         break;
 
-      case 'less_than':
-      case '<':
+      case "less_than":
+      case "<":
         result = Number(actualResponse) < Number(value);
         console.log(`📊 Less than: ${actualResponse} < ${value} = ${result}`);
         break;
 
-      case 'greater_than_or_equal':
-      case '>=':
+      case "greater_than_or_equal":
+      case ">=":
         result = Number(actualResponse) >= Number(value);
-        console.log(`📊 Greater than or equal: ${actualResponse} >= ${value} = ${result}`);
+        console.log(
+          `📊 Greater than or equal: ${actualResponse} >= ${value} = ${result}`
+        );
         break;
 
-      case 'less_than_or_equal':
-      case '<=':
+      case "less_than_or_equal":
+      case "<=":
         result = Number(actualResponse) <= Number(value);
-        console.log(`📊 Less than or equal: ${actualResponse} <= ${value} = ${result}`);
+        console.log(
+          `📊 Less than or equal: ${actualResponse} <= ${value} = ${result}`
+        );
         break;
 
-      case 'is_empty':
-      case 'empty':
-        result = !actualResponse || actualResponse === '' || (Array.isArray(response) && response.length === 0);
+      case "is_empty":
+      case "empty":
+        result =
+          !actualResponse ||
+          actualResponse === "" ||
+          (Array.isArray(response) && response.length === 0);
         console.log(`📊 Is empty: ${result}`);
         break;
 
-      case 'is_not_empty':
-      case 'not_empty':
-        result = actualResponse && actualResponse !== '' && (!Array.isArray(response) || response.length > 0);
+      case "is_not_empty":
+      case "not_empty":
+        result =
+          actualResponse &&
+          actualResponse !== "" &&
+          (!Array.isArray(response) || response.length > 0);
         console.log(`📊 Is not empty: ${result}`);
         break;
 
@@ -637,83 +677,105 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
     return result;
   };
 
-  const findNextQuestionByLogic = (currentQuestionId: string, response: any): number | null => {
+  const findNextQuestionByLogic = (
+    currentQuestionId: string,
+    response: any
+  ): number | null => {
     if (!activeLogic || !isLogicMode) {
-      console.log('🚫 Logic evaluation skipped:', { activeLogic: !!activeLogic, isLogicMode });
+      console.log("🚫 Logic evaluation skipped:", {
+        activeLogic: !!activeLogic,
+        isLogicMode,
+      });
       return null;
     }
 
-    console.log('🔍 Finding logic for question:', currentQuestionId);
-    console.log('📚 Available nodes:', activeLogic.nodes);
-    console.log('🔗 Available edges:', activeLogic.edges);
+    console.log("🔍 Finding logic for question:", currentQuestionId);
+    console.log("📚 Available nodes:", activeLogic.nodes);
+    console.log("🔗 Available edges:", activeLogic.edges);
 
     // Find the current question node - try multiple methods
-    let currentNode = activeLogic.nodes.find((node: LogicNode) =>
-      node.questionId === currentQuestionId
+    let currentNode = activeLogic.nodes.find(
+      (node: LogicNode) => node.questionId === currentQuestionId
     );
 
     // If not found by questionId, try finding by node data
     if (!currentNode) {
-      currentNode = activeLogic.nodes.find((node: LogicNode) =>
-        node.meta?.questionId === currentQuestionId
+      currentNode = activeLogic.nodes.find(
+        (node: LogicNode) => node.meta?.questionId === currentQuestionId
       );
     }
 
     // If still not found, try finding by question title/label
     if (!currentNode) {
-      const currentQuestion = questions.find(q => q.id === currentQuestionId);
+      const currentQuestion = questions.find((q) => q.id === currentQuestionId);
       if (currentQuestion) {
-        currentNode = activeLogic.nodes.find((node: LogicNode) =>
-          node.meta?.title === currentQuestion.title ||
-          node.meta?.label === currentQuestion.title
+        currentNode = activeLogic.nodes.find(
+          (node: LogicNode) =>
+            node.meta?.title === currentQuestion.title ||
+            node.meta?.label === currentQuestion.title
         );
       }
     }
 
-    console.log('📋 Current node found:', currentNode);
+    console.log("📋 Current node found:", currentNode);
 
     if (!currentNode) {
-      console.log('❌ No node found for question:', currentQuestionId);
-      console.log('🔍 Available question IDs in nodes:', activeLogic.nodes.map(n => ({ id: n.id, questionId: n.questionId, meta: n.meta })));
+      console.log("❌ No node found for question:", currentQuestionId);
+      console.log(
+        "🔍 Available question IDs in nodes:",
+        activeLogic.nodes.map((n) => ({
+          id: n.id,
+          questionId: n.questionId,
+          meta: n.meta,
+        }))
+      );
       return null;
     }
 
     // Find outgoing edges from this node, sorted by priority
     const outgoingEdges = activeLogic.edges
       .filter((edge: LogicEdge) => edge.source === currentNode.id)
-      .sort((a: LogicEdge, b: LogicEdge) => (b.priority || 0) - (a.priority || 0));
+      .sort(
+        (a: LogicEdge, b: LogicEdge) => (b.priority || 0) - (a.priority || 0)
+      );
 
-    console.log('🔗 Outgoing edges found:', outgoingEdges);
+    console.log("🔗 Outgoing edges found:", outgoingEdges);
 
     if (outgoingEdges.length === 0) {
-      console.log('⚠️ No outgoing edges found for node:', currentNode.id);
+      console.log("⚠️ No outgoing edges found for node:", currentNode.id);
       return null;
     }
 
     // Evaluate conditions to find the matching edge
     for (const edge of outgoingEdges) {
-      console.log('🧪 Evaluating edge:', edge);
-      const conditionResult = evaluateCondition(edge.condition, currentQuestionId, response);
-      console.log('✅ Condition result:', conditionResult);
+      console.log("🧪 Evaluating edge:", edge);
+      const conditionResult = evaluateCondition(
+        edge.condition,
+        currentQuestionId,
+        response
+      );
+      console.log("✅ Condition result:", conditionResult);
 
       if (conditionResult) {
         // Find the target question
-        const targetNode = activeLogic.nodes.find((node: LogicNode) =>
-          node.id === edge.target
+        const targetNode = activeLogic.nodes.find(
+          (node: LogicNode) => node.id === edge.target
         );
 
-        console.log('🎯 Target node found:', targetNode);
+        console.log("🎯 Target node found:", targetNode);
 
         if (targetNode) {
           // Handle special target types first
-          if (targetNode.type === 'end') {
-            console.log('🔚 Target is end node');
+          if (targetNode.type === "end") {
+            console.log("🔚 Target is end node");
             return -1; // End survey
           }
 
           // Handle action nodes
-          if (targetNode.type === 'action') {
-            console.log('⚡ Target is action node, continuing to next question');
+          if (targetNode.type === "action") {
+            console.log(
+              "⚡ Target is action node, continuing to next question"
+            );
             // For action nodes, we might want to continue to the next question
             // or handle the action and then continue
             const nextIndex = currentQuestionIndex + 1;
@@ -725,8 +787,10 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
 
           // Try to find target question by questionId
           if (targetNode.questionId) {
-            const targetIndex = questions.findIndex(q => q.id === targetNode.questionId);
-            console.log('📍 Target question index by questionId:', targetIndex);
+            const targetIndex = questions.findIndex(
+              (q) => q.id === targetNode.questionId
+            );
+            console.log("📍 Target question index by questionId:", targetIndex);
             if (targetIndex !== -1) {
               return targetIndex;
             }
@@ -734,8 +798,13 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
 
           // Try to find by meta data
           if (targetNode.meta?.questionId) {
-            const targetIndex = questions.findIndex(q => q.id === targetNode.meta.questionId);
-            console.log('📍 Target question index by meta.questionId:', targetIndex);
+            const targetIndex = questions.findIndex(
+              (q) => q.id === targetNode.meta.questionId
+            );
+            console.log(
+              "📍 Target question index by meta.questionId:",
+              targetIndex
+            );
             if (targetIndex !== -1) {
               return targetIndex;
             }
@@ -744,31 +813,33 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
           // Try to find by title/label
           if (targetNode.meta?.title || targetNode.meta?.label) {
             const targetTitle = targetNode.meta.title || targetNode.meta.label;
-            const targetIndex = questions.findIndex(q => q.title === targetTitle);
-            console.log('📍 Target question index by title:', targetIndex);
+            const targetIndex = questions.findIndex(
+              (q) => q.title === targetTitle
+            );
+            console.log("📍 Target question index by title:", targetIndex);
             if (targetIndex !== -1) {
               return targetIndex;
             }
           }
 
-          console.log('❌ Could not map target node to question:', targetNode);
+          console.log("❌ Could not map target node to question:", targetNode);
         } else {
-          console.log('❌ Target node not found for edge target:', edge.target);
+          console.log("❌ Target node not found for edge target:", edge.target);
         }
       }
     }
 
-    console.log('🚫 No matching edge condition found');
+    console.log("🚫 No matching edge condition found");
     return null; // No matching condition, continue normally
   };
 
   // Survey interaction helpers
   const handleQuestionResponse = (questionId: string, response: any) => {
-    console.log('📝 Question response received:', { questionId, response });
+    console.log("📝 Question response received:", { questionId, response });
 
     // Find the current question to understand its type
-    const currentQuestion = questions.find(q => q.id === questionId);
-    console.log('📋 Current question details:', currentQuestion);
+    const currentQuestion = questions.find((q) => q.id === questionId);
+    console.log("📋 Current question details:", currentQuestion);
 
     // Store the response
     setSurveyResponses((prev) => ({
@@ -780,28 +851,30 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
     setTimeout(() => {
       // If logic is active, determine next question based on logic
       if (activeLogic && isLogicMode) {
-        console.log('🔄 Logic Mode: Processing response', {
+        console.log("🔄 Logic Mode: Processing response", {
           questionId,
           response,
           questionType: currentQuestion?.type,
           currentQuestionIndex,
-          activeLogic
+          activeLogic,
         });
 
         const nextQuestionIndex = findNextQuestionByLogic(questionId, response);
-        console.log('🎯 Next question index determined:', nextQuestionIndex);
+        console.log("🎯 Next question index determined:", nextQuestionIndex);
 
         if (nextQuestionIndex !== null) {
           if (nextQuestionIndex === -1) {
             // End survey
-            console.log('🏁 Survey ended by logic');
+            console.log("🏁 Survey ended by logic");
             return;
           }
 
           // Navigate to the specific question determined by logic
-          console.log(`🚀 Navigating from question ${currentQuestionIndex} to question ${nextQuestionIndex}`);
+          console.log(
+            `🚀 Navigating from question ${currentQuestionIndex} to question ${nextQuestionIndex}`
+          );
           setCurrentQuestionIndex(nextQuestionIndex);
-          setQuestionHistory(prev => [...prev, nextQuestionIndex]);
+          setQuestionHistory((prev) => [...prev, nextQuestionIndex]);
 
           if (paginationEnabled) {
             const targetPage = Math.floor(nextQuestionIndex / questionsPerPage);
@@ -810,7 +883,7 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
 
           return;
         } else {
-          console.log('❌ No logic rule matched, using default behavior');
+          console.log("❌ No logic rule matched, using default behavior");
         }
       }
 
@@ -823,12 +896,12 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
           const nextIndex = currentQuestionIndex + 1;
           if (nextIndex < questions.length) {
             setCurrentQuestionIndex(nextIndex);
-            setQuestionHistory(prev => [...prev, nextIndex]);
+            setQuestionHistory((prev) => [...prev, nextIndex]);
           }
         }
       } else {
         // In logic mode but no rule matched, stay on current question
-        console.log('🔒 Staying on current question in logic mode');
+        console.log("🔒 Staying on current question in logic mode");
       }
     }, 100); // Small delay to ensure state updates
   };
@@ -1435,9 +1508,7 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
               >
                 <Zap className="w-3 h-3" />
                 {activeLogicName}
-                {isLogicMode && (
-                  <span className="ml-1 text-xs">(Active)</span>
-                )}
+                {isLogicMode && <span className="ml-1 text-xs">(Active)</span>}
               </Badge>
             )}
           </div>
@@ -2138,41 +2209,100 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                                     </div>
                                   );
                                 })}
-                                {/* Custom Answer Field */}
+                                {/* Dynamic "Other" Option */}
                                 {question.customAnswer?.enabled && (
-                                  <div className="mt-3">
-                                    {question.customAnswer.displayMode ===
-                                    "always" ? (
-                                      <div className="space-y-1">
-                                        <label className="text-xs text-muted-foreground">
-                                          Custom Answer:
-                                        </label>
-                                        <Input
-                                          placeholder={
-                                            question.customAnswer.placeholder ||
-                                            "Please specify..."
-                                          }
-                                          className="h-8 text-sm"
-                                          value={
-                                            surveyResponses[
-                                              `${question.id}_custom`
-                                            ] || ""
-                                          }
-                                          onChange={(e) =>
-                                            handleQuestionResponse(
-                                              `${question.id}_custom`,
-                                              e.target.value
+                                  <>
+                                    <div
+                                      className="flex items-center space-x-2 cursor-pointer hover:bg-muted/30 p-1 rounded"
+                                      onClick={() => {
+                                        const current = Array.isArray(
+                                          surveyResponses[question.id]
+                                        )
+                                          ? surveyResponses[question.id]
+                                          : [];
+                                        const otherLabel =
+                                          question.customAnswer.otherLabel;
+                                        const isChecked =
+                                          current.includes(otherLabel);
+                                        const newResponse = isChecked
+                                          ? current.filter(
+                                              (item) => item !== otherLabel
                                             )
-                                          }
-                                        />
+                                          : [...current, otherLabel];
+                                        handleQuestionResponse(
+                                          question.id,
+                                          newResponse
+                                        );
+                                      }}
+                                    >
+                                      <div
+                                        className={`w-3 h-3 border border-muted-foreground rounded-sm flex items-center justify-center ${
+                                          Array.isArray(
+                                            surveyResponses[question.id]
+                                          ) &&
+                                          surveyResponses[question.id].includes(
+                                            question.customAnswer.otherLabel
+                                          )
+                                            ? "bg-primary border-primary"
+                                            : ""
+                                        }`}
+                                      >
+                                        {Array.isArray(
+                                          surveyResponses[question.id]
+                                        ) &&
+                                          surveyResponses[question.id].includes(
+                                            question.customAnswer.otherLabel
+                                          ) && (
+                                            <div className="w-1.5 h-1.5 bg-white rounded-sm" />
+                                          )}
                                       </div>
-                                    ) : (
-                                      <div className="text-xs text-muted-foreground italic">
-                                        Custom input will appear when "Others"
-                                        is selected
-                                      </div>
-                                    )}
-                                  </div>
+                                      <span
+                                        className="text-sm"
+                                        style={
+                                          getDistributionType() ===
+                                            "branded-survey" &&
+                                          brandedSurveySettings
+                                            ? {
+                                                color:
+                                                  brandedSurveySettings.section
+                                                    .primaryText,
+                                              }
+                                            : {}
+                                        }
+                                      >
+                                        {question.customAnswer.otherLabel}
+                                      </span>
+                                    </div>
+                                    {/* Show input field when "Other" is selected */}
+                                    {Array.isArray(
+                                      surveyResponses[question.id]
+                                    ) &&
+                                      surveyResponses[question.id].includes(
+                                        question.customAnswer.otherLabel
+                                      ) && (
+                                        <div className="mt-2 ml-5">
+                                          <Input
+                                            placeholder={
+                                              question.customAnswer
+                                                .placeholder ||
+                                              "Enter your answer here"
+                                            }
+                                            className="h-8 text-sm"
+                                            value={
+                                              surveyResponses[
+                                                `${question.id}_custom`
+                                              ] || ""
+                                            }
+                                            onChange={(e) =>
+                                              handleQuestionResponse(
+                                                `${question.id}_custom`,
+                                                e.target.value
+                                              )
+                                            }
+                                          />
+                                        </div>
+                                      )}
+                                  </>
                                 )}
                               </div>
                             )}
@@ -2226,19 +2356,56 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                                     </div>
                                   );
                                 })}
-                                {/* Custom Answer Field */}
+                                {/* Dynamic "Other" Option */}
                                 {question.customAnswer?.enabled && (
-                                  <div className="mt-3">
-                                    {question.customAnswer.displayMode ===
-                                    "always" ? (
-                                      <div className="space-y-1">
-                                        <label className="text-xs text-muted-foreground">
-                                          Custom Answer:
-                                        </label>
+                                  <>
+                                    <div
+                                      className="flex items-center space-x-2 cursor-pointer hover:bg-muted/30 p-1 rounded"
+                                      onClick={() =>
+                                        handleQuestionResponse(
+                                          question.id,
+                                          question.customAnswer.otherLabel
+                                        )
+                                      }
+                                    >
+                                      <div
+                                        className={`w-3 h-3 border rounded-full flex items-center justify-center ${
+                                          surveyResponses[question.id] ===
+                                          question.customAnswer.otherLabel
+                                            ? "bg-primary border-primary"
+                                            : "border-muted-foreground"
+                                        }`}
+                                      >
+                                        {surveyResponses[question.id] ===
+                                          question.customAnswer.otherLabel && (
+                                          <div className="w-1.5 h-1.5 bg-white rounded-full" />
+                                        )}
+                                      </div>
+                                      <span
+                                        className="text-sm"
+                                        style={
+                                          getDistributionType() ===
+                                            "branded-survey" &&
+                                          brandedSurveySettings
+                                            ? {
+                                                color:
+                                                  brandedSurveySettings.section
+                                                    .primaryText,
+                                              }
+                                            : {}
+                                        }
+                                      >
+                                        {question.customAnswer.otherLabel}
+                                      </span>
+                                    </div>
+                                    {/* Show input field when "Other" is selected */}
+                                    {surveyResponses[question.id] ===
+                                      question.customAnswer.otherLabel && (
+                                      <div className="mt-2 ml-5">
                                         <Input
                                           placeholder={
                                             question.customAnswer.placeholder ||
-                                            "Please specify..."
+                                            "Enter your answer here"
                                           }
                                           className="h-8 text-sm"
                                           value={
@@ -2254,13 +2421,8 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                                           }
                                         />
                                       </div>
-                                    ) : (
-                                      <div className="text-xs text-muted-foreground italic">
-                                        Custom input will appear when "Others"
-                                        is selected
-                                      </div>
                                     )}
-                                  </div>
+                                  </>
                                 )}
                               </div>
                             )}
@@ -2566,12 +2728,16 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                       </Button>
 
                       <div className="flex items-center gap-2">
-                        <Badge variant="secondary" className="bg-blue-50 text-blue-700">
+                        <Badge
+                          variant="secondary"
+                          className="bg-blue-50 text-blue-700"
+                        >
                           <Zap className="w-3 h-3 mr-1" />
                           Logic Mode
                         </Badge>
                         <span className="text-sm text-muted-foreground">
-                          Question {currentQuestionIndex + 1} of {questions.length}
+                          Question {currentQuestionIndex + 1} of{" "}
+                          {questions.length}
                         </span>
                       </div>
 

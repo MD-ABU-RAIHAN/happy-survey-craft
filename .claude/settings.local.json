@@ -5,7 +5,10 @@
       "Bash(npm run build:*)",
       "Bash(find:*)",
       "Bash(npx tsc:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(rmdir:*)",
+      "Bash(git mv:*)",
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": []
