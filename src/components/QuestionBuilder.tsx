@@ -13,7 +13,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   Collapsible,
   CollapsibleContent,
@@ -32,16 +38,13 @@ import {
   Upload,
   ImageIcon,
   X,
-  Settings,
-  Eye,
-  EyeOff,
-  Clock,
   FileQuestion,
   CircleDot,
   Calendar,
   FileText,
   Smile,
   Hash,
+  HelpCircle,
 } from "lucide-react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
@@ -65,9 +68,8 @@ interface SurveyQuestion {
   imageName?: string;
   customAnswer?: {
     enabled: boolean;
-    displayMode: "always" | "on-select";
+    otherLabel: string;
     placeholder: string;
-    description?: string;
   };
   // New properties for specific question types
   dateFormat?: "MM/DD/YYYY" | "DD/MM/YYYY" | "YYYY-MM-DD";
@@ -93,9 +95,6 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
   onQuestionsChange,
   onExpandedQuestionChange,
 }) => {
-  const [collapsedCustomAnswers, setCollapsedCustomAnswers] = useState<
-    string[]
-  >([]);
   const [selectedQuestionType, setSelectedQuestionType] = useState<string>("");
   const [expandedQuestionId, setExpandedQuestionId] = useState<string | null>(
     null
@@ -156,9 +155,8 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
       ],
       customAnswer: {
         enabled: true,
-        displayMode: "on-select" as const,
-        placeholder: "Please specify your reason...",
-        description: "Tell us what specifically motivated your purchase",
+        otherLabel: "Other",
+        placeholder: "Enter your answer here",
       },
     },
   };
@@ -391,124 +389,40 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
     const isEnabled = question?.customAnswer?.enabled || false;
 
     if (!isEnabled) {
-      // Enabling custom answer - add "Others" option if it doesn't exist
-      const currentOptions = question?.options || [];
-      const hasOthersOption = currentOptions.some(
-        (option) =>
-          option.toLowerCase() === "others" || option.toLowerCase() === "other"
-      );
-
-      let updatedOptions = currentOptions;
-      if (
-        !hasOthersOption &&
-        (question?.type === "multiple-choice" ||
-          question?.type === "single-choice")
-      ) {
-        updatedOptions = [...currentOptions, "Others"];
-      }
-
+      // Enabling custom answer
       updateQuestion(questionId, {
         customAnswer: {
           enabled: true,
-          displayMode: "on-select",
-          placeholder: "Please specify...",
-          description: "Allow customers to provide custom answers",
+          otherLabel: "Other",
+          placeholder: "Enter your answer here",
         },
-        ...(updatedOptions !== currentOptions && { options: updatedOptions }),
       });
     } else {
-      // Disabling custom answer - remove "Others" option
-      const currentOptions = question?.options || [];
-      let updatedOptions = currentOptions;
-
-      if (
-        question?.type === "multiple-choice" ||
-        question?.type === "single-choice"
-      ) {
-        updatedOptions = currentOptions.filter(
-          (option) =>
-            option.toLowerCase() !== "others" &&
-            option.toLowerCase() !== "other"
-        );
-      }
-
+      // Disabling custom answer
       updateQuestion(questionId, {
         customAnswer: {
           enabled: false,
-          displayMode: "on-select",
-          placeholder: "Please specify...",
-          description: "Allow customers to provide custom answers",
+          otherLabel: "Other",
+          placeholder: "Enter your answer here",
         },
-        ...(updatedOptions !== currentOptions && { options: updatedOptions }),
       });
     }
   };
 
   const updateCustomAnswerSetting = (
     questionId: string,
-    key: string,
-    value: string | boolean
+    key: "otherLabel" | "placeholder",
+    value: string
   ) => {
     const question = questions.find((q) => q.id === questionId);
     if (question?.customAnswer) {
-      // Handle display mode change with automatic "Others" option management
-      if (key === "displayMode") {
-        const currentOptions = question.options || [];
-        let updatedOptions = currentOptions;
-
-        if (value === "on-select") {
-          // Add "Others" option if it doesn't exist
-          const hasOthersOption = currentOptions.some(
-            (option) =>
-              option.toLowerCase() === "others" ||
-              option.toLowerCase() === "other"
-          );
-
-          if (
-            !hasOthersOption &&
-            (question.type === "multiple-choice" ||
-              question.type === "single-choice")
-          ) {
-            updatedOptions = [...currentOptions, "Others"];
-          }
-        } else if (value === "always") {
-          // Remove "Others" option when switching to "always" mode
-          if (
-            question.type === "multiple-choice" ||
-            question.type === "single-choice"
-          ) {
-            updatedOptions = currentOptions.filter(
-              (option) =>
-                option.toLowerCase() !== "others" &&
-                option.toLowerCase() !== "other"
-            );
-          }
-        }
-
-        updateQuestion(questionId, {
-          customAnswer: {
-            ...question.customAnswer,
-            [key]: value,
-          },
-          ...(updatedOptions !== currentOptions && { options: updatedOptions }),
-        });
-      } else {
-        updateQuestion(questionId, {
-          customAnswer: {
-            ...question.customAnswer,
-            [key]: value,
-          },
-        });
-      }
+      updateQuestion(questionId, {
+        customAnswer: {
+          ...question.customAnswer,
+          [key]: value,
+        },
+      });
     }
-  };
-
-  const toggleCustomAnswerCollapse = (questionId: string) => {
-    setCollapsedCustomAnswers((prev) =>
-      prev.includes(questionId)
-        ? prev.filter((id) => id !== questionId)
-        : [...prev, questionId]
-    );
   };
 
   return (
@@ -1197,214 +1111,81 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                                 {/* Custom Answer Section for Multiple Choice and Single Choice */}
                                 {(question.type === "multiple-choice" ||
                                   question.type === "single-choice") && (
-                                  <div className="pt-4 border-t border-muted/50">
+                                  <div className="pt-4 border-t border-muted/50 space-y-3">
                                     <div className="flex items-center justify-between">
-                                      <div className="flex items-center space-x-3">
-                                        {question.customAnswer?.enabled && (
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() =>
-                                              toggleCustomAnswerCollapse(
-                                                question.id
-                                              )
-                                            }
-                                            className="p-1 h-auto hover:bg-muted"
-                                          >
-                                            {collapsedCustomAnswers.includes(
-                                              question.id
-                                            ) ? (
-                                              <ChevronRight className="w-4 h-4" />
-                                            ) : (
-                                              <ChevronDown className="w-4 h-4" />
-                                            )}
-                                          </Button>
-                                        )}
-                                        <div className="flex items-center gap-2">
-                                          <Settings className="w-4 h-4" />
-                                          <Label className="text-sm font-medium">
-                                            Allow Custom Answer
-                                          </Label>
-                                          <Badge
-                                            variant={
-                                              question.customAnswer?.enabled
-                                                ? "default"
-                                                : "secondary"
-                                            }
-                                            className="text-xs"
-                                          >
-                                            {question.customAnswer?.enabled
-                                              ? "Enabled"
-                                              : "Disabled"}
-                                          </Badge>
-                                        </div>
+                                      <div className="flex items-center space-x-2">
+                                        <Checkbox
+                                          id={`allow-other-${question.id}`}
+                                          checked={
+                                            question.customAnswer?.enabled ||
+                                            false
+                                          }
+                                          onCheckedChange={() =>
+                                            toggleCustomAnswer(question.id)
+                                          }
+                                        />
+                                        <Label
+                                          htmlFor={`allow-other-${question.id}`}
+                                          className="text-sm font-normal cursor-pointer"
+                                        >
+                                          Allow 'Other' option
+                                        </Label>
                                       </div>
-                                      <SlimSwitch
-                                        checked={
-                                          question.customAnswer?.enabled ||
-                                          false
-                                        }
-                                        onCheckedChange={() =>
-                                          toggleCustomAnswer(question.id)
-                                        }
-                                      />
+                                      <TooltipProvider>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <HelpCircle className="w-4 h-4 text-muted-foreground cursor-help" />
+                                          </TooltipTrigger>
+                                          <TooltipContent>
+                                            <p className="max-w-xs">
+                                              Allows the respondent to enter their own choice if none of the options apply.
+                                            </p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>
                                     </div>
 
-                                    {question.customAnswer?.enabled &&
-                                      !collapsedCustomAnswers.includes(
-                                        question.id
-                                      ) && (
-                                        <div className="mt-4 ml-7 space-y-4">
-                                          <div className="bg-muted/30 rounded-lg p-4 space-y-4">
-                                            <div className="space-y-3">
-                                              <Label className="text-sm font-medium">
-                                                Display Mode
-                                              </Label>
-                                              <RadioGroup
-                                                value={
-                                                  question.customAnswer
-                                                    .displayMode
-                                                }
-                                                onValueChange={(
-                                                  value: "always" | "on-select"
-                                                ) =>
-                                                  updateCustomAnswerSetting(
-                                                    question.id,
-                                                    "displayMode",
-                                                    value
-                                                  )
-                                                }
-                                                className="space-y-3"
-                                              >
-                                                <div className="flex items-center space-x-3">
-                                                  <RadioGroupItem
-                                                    value="always"
-                                                    id={`${question.id}-always`}
-                                                  />
-                                                  <Label
-                                                    htmlFor={`${question.id}-always`}
-                                                    className="flex items-center gap-2 cursor-pointer font-normal"
-                                                  >
-                                                    <Eye className="w-4 h-4" />
-                                                    Always Show
-                                                  </Label>
-                                                </div>
-                                                <div className="flex items-center space-x-3">
-                                                  <RadioGroupItem
-                                                    value="on-select"
-                                                    id={`${question.id}-on-select`}
-                                                  />
-                                                  <Label
-                                                    htmlFor={`${question.id}-on-select`}
-                                                    className="flex items-center gap-2 cursor-pointer font-normal"
-                                                  >
-                                                    <EyeOff className="w-4 h-4" />
-                                                    When "Others" is selected
-                                                  </Label>
-                                                </div>
-                                              </RadioGroup>
-                                              {question.customAnswer
-                                                .displayMode ===
-                                                "on-select" && (
-                                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-2">
-                                                  <div className="flex items-start gap-2">
-                                                    <div className="w-4 h-4 rounded-full bg-blue-500 flex-shrink-0 mt-0.5"></div>
-                                                    <p className="text-xs text-blue-700">
-                                                      An "Others" option will be
-                                                      automatically added to
-                                                      your answer choices.
-                                                    </p>
-                                                  </div>
-                                                </div>
-                                              )}
-                                              {question.customAnswer
-                                                .displayMode === "always" && (
-                                                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-2">
-                                                  <div className="flex items-start gap-2">
-                                                    <div className="w-4 h-4 rounded-full bg-amber-500 flex-shrink-0 mt-0.5"></div>
-                                                    <p className="text-xs text-amber-700">
-                                                      Any "Others" option will
-                                                      be automatically removed
-                                                      since the custom input is
-                                                      always visible.
-                                                    </p>
-                                                  </div>
-                                                </div>
-                                              )}
-                                            </div>
-
-                                            <div className="space-y-2">
-                                              <Label className="text-sm font-medium">
-                                                Custom Input Placeholder
-                                              </Label>
-                                              <Input
-                                                value={
-                                                  question.customAnswer
-                                                    .placeholder
-                                                }
-                                                onChange={(e) =>
-                                                  updateCustomAnswerSetting(
-                                                    question.id,
-                                                    "placeholder",
-                                                    e.target.value
-                                                  )
-                                                }
-                                                placeholder="Please specify..."
-                                              />
-                                            </div>
-
-                                            <div className="space-y-2">
-                                              <Label className="text-sm font-medium">
-                                                Description (Optional)
-                                              </Label>
-                                              <Textarea
-                                                value={
-                                                  question.customAnswer
-                                                    .description || ""
-                                                }
-                                                onChange={(e) =>
-                                                  updateCustomAnswerSetting(
-                                                    question.id,
-                                                    "description",
-                                                    e.target.value
-                                                  )
-                                                }
-                                                placeholder="Instructions for custom answers"
-                                                rows={2}
-                                                className="resize-none"
-                                              />
-                                            </div>
-                                          </div>
-
-                                          <div className="bg-survey-info-light rounded-lg p-3">
-                                            <div className="flex items-start gap-2">
-                                              <Clock className="w-4 h-4 text-survey-info mt-0.5 flex-shrink-0" />
-                                              <div>
-                                                <h5 className="text-sm font-medium text-survey-info">
-                                                  Preview
-                                                </h5>
-                                                <p className="text-xs text-survey-info/80 mt-1">
-                                                  {question.customAnswer
-                                                    .displayMode === "always"
-                                                    ? "Custom input field will always be visible to customers"
-                                                    : 'Custom input field will appear when customers select "Other" option'}
-                                                </p>
-                                                {question.customAnswer
-                                                  .description && (
-                                                  <p className="text-xs text-survey-info/70 mt-2 italic">
-                                                    "
-                                                    {
-                                                      question.customAnswer
-                                                        .description
-                                                    }
-                                                    "
-                                                  </p>
-                                                )}
-                                              </div>
-                                            </div>
-                                          </div>
+                                    {question.customAnswer?.enabled && (
+                                      <div className="ml-6 space-y-3">
+                                        <div className="space-y-2">
+                                          <Label className="text-sm">
+                                            Other label
+                                          </Label>
+                                          <Input
+                                            value={
+                                              question.customAnswer.otherLabel
+                                            }
+                                            onChange={(e) =>
+                                              updateCustomAnswerSetting(
+                                                question.id,
+                                                "otherLabel",
+                                                e.target.value
+                                              )
+                                            }
+                                            placeholder="Other"
+                                          />
                                         </div>
-                                      )}
+
+                                        <div className="space-y-2">
+                                          <Label className="text-sm">
+                                            Other input placeholder
+                                          </Label>
+                                          <Input
+                                            value={
+                                              question.customAnswer.placeholder
+                                            }
+                                            onChange={(e) =>
+                                              updateCustomAnswerSetting(
+                                                question.id,
+                                                "placeholder",
+                                                e.target.value
+                                              )
+                                            }
+                                            placeholder="Enter your answer here"
+                                          />
+                                        </div>
+                                      </div>
+                                    )}
                                   </div>
                                 )}
                                 <div className="flex items-center justify-between pt-4 border-t">

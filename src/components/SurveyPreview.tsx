@@ -48,9 +48,8 @@ interface SurveyQuestion {
   imageName?: string;
   customAnswer?: {
     enabled: boolean;
-    displayMode: "always" | "on-select";
+    otherLabel: string;
     placeholder: string;
-    description?: string;
   };
   dateFormat?: "MM/DD/YYYY" | "DD/MM/YYYY" | "YYYY-MM-DD";
   textInputType?: "single-line" | "multi-line";
@@ -2138,41 +2137,91 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                                     </div>
                                   );
                                 })}
-                                {/* Custom Answer Field */}
+                                {/* Dynamic "Other" Option */}
                                 {question.customAnswer?.enabled && (
-                                  <div className="mt-3">
-                                    {question.customAnswer.displayMode ===
-                                    "always" ? (
-                                      <div className="space-y-1">
-                                        <label className="text-xs text-muted-foreground">
-                                          Custom Answer:
-                                        </label>
-                                        <Input
-                                          placeholder={
-                                            question.customAnswer.placeholder ||
-                                            "Please specify..."
-                                          }
-                                          className="h-8 text-sm"
-                                          value={
-                                            surveyResponses[
-                                              `${question.id}_custom`
-                                            ] || ""
-                                          }
-                                          onChange={(e) =>
-                                            handleQuestionResponse(
-                                              `${question.id}_custom`,
-                                              e.target.value
+                                  <>
+                                    <div
+                                      className="flex items-center space-x-2 cursor-pointer hover:bg-muted/30 p-1 rounded"
+                                      onClick={() => {
+                                        const current = Array.isArray(
+                                          surveyResponses[question.id]
+                                        )
+                                          ? surveyResponses[question.id]
+                                          : [];
+                                        const otherLabel = question.customAnswer.otherLabel;
+                                        const isChecked = current.includes(otherLabel);
+                                        const newResponse = isChecked
+                                          ? current.filter(
+                                              (item) => item !== otherLabel
                                             )
-                                          }
-                                        />
+                                          : [...current, otherLabel];
+                                        handleQuestionResponse(
+                                          question.id,
+                                          newResponse
+                                        );
+                                      }}
+                                    >
+                                      <div
+                                        className={`w-3 h-3 border border-muted-foreground rounded-sm flex items-center justify-center ${
+                                          Array.isArray(surveyResponses[question.id]) &&
+                                          surveyResponses[question.id].includes(
+                                            question.customAnswer.otherLabel
+                                          )
+                                            ? "bg-primary border-primary"
+                                            : ""
+                                        }`}
+                                      >
+                                        {Array.isArray(surveyResponses[question.id]) &&
+                                          surveyResponses[question.id].includes(
+                                            question.customAnswer.otherLabel
+                                          ) && (
+                                            <div className="w-1.5 h-1.5 bg-white rounded-sm" />
+                                          )}
                                       </div>
-                                    ) : (
-                                      <div className="text-xs text-muted-foreground italic">
-                                        Custom input will appear when "Others"
-                                        is selected
-                                      </div>
-                                    )}
-                                  </div>
+                                      <span
+                                        className="text-sm"
+                                        style={
+                                          getDistributionType() ===
+                                            "branded-survey" &&
+                                          brandedSurveySettings
+                                            ? {
+                                                color:
+                                                  brandedSurveySettings.section
+                                                    .primaryText,
+                                              }
+                                            : {}
+                                        }
+                                      >
+                                        {question.customAnswer.otherLabel}
+                                      </span>
+                                    </div>
+                                    {/* Show input field when "Other" is selected */}
+                                    {Array.isArray(surveyResponses[question.id]) &&
+                                      surveyResponses[question.id].includes(
+                                        question.customAnswer.otherLabel
+                                      ) && (
+                                        <div className="mt-2 ml-5">
+                                          <Input
+                                            placeholder={
+                                              question.customAnswer.placeholder ||
+                                              "Enter your answer here"
+                                            }
+                                            className="h-8 text-sm"
+                                            value={
+                                              surveyResponses[
+                                                `${question.id}_custom`
+                                              ] || ""
+                                            }
+                                            onChange={(e) =>
+                                              handleQuestionResponse(
+                                                `${question.id}_custom`,
+                                                e.target.value
+                                              )
+                                            }
+                                          />
+                                        </div>
+                                      )}
+                                  </>
                                 )}
                               </div>
                             )}
@@ -2226,19 +2275,56 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                                     </div>
                                   );
                                 })}
-                                {/* Custom Answer Field */}
+                                {/* Dynamic "Other" Option */}
                                 {question.customAnswer?.enabled && (
-                                  <div className="mt-3">
-                                    {question.customAnswer.displayMode ===
-                                    "always" ? (
-                                      <div className="space-y-1">
-                                        <label className="text-xs text-muted-foreground">
-                                          Custom Answer:
-                                        </label>
+                                  <>
+                                    <div
+                                      className="flex items-center space-x-2 cursor-pointer hover:bg-muted/30 p-1 rounded"
+                                      onClick={() =>
+                                        handleQuestionResponse(
+                                          question.id,
+                                          question.customAnswer.otherLabel
+                                        )
+                                      }
+                                    >
+                                      <div
+                                        className={`w-3 h-3 border rounded-full flex items-center justify-center ${
+                                          surveyResponses[question.id] ===
+                                          question.customAnswer.otherLabel
+                                            ? "bg-primary border-primary"
+                                            : "border-muted-foreground"
+                                        }`}
+                                      >
+                                        {surveyResponses[question.id] ===
+                                          question.customAnswer.otherLabel && (
+                                          <div className="w-1.5 h-1.5 bg-white rounded-full" />
+                                        )}
+                                      </div>
+                                      <span
+                                        className="text-sm"
+                                        style={
+                                          getDistributionType() ===
+                                            "branded-survey" &&
+                                          brandedSurveySettings
+                                            ? {
+                                                color:
+                                                  brandedSurveySettings.section
+                                                    .primaryText,
+                                              }
+                                            : {}
+                                        }
+                                      >
+                                        {question.customAnswer.otherLabel}
+                                      </span>
+                                    </div>
+                                    {/* Show input field when "Other" is selected */}
+                                    {surveyResponses[question.id] ===
+                                      question.customAnswer.otherLabel && (
+                                      <div className="mt-2 ml-5">
                                         <Input
                                           placeholder={
                                             question.customAnswer.placeholder ||
-                                            "Please specify..."
+                                            "Enter your answer here"
                                           }
                                           className="h-8 text-sm"
                                           value={
@@ -2254,13 +2340,8 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                                           }
                                         />
                                       </div>
-                                    ) : (
-                                      <div className="text-xs text-muted-foreground italic">
-                                        Custom input will appear when "Others"
-                                        is selected
-                                      </div>
                                     )}
-                                  </div>
+                                  </>
                                 )}
                               </div>
                             )}
