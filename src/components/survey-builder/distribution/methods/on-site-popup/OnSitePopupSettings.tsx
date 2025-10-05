@@ -10,13 +10,55 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { SectionCard, LogoSettings } from "../../shared";
+import { Input } from "@/components/ui/input";
+import { SectionCard } from "../../shared";
 import { IntegratedCustomization } from "../branded-survey/components";
-import { Globe, Monitor, Upload } from "lucide-react";
+import { UserTargeting } from "../post-purchase/components";
+import { Globe, Clock, Repeat } from "lucide-react";
 
 interface OnSitePopupSettings {
+  userTargeting: {
+    type: "all-users" | "segment-users";
+    userTag: {
+      enabled: boolean;
+      selectedTags: string[];
+    };
+    newCustomer: boolean;
+    returningCustomer: boolean;
+    productPurchase: {
+      enabled: boolean;
+      selectedProducts: string[];
+    };
+  };
+  timing: {
+    type:
+      | "standard"
+      | "immediate"
+      | "custom-trigger"
+      | "advanced-triggers";
+    delay: number;
+    customTriggerCode: string;
+    advancedTriggers: {
+      timeOnSite: {
+        enabled: boolean;
+        seconds: number;
+      };
+      idleTime: {
+        enabled: boolean;
+        seconds: number;
+      };
+      scrollDepth: {
+        enabled: boolean;
+        percentage: number;
+      };
+    };
+  };
+  recurrence:
+    | "only-once"
+    | "once-per-session";
   pageTargeting: {
-    type: "all-pages" | "specific-pages" | "exclude-pages";
+    type: "all-pages" | "specific-pages";
+    excludePagesEnabled: boolean;
     specificPages: {
       homePage: boolean;
       productPages: {
@@ -27,6 +69,10 @@ interface OnSitePopupSettings {
       blogPages: boolean;
       collectionPages: boolean;
       cartPage: boolean;
+      customPages: {
+        enabled: boolean;
+        selectedPages: string[];
+      };
     };
     excludePages: {
       homePage: boolean;
@@ -34,26 +80,14 @@ interface OnSitePopupSettings {
       collectionPages: boolean;
       cartPage: boolean;
       blogPages: boolean;
+      customPages: {
+        enabled: boolean;
+        selectedPages: string[];
+      };
     };
   };
   display: {
-    position: "center" | "bottom-right" | "top-center";
-  };
-  headerLogo: {
-    enabled: boolean;
-    url: string;
-    width: number;
-    height: number;
-    position: "left" | "right" | "center";
-    size: "small" | "medium" | "large";
-  };
-  sideLogo: {
-    enabled: boolean;
-    url: string;
-    width: number;
-    height: number;
-    position: "left" | "right";
-    size: "small" | "medium" | "large";
+    position: "bottom-left" | "center" | "bottom-right";
   };
   button: {
     enabled: boolean;
@@ -167,9 +201,23 @@ const OnSitePopupSettingsRefactored: React.FC<
     onSettingsChange(newSettings);
   };
 
+  const availablePages = [
+    { id: "page-1", name: "About Us" },
+    { id: "page-2", name: "Contact" },
+    { id: "page-3", name: "FAQ" },
+    { id: "page-4", name: "Terms & Conditions" },
+    { id: "page-5", name: "Privacy Policy" },
+  ];
+
   return (
     <div className="space-y-8">
-      {/* Page Targeting */}
+      {/* 1. User Targeting */}
+      <UserTargeting
+        settings={settings.userTargeting}
+        onSettingsChange={updateSetting}
+      />
+
+      {/* 2. Page Targeting */}
       <SectionCard
         icon={<Globe className="w-5 h-5 text-green-600" />}
         title="Page Targeting"
@@ -180,9 +228,9 @@ const OnSitePopupSettingsRefactored: React.FC<
             <Label className="text-sm font-medium">Target Pages</Label>
             <Select
               value={settings.pageTargeting.type}
-              onValueChange={(
-                value: "all-pages" | "specific-pages" | "exclude-pages"
-              ) => updateSetting("pageTargeting.type", value)}
+              onValueChange={(value: "all-pages" | "specific-pages") =>
+                updateSetting("pageTargeting.type", value)
+              }
             >
               <SelectTrigger>
                 <SelectValue />
@@ -192,13 +240,151 @@ const OnSitePopupSettingsRefactored: React.FC<
                 <SelectItem value="specific-pages">
                   Specific pages only
                 </SelectItem>
-                <SelectItem value="exclude-pages">
-                  Exclude specific pages
-                </SelectItem>
               </SelectContent>
             </Select>
           </div>
 
+          {/* All Pages - Show Exclude Pages Checkbox */}
+          {settings.pageTargeting.type === "all-pages" && (
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  checked={settings.pageTargeting.excludePagesEnabled}
+                  onCheckedChange={(checked) =>
+                    updateSetting("pageTargeting.excludePagesEnabled", checked === true)
+                  }
+                />
+                <Label className="text-sm font-medium">Exclude pages</Label>
+              </div>
+
+              {settings.pageTargeting.excludePagesEnabled && (
+                <div className="space-y-3 pl-4 border-l-2 border-red-200">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      checked={settings.pageTargeting.excludePages.homePage}
+                      onCheckedChange={(checked) =>
+                        updateSetting(
+                          "pageTargeting.excludePages.homePage",
+                          checked === true
+                        )
+                      }
+                    />
+                    <Label className="text-sm">Home page</Label>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      checked={settings.pageTargeting.excludePages.productPages}
+                      onCheckedChange={(checked) =>
+                        updateSetting(
+                          "pageTargeting.excludePages.productPages",
+                          checked === true
+                        )
+                      }
+                    />
+                    <Label className="text-sm">Product pages</Label>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      checked={
+                        settings.pageTargeting.excludePages.collectionPages
+                      }
+                      onCheckedChange={(checked) =>
+                        updateSetting(
+                          "pageTargeting.excludePages.collectionPages",
+                          checked === true
+                        )
+                      }
+                    />
+                    <Label className="text-sm">Collection pages</Label>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      checked={settings.pageTargeting.excludePages.cartPage}
+                      onCheckedChange={(checked) =>
+                        updateSetting(
+                          "pageTargeting.excludePages.cartPage",
+                          checked === true
+                        )
+                      }
+                    />
+                    <Label className="text-sm">Cart page</Label>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      checked={settings.pageTargeting.excludePages.blogPages}
+                      onCheckedChange={(checked) =>
+                        updateSetting(
+                          "pageTargeting.excludePages.blogPages",
+                          checked === true
+                        )
+                      }
+                    />
+                    <Label className="text-sm">Blog pages</Label>
+                  </div>
+
+                  {/* Custom Pages for Exclude */}
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        checked={
+                          settings.pageTargeting.excludePages.customPages.enabled
+                        }
+                        onCheckedChange={(checked) =>
+                          updateSetting(
+                            "pageTargeting.excludePages.customPages.enabled",
+                            checked === true
+                          )
+                        }
+                      />
+                      <Label className="text-sm">Pages</Label>
+                    </div>
+                    {settings.pageTargeting.excludePages.customPages.enabled && (
+                      <div className="pl-6 space-y-2">
+                        <Label className="text-xs text-muted-foreground">
+                          Select pages to exclude:
+                        </Label>
+                        <div className="flex flex-wrap gap-2">
+                          {availablePages.map((page) => (
+                            <Badge
+                              key={page.id}
+                              variant={
+                                settings.pageTargeting.excludePages.customPages.selectedPages.includes(
+                                  page.id
+                                )
+                                  ? "default"
+                                  : "outline"
+                              }
+                              className="cursor-pointer text-xs"
+                              onClick={() => {
+                                const selected =
+                                  settings.pageTargeting.excludePages.customPages
+                                    .selectedPages;
+                                const newSelected = selected.includes(page.id)
+                                  ? selected.filter((id) => id !== page.id)
+                                  : [...selected, page.id];
+                                updateSetting(
+                                  "pageTargeting.excludePages.customPages.selectedPages",
+                                  newSelected
+                                );
+                              }}
+                            >
+                              {page.name}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Specific Pages - Show Include Pages */}
           {settings.pageTargeting.type === "specific-pages" && (
             <div className="space-y-4 pl-4 border-l-2 border-green-200">
               <div className="space-y-3">
@@ -208,7 +394,7 @@ const OnSitePopupSettingsRefactored: React.FC<
                     onCheckedChange={(checked) =>
                       updateSetting(
                         "pageTargeting.specificPages.homePage",
-                        checked
+                        checked === true
                       )
                     }
                   />
@@ -225,7 +411,7 @@ const OnSitePopupSettingsRefactored: React.FC<
                       onCheckedChange={(checked) =>
                         updateSetting(
                           "pageTargeting.specificPages.productPages.enabled",
-                          checked
+                          checked === true
                         )
                       }
                     />
@@ -306,7 +492,7 @@ const OnSitePopupSettingsRefactored: React.FC<
                     onCheckedChange={(checked) =>
                       updateSetting(
                         "pageTargeting.specificPages.blogPages",
-                        checked
+                        checked === true
                       )
                     }
                   />
@@ -321,7 +507,7 @@ const OnSitePopupSettingsRefactored: React.FC<
                     onCheckedChange={(checked) =>
                       updateSetting(
                         "pageTargeting.specificPages.collectionPages",
-                        checked
+                        checked === true
                       )
                     }
                   />
@@ -334,84 +520,65 @@ const OnSitePopupSettingsRefactored: React.FC<
                     onCheckedChange={(checked) =>
                       updateSetting(
                         "pageTargeting.specificPages.cartPage",
-                        checked
-                      )
-                    }
-                  />
-                  <Label className="text-sm">Cart page</Label>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {settings.pageTargeting.type === "exclude-pages" && (
-            <div className="space-y-4 pl-4 border-l-2 border-red-200">
-              <div className="space-y-3">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    checked={settings.pageTargeting.excludePages.homePage}
-                    onCheckedChange={(checked) =>
-                      updateSetting(
-                        "pageTargeting.excludePages.homePage",
-                        checked
-                      )
-                    }
-                  />
-                  <Label className="text-sm">Home page</Label>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    checked={settings.pageTargeting.excludePages.productPages}
-                    onCheckedChange={(checked) =>
-                      updateSetting(
-                        "pageTargeting.excludePages.productPages",
-                        checked
-                      )
-                    }
-                  />
-                  <Label className="text-sm">Product pages</Label>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    checked={
-                      settings.pageTargeting.excludePages.collectionPages
-                    }
-                    onCheckedChange={(checked) =>
-                      updateSetting(
-                        "pageTargeting.excludePages.collectionPages",
-                        checked
-                      )
-                    }
-                  />
-                  <Label className="text-sm">Collection pages</Label>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    checked={settings.pageTargeting.excludePages.cartPage}
-                    onCheckedChange={(checked) =>
-                      updateSetting(
-                        "pageTargeting.excludePages.cartPage",
-                        checked
+                        checked === true
                       )
                     }
                   />
                   <Label className="text-sm">Cart page</Label>
                 </div>
 
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    checked={settings.pageTargeting.excludePages.blogPages}
-                    onCheckedChange={(checked) =>
-                      updateSetting(
-                        "pageTargeting.excludePages.blogPages",
-                        checked
-                      )
-                    }
-                  />
-                  <Label className="text-sm">Blog pages</Label>
+                {/* Custom Pages for Specific */}
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      checked={
+                        settings.pageTargeting.specificPages.customPages.enabled
+                      }
+                      onCheckedChange={(checked) =>
+                        updateSetting(
+                          "pageTargeting.specificPages.customPages.enabled",
+                          checked === true
+                        )
+                      }
+                    />
+                    <Label className="text-sm">Pages</Label>
+                  </div>
+                  {settings.pageTargeting.specificPages.customPages.enabled && (
+                    <div className="pl-6 space-y-2">
+                      <Label className="text-xs text-muted-foreground">
+                        Select pages:
+                      </Label>
+                      <div className="flex flex-wrap gap-2">
+                        {availablePages.map((page) => (
+                          <Badge
+                            key={page.id}
+                            variant={
+                              settings.pageTargeting.specificPages.customPages.selectedPages.includes(
+                                page.id
+                              )
+                                ? "default"
+                                : "outline"
+                            }
+                            className="cursor-pointer text-xs"
+                            onClick={() => {
+                              const selected =
+                                settings.pageTargeting.specificPages.customPages
+                                  .selectedPages;
+                              const newSelected = selected.includes(page.id)
+                                ? selected.filter((id) => id !== page.id)
+                                : [...selected, page.id];
+                              updateSetting(
+                                "pageTargeting.specificPages.customPages.selectedPages",
+                                newSelected
+                              );
+                            }}
+                          >
+                            {page.name}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -419,41 +586,233 @@ const OnSitePopupSettingsRefactored: React.FC<
         </div>
       </SectionCard>
 
-      {/* Display Settings */}
+      {/* 3. Timing */}
       <SectionCard
-        icon={<Monitor className="w-5 h-5 text-blue-600" />}
-        title="Display Settings"
-        description="Configure popup display preferences"
+        icon={<Clock className="w-5 h-5 text-orange-600" />}
+        title="Timing"
+        description="When should the widget be displayed?"
+      >
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Display Trigger</Label>
+            <Select
+              value={settings.timing.type}
+              onValueChange={(
+                value:
+                  | "standard"
+                  | "immediate"
+                  | "custom-trigger"
+                  | "advanced-triggers"
+              ) => updateSetting("timing.type", value)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="standard">
+                  Standard 10 seconds after page load
+                </SelectItem>
+                <SelectItem value="immediate">Show immediately</SelectItem>
+                <SelectItem value="custom-trigger">
+                  Custom trigger (Javascript trigger for button clicks etc)
+                </SelectItem>
+                <SelectItem value="advanced-triggers">
+                  Advanced triggers ( Timer / Idle / Scroll )
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {settings.timing.type === "custom-trigger" && (
+            <div className="space-y-2">
+              <Label className="text-sm">Javascript Trigger Code</Label>
+              <Input
+                type="text"
+                value={settings.timing.customTriggerCode}
+                onChange={(e) =>
+                  updateSetting("timing.customTriggerCode", e.target.value)
+                }
+                placeholder='asklayer.triggerSurvey("gsoMowUy88OlUviJL1mW")'
+              />
+              <p className="text-xs text-muted-foreground">
+                Trigger using Javascript for advanced users and developers.{" "}
+                <a href="#" className="text-blue-600 underline">
+                  How to use this
+                </a>
+              </p>
+            </div>
+          )}
+
+          {settings.timing.type === "advanced-triggers" && (
+            <div className="space-y-4 pl-4 border-l-2 border-orange-200">
+              {/* Time on Site */}
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    checked={settings.timing.advancedTriggers.timeOnSite.enabled}
+                    onCheckedChange={(checked) =>
+                      updateSetting(
+                        "timing.advancedTriggers.timeOnSite.enabled",
+                        checked === true
+                      )
+                    }
+                  />
+                  <Label className="text-sm">Time on site longer than</Label>
+                </div>
+                {settings.timing.advancedTriggers.timeOnSite.enabled && (
+                  <div className="pl-6">
+                    <div className="flex items-center space-x-2">
+                      <Input
+                        type="number"
+                        value={
+                          settings.timing.advancedTriggers.timeOnSite.seconds
+                        }
+                        onChange={(e) =>
+                          updateSetting(
+                            "timing.advancedTriggers.timeOnSite.seconds",
+                            parseInt(e.target.value)
+                          )
+                        }
+                        className="w-20"
+                        min="0"
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        seconds
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Idle Time */}
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    checked={settings.timing.advancedTriggers.idleTime.enabled}
+                    onCheckedChange={(checked) =>
+                      updateSetting(
+                        "timing.advancedTriggers.idleTime.enabled",
+                        checked === true
+                      )
+                    }
+                  />
+                  <Label className="text-sm">Idle on site for</Label>
+                </div>
+                {settings.timing.advancedTriggers.idleTime.enabled && (
+                  <div className="pl-6">
+                    <div className="flex items-center space-x-2">
+                      <Input
+                        type="number"
+                        value={settings.timing.advancedTriggers.idleTime.seconds}
+                        onChange={(e) =>
+                          updateSetting(
+                            "timing.advancedTriggers.idleTime.seconds",
+                            parseInt(e.target.value)
+                          )
+                        }
+                        className="w-20"
+                        min="0"
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        seconds
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Scroll Depth */}
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    checked={
+                      settings.timing.advancedTriggers.scrollDepth.enabled
+                    }
+                    onCheckedChange={(checked) =>
+                      updateSetting(
+                        "timing.advancedTriggers.scrollDepth.enabled",
+                        checked === true
+                      )
+                    }
+                  />
+                  <Label className="text-sm">Scroll depth reaches</Label>
+                </div>
+                {settings.timing.advancedTriggers.scrollDepth.enabled && (
+                  <div className="pl-6">
+                    <div className="flex items-center space-x-2">
+                      <Input
+                        type="number"
+                        value={
+                          settings.timing.advancedTriggers.scrollDepth.percentage
+                        }
+                        onChange={(e) =>
+                          updateSetting(
+                            "timing.advancedTriggers.scrollDepth.percentage",
+                            parseInt(e.target.value)
+                          )
+                        }
+                        className="w-20"
+                        min="0"
+                        max="100"
+                      />
+                      <span className="text-sm text-muted-foreground">%</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </SectionCard>
+
+      {/* 4. Survey Frequency */}
+      <SectionCard
+        icon={<Repeat className="w-5 h-5 text-purple-600" />}
+        title="Survey Frequency"
+        description="How often should users see this survey?"
       >
         <div className="space-y-2">
-          <Label className="text-sm font-medium">Position</Label>
+          <Label className="text-sm font-medium">Show Survey</Label>
           <Select
-            value={settings.display.position}
-            onValueChange={(value: "center" | "bottom-right" | "top-center") =>
-              updateSetting("display.position", value)
-            }
+            value={settings.recurrence}
+            onValueChange={(
+              value: "only-once" | "once-per-session"
+            ) => updateSetting("recurrence", value)}
           >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="center">Center</SelectItem>
-              <SelectItem value="bottom-right">Bottom Right</SelectItem>
-              <SelectItem value="top-center">Top Center</SelectItem>
+              <SelectItem value="only-once">Only once</SelectItem>
+              <SelectItem value="once-per-session">
+                Once per session, never again if completed
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
       </SectionCard>
 
-      {/* Logo Settings */}
-      <LogoSettings
-        headerLogo={settings.headerLogo}
-        sideLogo={settings.sideLogo}
-        onSettingsChange={updateSetting}
-        distributionType="onsite-popup"
-      />
+      {/* 5. Display Position */}
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Position</Label>
+        <Select
+          value={settings.display.position}
+          onValueChange={(
+            value: "bottom-left" | "center" | "bottom-right"
+          ) => updateSetting("display.position", value)}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="bottom-left">Bottom Left</SelectItem>
+            <SelectItem value="center">Center</SelectItem>
+            <SelectItem value="bottom-right">Bottom Right</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
-      {/* Customization Settings */}
+      {/* 6. Customization Settings */}
       <IntegratedCustomization
         buttonSettings={settings.button}
         sectionSettings={settings.section}

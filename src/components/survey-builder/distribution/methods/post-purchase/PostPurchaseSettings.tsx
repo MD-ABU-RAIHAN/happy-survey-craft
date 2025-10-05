@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  UserTargeting,
-  DisplaySettings,
-  PageLocationSettings,
-} from "./components";
-import { LogoSettings } from "../../shared";
-import { IntegratedCustomization } from "../branded-survey/components";
+import { UserTargeting, PageLocationSettings } from "./components";
 
 interface PostPurchaseSettings {
   userTargeting: {
@@ -28,67 +22,6 @@ interface PostPurchaseSettings {
       thankYouPage: string;
     };
     displayLocation: "thank-you" | "order-status" | "both";
-  };
-  display: {
-    delay: number;
-    position: "center" | "bottom-right" | "top-center";
-    showOnPages: string[];
-  };
-  headerLogo: {
-    enabled: boolean;
-    url: string;
-    width: number;
-    height: number;
-    position: "left" | "right" | "center";
-    size: "small" | "medium" | "large";
-  };
-  sideLogo: {
-    enabled: boolean;
-    url: string;
-    width: number;
-    height: number;
-    position: "left" | "right";
-    size: "small" | "medium" | "large";
-  };
-  button: {
-    enabled: boolean;
-    backgroundColor: string;
-    textColor: string;
-    borderRadius: number;
-    fontSize: number;
-    fontWeight: string;
-    backgroundHoverColor: string;
-    shadow: boolean;
-  };
-  section: {
-    primaryText: string;
-    secondaryText: string;
-    accentColor: string;
-    backgroundColor: string;
-    backgroundType: "solid" | "gradient" | "image";
-    gradientFrom: string;
-    gradientTo: string;
-    gradientDirection:
-      | "to-r"
-      | "to-br"
-      | "to-b"
-      | "to-bl"
-      | "to-l"
-      | "to-tl"
-      | "to-t"
-      | "to-tr";
-    backgroundImage: string;
-    backgroundImageOpacity: number;
-    backgroundImagePosition:
-      | "center"
-      | "top"
-      | "bottom"
-      | "left"
-      | "right"
-      | "cover"
-      | "contain";
-    customCss: string;
-    enableCustomCss: boolean;
   };
 }
 
@@ -143,24 +76,6 @@ const PostPurchaseSettingsRefactored: React.FC<
 
       <PageLocationSettings
         settings={settings.postPurchasePage}
-        onSettingsChange={updateSetting}
-      />
-
-      <DisplaySettings
-        settings={settings.display}
-        onSettingsChange={updateSetting}
-      />
-
-      <LogoSettings
-        headerLogo={settings.headerLogo}
-        sideLogo={settings.sideLogo}
-        onSettingsChange={updateSetting}
-        distributionType="post-purchase"
-      />
-
-      <IntegratedCustomization
-        buttonSettings={settings.button}
-        sectionSettings={settings.section}
         onSettingsChange={updateSetting}
       />
     </div>

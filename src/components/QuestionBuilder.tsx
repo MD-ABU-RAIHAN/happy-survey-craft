@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { SlimSwitch } from "@/components/ui/slim-switch";
 import {
   Tooltip,
   TooltipContent,
@@ -84,6 +85,8 @@ interface SurveyQuestion {
     highLabel: string;
     reversed: boolean;
   };
+  // Single choice display type
+  singleChoiceDisplayType?: "radio" | "dropdown";
 }
 
 interface QuestionBuilderProps {
@@ -669,24 +672,6 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                                     className="resize-none"
                                   />
                                 </div>
-                                {/* Required Question Checkbox */}
-                                <div className="flex items-center space-x-2">
-                                  <Checkbox
-                                    id={`required-${question.id}`}
-                                    checked={question.required}
-                                    onCheckedChange={(checked) =>
-                                      updateQuestion(question.id, {
-                                        required: checked === true,
-                                      })
-                                    }
-                                  />
-                                  <Label
-                                    htmlFor={`required-${question.id}`}
-                                    className="text-sm font-normal cursor-pointer"
-                                  >
-                                    Required Question
-                                  </Label>
-                                </div>
                                 {/* Image Upload Section */}
                                 <div className="space-y-3">
                                   <Label className="text-sm font-medium flex items-center gap-2">
@@ -1237,85 +1222,102 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                                     </div>
                                   )}
                                 {/* Custom Answer Section for Multiple Choice and Single Choice */}
+                                {/* Single Choice Display Type */}
+                                {question.type === "single-choice" && (
+                                  <div className="space-y-2">
+                                    <Label className="text-sm font-medium">
+                                      Display Type
+                                    </Label>
+                                    <Select
+                                      value={
+                                        question.singleChoiceDisplayType || "radio"
+                                      }
+                                      onValueChange={(value: "radio" | "dropdown") =>
+                                        updateQuestion(question.id, {
+                                          singleChoiceDisplayType: value,
+                                        })
+                                      }
+                                    >
+                                      <SelectTrigger>
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="radio">Radio Button</SelectItem>
+                                        <SelectItem value="dropdown">Dropdown</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                )}
+
                                 {(question.type === "multiple-choice" ||
                                   question.type === "single-choice") && (
-                                  <div className="pt-4 border-t border-muted/50 space-y-3">
+                                  <div className="pt-4 border-t border-muted/50 space-y-4">
                                     <div className="flex items-center justify-between">
-                                      <div className="flex items-center space-x-2">
-                                        <Checkbox
-                                          id={`allow-other-${question.id}`}
-                                          checked={
-                                            question.customAnswer?.enabled ||
-                                            false
-                                          }
-                                          onCheckedChange={() =>
-                                            toggleCustomAnswer(question.id)
-                                          }
-                                        />
-                                        <Label
-                                          htmlFor={`allow-other-${question.id}`}
-                                          className="text-sm font-normal cursor-pointer"
-                                        >
+                                      <div className="flex items-center gap-2">
+                                        <Label className="text-sm font-normal">
                                           Allow 'Other' option
                                         </Label>
+                                        <TooltipProvider>
+                                          <Tooltip>
+                                            <TooltipTrigger asChild>
+                                              <HelpCircle className="w-4 h-4 text-muted-foreground cursor-help" />
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                              <p className="max-w-xs">
+                                                Allows the respondent to enter
+                                                their own choice if none of the
+                                                options apply.
+                                              </p>
+                                            </TooltipContent>
+                                          </Tooltip>
+                                        </TooltipProvider>
                                       </div>
-                                      <TooltipProvider>
-                                        <Tooltip>
-                                          <TooltipTrigger asChild>
-                                            <HelpCircle className="w-4 h-4 text-muted-foreground cursor-help" />
-                                          </TooltipTrigger>
-                                          <TooltipContent>
-                                            <p className="max-w-xs">
-                                              Allows the respondent to enter
-                                              their own choice if none of the
-                                              options apply.
-                                            </p>
-                                          </TooltipContent>
-                                        </Tooltip>
-                                      </TooltipProvider>
+                                      <SlimSwitch
+                                        checked={
+                                          question.customAnswer?.enabled ||
+                                          false
+                                        }
+                                        onCheckedChange={() =>
+                                          toggleCustomAnswer(question.id)
+                                        }
+                                      />
                                     </div>
 
                                     {question.customAnswer?.enabled && (
-                                      <div className="ml-6 space-y-3">
-                                        <div className="space-y-2">
-                                          <Label className="text-sm">
-                                            Other label
-                                          </Label>
-                                          <Input
-                                            value={
-                                              question.customAnswer.otherLabel
-                                            }
-                                            onChange={(e) =>
-                                              updateCustomAnswerSetting(
-                                                question.id,
-                                                "otherLabel",
-                                                e.target.value
-                                              )
-                                            }
-                                            placeholder="Other"
-                                          />
-                                        </div>
-
-                                        <div className="space-y-2">
-                                          <Label className="text-sm">
-                                            Other input placeholder
-                                          </Label>
-                                          <Input
-                                            value={
-                                              question.customAnswer.placeholder
-                                            }
-                                            onChange={(e) =>
-                                              updateCustomAnswerSetting(
-                                                question.id,
-                                                "placeholder",
-                                                e.target.value
-                                              )
-                                            }
-                                            placeholder="Enter your answer here"
-                                          />
-                                        </div>
+                                      <div className="ml-6 space-y-2">
+                                        <Label className="text-sm">
+                                          Other label
+                                        </Label>
+                                        <Input
+                                          value={
+                                            question.customAnswer.otherLabel
+                                          }
+                                          onChange={(e) =>
+                                            updateCustomAnswerSetting(
+                                              question.id,
+                                              "otherLabel",
+                                              e.target.value
+                                            )
+                                          }
+                                          placeholder="Other"
+                                        />
                                       </div>
                                     )}
+
+                                    {/* Allow participants to skip */}
+                                    <div className="flex items-center justify-between">
+                                      <Label className="text-sm font-normal">
+                                        Allow participants to skip past the question
+                                      </Label>
+                                      <SlimSwitch
+                                        checked={!question.required}
+                                        onCheckedChange={(checked) =>
+                                          updateQuestion(question.id, {
+                                            required: !checked,
+                                          })
+                                        }
+                                      />
+                                    </div>
                                   </div>
                                 )}
                               </div>

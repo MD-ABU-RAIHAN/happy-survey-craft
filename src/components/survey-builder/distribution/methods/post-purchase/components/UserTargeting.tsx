@@ -148,23 +148,9 @@ const UserTargeting: React.FC<UserTargetingProps> = ({
 
       {!isMinimized && (
         <>
-          {/* Help Text */}
-          <div className="bg-survey-info-light/30 border border-survey-info/20 rounded-lg p-3">
-            <p className="text-xs text-survey-info flex items-start gap-2">
-              <span className="text-survey-info font-bold text-sm">💡</span>
-              <span>
-                <strong>Tip:</strong> Start with "All Users" for maximum reach,
-                then refine your targeting based on response data. Segment
-                targeting can increase relevance but may reduce overall
-                responses.
-              </span>
-            </p>
-          </div>
-
           <div className="space-y-6">
             {/* Target Type Selection */}
             <div className="space-y-3">
-              <Label className="font-medium">Target Audience</Label>
               <div className="space-y-3">
                 <div className="flex items-center space-x-3">
                   <input

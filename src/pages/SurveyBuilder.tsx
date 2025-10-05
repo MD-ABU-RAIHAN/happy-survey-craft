@@ -137,103 +137,19 @@ interface PostPurchaseSettings {
     };
     displayLocation: "thank-you" | "order-status" | "both";
   };
-
-  // Side Logo
-  sideLogo: {
-    enabled: boolean;
-    url: string;
-    file: File | null;
-    size: "small" | "medium" | "large";
-    position: "left" | "right";
-    minimized: boolean;
-  };
-
-  // Display Settings
-  display: {
-    delay: number; // seconds after purchase
-    duration: number; // seconds to show
-    position:
-      | "center"
-      | "bottom-right"
-      | "bottom-left"
-      | "top-right"
-      | "top-left";
-    animation:
-      | "fade"
-      | "slide-up"
-      | "slide-down"
-      | "slide-right"
-      | "slide-left";
-  };
-
-  // Button Customization
-  button: {
-    enabled: boolean;
-    backgroundColor: string;
-    textColor: string;
-    borderRadius: number;
-    fontSize: number;
-    fontWeight: string;
-    backgroundHoverColor: string;
-    shadow: boolean;
-  };
-
-  // Section Customization
-  section: {
-    primaryText: string;
-    secondaryText: string;
-    accentColor: string;
-    backgroundColor: string;
-    backgroundType: "solid" | "gradient" | "image";
-    gradientFrom: string;
-    gradientTo: string;
-    gradientDirection:
-      | "to-r"
-      | "to-br"
-      | "to-b"
-      | "to-bl"
-      | "to-l"
-      | "to-tl"
-      | "to-t"
-      | "to-tr";
-    backgroundImage: string;
-    backgroundImageOpacity: number;
-    backgroundImagePosition:
-      | "center"
-      | "top"
-      | "bottom"
-      | "left"
-      | "right"
-      | "cover"
-      | "contain";
-    customCss: string;
-    enableCustomCss: boolean;
-  };
 }
 
 interface BrandedSurveySettings {
   // Auto-generated page link
   customUrl: string;
-  useCustomDomain: boolean;
-  customDomain: string;
 
-  // Header Logo
+  // Header Logo (Brand Logo)
   headerLogo: {
     enabled: boolean;
     url: string;
     file: File | null;
     size: "small" | "medium" | "large";
     position: "left" | "center" | "right";
-    minimized: boolean;
-  };
-
-  // Side Logo
-  sideLogo: {
-    enabled: boolean;
-    url: string;
-    file: File | null;
-    size: "small" | "medium" | "large";
-    position: "left" | "right";
     minimized: boolean;
   };
 
@@ -708,45 +624,6 @@ const SurveyBuilder = () => {
         },
         displayLocation: "thank-you",
       },
-      sideLogo: {
-        enabled: false,
-        url: "",
-        file: null,
-        size: "small",
-        position: "right",
-        minimized: false,
-      },
-      display: {
-        delay: 3,
-        duration: 30,
-        position: "center",
-        animation: "fade",
-      },
-      button: {
-        enabled: true,
-        backgroundColor: "#3b82f6",
-        textColor: "#ffffff",
-        borderRadius: 8,
-        fontSize: 16,
-        fontWeight: "medium",
-        backgroundHoverColor: "#2563eb",
-        shadow: true,
-      },
-      section: {
-        primaryText: "We'd love your feedback!",
-        secondaryText: "Help us improve your experience",
-        accentColor: "#3b82f6",
-        backgroundColor: "#ffffff",
-        backgroundType: "solid",
-        gradientFrom: "#3b82f6",
-        gradientTo: "#8b5cf6",
-        gradientDirection: "to-r",
-        backgroundImage: "",
-        backgroundImageOpacity: 100,
-        backgroundImagePosition: "center",
-        customCss: "",
-        enableCustomCss: false,
-      },
     });
 
   // Available user tags (typically from customer management system)
@@ -791,22 +668,12 @@ const SurveyBuilder = () => {
   const [brandedSurveySettings, setBrandedSurveySettings] =
     useState<BrandedSurveySettings>({
       customUrl: `survey-${Math.random().toString(36).substring(2, 8)}`,
-      useCustomDomain: false,
-      customDomain: "",
       headerLogo: {
         enabled: false,
         url: "",
         file: null,
         size: "medium",
         position: "left",
-        minimized: true,
-      },
-      sideLogo: {
-        enabled: false,
-        url: "",
-        file: null,
-        size: "small",
-        position: "right",
         minimized: true,
       },
       button: {
@@ -901,44 +768,6 @@ const SurveyBuilder = () => {
   // Exit Intent Survey Settings
   const [exitIntentSettings, setExitIntentSettings] =
     useState<ExitIntentSettings>({
-      showPopup: {
-        emptyCart: true,
-        hasProducts: true,
-      },
-      recurrence: "only-once",
-      headerLogo: {
-        enabled: false,
-        url: "",
-        width: 100,
-        height: 50,
-        position: "center",
-        size: "medium",
-      },
-      sideLogo: {
-        enabled: false,
-        url: "",
-        width: 100,
-        height: 50,
-        position: "right",
-        size: "medium",
-      },
-      button: {
-        textColor: "#ffffff",
-        backgroundColor: "#3b82f6",
-        backgroundHoverColor: "#2563eb",
-        minimized: true,
-      },
-      section: {
-        primaryTextColor: "#1f2937",
-        secondaryTextColor: "#6b7280",
-        accentColor: "#3b82f6",
-        backgroundColor: "#ffffff",
-      },
-    });
-
-  // Email Campaign Settings
-  const [emailCampaignSettings, setEmailCampaignSettings] =
-    useState<EmailCampaignSettings>({
       userTargeting: {
         type: "all-users",
         userTag: {
@@ -952,26 +781,13 @@ const SurveyBuilder = () => {
           selectedProducts: [],
         },
       },
-      emailConfig: {
-        delayAfter: 7, // 7 days default
-        sendFrom: "",
-        blockDuplicate: 30, // 30 days default
-      },
-      headerLogo: {
+      displayCondition: "show-always",
+      recurrence: "only-once",
+      position: "center",
+      device: "all-devices",
+      exitIntentTimer: {
         enabled: false,
-        url: "",
-        file: null,
-        size: "medium",
-        position: "center",
-        minimized: true,
-      },
-      content: {
-        subject: "We'd love your feedback!",
-        body: `<p>Hi there!</p>
-<p>We hope you're enjoying your recent purchase. Your feedback is incredibly valuable to us and helps improve our products and services.</p>
-<p>Would you mind taking a few minutes to share your thoughts in our quick survey?</p>
-<p>Thank you for your time!</p>
-<p>Best regards,<br>Your Customer Success Team</p>`,
+        seconds: 10,
       },
       button: {
         enabled: true,
@@ -1000,11 +816,121 @@ const SurveyBuilder = () => {
       },
     });
 
+  // Email Campaign Settings
+  const [emailCampaignSettings, setEmailCampaignSettings] =
+    useState<EmailCampaignSettings>({
+      triggerTiming: {
+        orderStatus: "fulfilled",
+        sendDelay: 3,
+        timeUnit: "days",
+      },
+      userTargeting: {
+        type: "all-users",
+        userTag: {
+          enabled: false,
+          selectedTags: [],
+        },
+        firstTimeBuyers: false,
+        returningCustomer: false,
+        productPurchase: {
+          enabled: false,
+          selectedProducts: [],
+        },
+        minimumOrderValue: {
+          enabled: false,
+          amount: 0,
+        },
+      },
+      emailConfig: {
+        sendFrom: "",
+        blockDuplicate: 30, // 30 days default
+      },
+      brandLogo: {
+        enabled: false,
+        url: "",
+        file: null,
+        size: "medium",
+        position: "center",
+        minimized: true,
+      },
+      content: {
+        subject: "We'd love your feedback!",
+        body: `<p>Hi there!</p>
+<p>We hope you're enjoying your recent purchase. Your feedback is incredibly valuable to us and helps improve our products and services.</p>
+<p>Would you mind taking a few minutes to share your thoughts in our quick survey?</p>
+<p>Thank you for your time!</p>
+<p>Best regards,<br>Your Customer Success Team</p>`,
+      },
+      reminder: {
+        enabled: false,
+        sendAfterDays: 7,
+        maxReminders: 1,
+      },
+      multipleSends: "once-per-order",
+      button: {
+        enabled: true,
+        backgroundColor: "#3b82f6",
+        textColor: "#ffffff",
+        borderRadius: 8,
+        fontSize: 16,
+        fontWeight: "medium",
+        backgroundHoverColor: "#2563eb",
+        shadow: true,
+      },
+      section: {
+        primaryText: "#1f2937",
+        secondaryText: "#6b7280",
+        accentColor: "#3b82f6",
+        backgroundColor: "#ffffff",
+        backgroundType: "solid",
+        gradientFrom: "#f8fafc",
+        gradientTo: "#e2e8f0",
+        gradientDirection: "to-br",
+        backgroundImage: "",
+        backgroundImageOpacity: 80,
+        backgroundImagePosition: "center",
+      },
+    });
+
   // On-Site Popup Settings
   const [onSitePopupSettings, setOnSitePopupSettings] =
     useState<OnSitePopupSettings>({
+      userTargeting: {
+        type: "all-users",
+        userTag: {
+          enabled: false,
+          selectedTags: [],
+        },
+        newCustomer: false,
+        returningCustomer: false,
+        productPurchase: {
+          enabled: false,
+          selectedProducts: [],
+        },
+      },
+      timing: {
+        type: "standard",
+        delay: 10,
+        customTriggerCode: "",
+        advancedTriggers: {
+          timeOnSite: {
+            enabled: false,
+            seconds: 10,
+          },
+          idleTime: {
+            enabled: false,
+            seconds: 10,
+          },
+          scrollDepth: {
+            enabled: false,
+            percentage: 80,
+          },
+        },
+      },
+      recurrence: "only-once",
       pageTargeting: {
         type: "all-pages",
+        excludePagesEnabled: false,
         specificPages: {
           homePage: false,
           productPages: {
@@ -1015,6 +941,10 @@ const SurveyBuilder = () => {
           blogPages: false,
           collectionPages: false,
           cartPage: false,
+          customPages: {
+            enabled: false,
+            selectedPages: [],
+          },
         },
         excludePages: {
           homePage: false,
@@ -1022,26 +952,14 @@ const SurveyBuilder = () => {
           collectionPages: false,
           cartPage: false,
           blogPages: false,
+          customPages: {
+            enabled: false,
+            selectedPages: [],
+          },
         },
       },
       display: {
         position: "bottom-right",
-      },
-      headerLogo: {
-        enabled: false,
-        url: "",
-        width: 100,
-        height: 50,
-        position: "center",
-        size: "medium",
-      },
-      sideLogo: {
-        enabled: false,
-        url: "",
-        width: 100,
-        height: 50,
-        position: "right",
-        size: "medium",
       },
       button: {
         enabled: true,
@@ -1216,7 +1134,7 @@ const SurveyBuilder = () => {
     },
     {
       id: "email-campaign",
-      name: "Email Campaign",
+      name: "Post Purchase Email",
       description: "Send survey links via email to your customer base",
       icon: Mail,
       color: "text-survey-success",
@@ -1560,15 +1478,8 @@ const SurveyBuilder = () => {
     });
   };
 
-  const generateNewUrl = () => {
-    const newUrl = `survey-${Math.random().toString(36).substring(2, 8)}`;
-    updateBrandedSetting("customUrl", newUrl);
-  };
-
   const copyUrlToClipboard = () => {
-    const fullUrl = brandedSurveySettings.useCustomDomain
-      ? `https://${brandedSurveySettings.customDomain}/${brandedSurveySettings.customUrl}`
-      : `https://yoursurveyapp.com/s/${brandedSurveySettings.customUrl}`;
+    const fullUrl = `https://yoursurveyapp.com/s/${brandedSurveySettings.customUrl}`;
 
     navigator.clipboard.writeText(fullUrl);
     setCopiedUrl(true);
@@ -1603,108 +1514,6 @@ const SurveyBuilder = () => {
       section: { ...prev.section, ...preset.settings.section },
       background: { ...prev.background, ...preset.settings.background },
     }));
-  };
-
-  const resetToDefault = () => {
-    setBrandedSurveySettings({
-      customUrl: `survey-${Math.random().toString(36).substring(2, 8)}`,
-      useCustomDomain: false,
-      customDomain: "",
-      headerLogo: {
-        enabled: false,
-        url: "",
-        file: null,
-        size: "medium",
-        position: "left",
-        minimized: false,
-      },
-      sideLogo: {
-        enabled: false,
-        url: "",
-        file: null,
-        size: "small",
-        position: "right",
-        minimized: false,
-      },
-      button: {
-        textColor: "#ffffff",
-        backgroundColor: "#3b82f6",
-        backgroundHoverColor: "#2563eb",
-        borderRadius: 6,
-        fontSize: 14,
-        fontWeight: "medium",
-        minimized: false,
-        shadow: true,
-      },
-      section: {
-        primaryTextColor: "#1f2937",
-        secondaryTextColor: "#6b7280",
-        headingColor: "#111827",
-        linkColor: "#3b82f6",
-      },
-      background: {
-        type: "solid",
-        solidColor: "#ffffff",
-        gradientStart: "#f8fafc",
-        gradientEnd: "#e2e8f0",
-        gradientDirection: "to-br",
-        imageUrl: "",
-        imageFile: null,
-        imagePosition: "center",
-        imageSize: "cover",
-        overlay: false,
-        overlayColor: "#000000",
-        overlayOpacity: 0.3,
-      },
-      typography: {
-        fontFamily: "Inter",
-        headingFont: "Inter",
-        bodyFont: "Inter",
-        fontSize: {
-          small: 12,
-          medium: 14,
-          large: 16,
-          xlarge: 24,
-        },
-        lineHeight: 1.5,
-        letterSpacing: 0,
-      },
-      progressBar: {
-        enabled: true,
-        color: "#3b82f6",
-        backgroundColor: "#e5e7eb",
-        style: "linear",
-        position: "top",
-        showPercentage: true,
-      },
-      animations: {
-        enabled: true,
-        transitionSpeed: "normal",
-        slideDirection: "fade",
-      },
-      trustSignals: {
-        showSSL: true,
-        showPrivacyBadge: true,
-        showDataProtection: false,
-        customBadgeText: "Your data is secure",
-      },
-      thankYouPage: {
-        enabled: true,
-        title: "Thank you!",
-        message:
-          "We appreciate your feedback and will use it to improve our services.",
-        backgroundColor: "#ffffff",
-        textColor: "#1f2937",
-        showSocialShare: false,
-        redirectUrl: "",
-        autoRedirect: false,
-        redirectDelay: 3,
-      },
-      customCss: {
-        enabled: false,
-        css: "/* Custom CSS */\n",
-      },
-    });
   };
 
   return (
@@ -1800,8 +1609,6 @@ const SurveyBuilder = () => {
                       onExitIntentSettingsChange={setExitIntentSettings}
                       onEmailCampaignSettingsChange={setEmailCampaignSettings}
                       onOnSitePopupSettingsChange={setOnSitePopupSettings}
-                      onResetToDefault={resetToDefault}
-                      onGenerateNewUrl={generateNewUrl}
                       onCopyUrl={copyUrlToClipboard}
                       copiedUrl={copiedUrl}
                     />

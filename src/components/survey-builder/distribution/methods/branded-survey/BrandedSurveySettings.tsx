@@ -6,11 +6,8 @@ import {
 } from "./components";
 
 interface BrandedSurveySettings {
-  useCustomDomain: boolean;
-  customDomain: string;
   customUrl: string;
   headerLogo: { enabled: boolean; url: string; width: number; height: number };
-  sideLogo: { enabled: boolean; url: string; width: number; height: number };
   button: {
     enabled: boolean;
     backgroundColor: string;
@@ -78,8 +75,6 @@ interface BrandedSurveySettings {
 interface BrandedSurveySettingsRefactoredProps {
   settings: BrandedSurveySettings;
   onSettingsChange: (settings: BrandedSurveySettings) => void;
-  onResetToDefault: () => void;
-  onGenerateNewUrl: () => void;
   onCopyUrl: () => void;
   copiedUrl: boolean;
 }
@@ -89,8 +84,6 @@ const BrandedSurveySettingsRefactored: React.FC<
 > = ({
   settings,
   onSettingsChange,
-  onResetToDefault,
-  onGenerateNewUrl,
   onCopyUrl,
   copiedUrl,
 }) => {
@@ -114,20 +107,14 @@ const BrandedSurveySettingsRefactored: React.FC<
     <div className="space-y-8">
       <SurveyUrlSection
         settings={{
-          useCustomDomain: settings.useCustomDomain,
-          customDomain: settings.customDomain,
           customUrl: settings.customUrl,
         }}
-        onSettingsChange={updateSetting}
-        onResetToDefault={onResetToDefault}
-        onGenerateNewUrl={onGenerateNewUrl}
         onCopyUrl={onCopyUrl}
         copiedUrl={copiedUrl}
       />
 
       <LogoSettings
         headerLogo={settings.headerLogo}
-        sideLogo={settings.sideLogo}
         onSettingsChange={updateSetting}
       />
 

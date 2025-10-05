@@ -82,12 +82,14 @@ interface IntegratedCustomizationProps {
   buttonSettings: ButtonSettings;
   sectionSettings: SectionCustomizationSettings;
   onSettingsChange: (key: string, value: string | number | boolean) => void;
+  hideCustomCss?: boolean;
 }
 
 const IntegratedCustomization: React.FC<IntegratedCustomizationProps> = ({
   buttonSettings,
   sectionSettings,
   onSettingsChange,
+  hideCustomCss = false,
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
@@ -455,46 +457,48 @@ const IntegratedCustomization: React.FC<IntegratedCustomizationProps> = ({
     </Card>
 
       {/* Custom CSS Section - Separate Card */}
-      <Card>
-        <CardContent className="space-y-4 pt-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Code className="w-4 h-4" />
-              <Label className="font-medium">Custom CSS</Label>
+      {!hideCustomCss && (
+        <Card>
+          <CardContent className="space-y-4 pt-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Code className="w-4 h-4" />
+                <Label className="font-medium">Custom CSS</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Label className="text-xs">Enable</Label>
+                <SlimSwitch
+                  checked={sectionSettings.enableCustomCss}
+                  onCheckedChange={(checked) =>
+                    onSettingsChange("section.enableCustomCss", checked)
+                  }
+                />
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <Label className="text-xs">Enable</Label>
-              <SlimSwitch
-                checked={sectionSettings.enableCustomCss}
-                onCheckedChange={(checked) =>
-                  onSettingsChange("section.enableCustomCss", checked)
-                }
-              />
-            </div>
-          </div>
 
-          {sectionSettings.enableCustomCss && (
-            <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">
-                Add custom CSS rules for advanced styling (use
-                .survey-section as the base selector)
-              </Label>
-              <Textarea
-                placeholder={`.survey-section {
+            {sectionSettings.enableCustomCss && (
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">
+                  Add custom CSS rules for advanced styling (use
+                  .survey-section as the base selector)
+                </Label>
+                <Textarea
+                  placeholder={`.survey-section {
   /* Your custom styles here */
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }`}
-                value={sectionSettings.customCss}
-                onChange={(e) =>
-                  onSettingsChange("section.customCss", e.target.value)
-                }
-                className="min-h-[120px] font-mono text-sm"
-              />
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                  value={sectionSettings.customCss}
+                  onChange={(e) =>
+                    onSettingsChange("section.customCss", e.target.value)
+                  }
+                  className="min-h-[120px] font-mono text-sm"
+                />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </>
   );
 };

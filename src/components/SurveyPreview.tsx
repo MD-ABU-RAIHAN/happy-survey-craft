@@ -289,30 +289,66 @@ interface BrandedSurveySettings {
 }
 
 interface ExitIntentSettings {
-  showPopup: {
-    emptyCart: boolean;
-    hasProducts: boolean;
+  userTargeting: {
+    type: "all-users" | "segment-users";
+    userTag: {
+      enabled: boolean;
+      selectedTags: string[];
+    };
+    newCustomer: boolean;
+    returningCustomer: boolean;
+    productPurchase: {
+      enabled: boolean;
+      selectedProducts: string[];
+    };
   };
-  recurrence: "only-once" | "every-incomplete";
-  sideLogo: {
+  displayCondition: "cart-empty" | "cart-has-products" | "show-always";
+  recurrence: "only-once" | "once-per-session";
+  position: "bottom-left" | "center" | "bottom-right";
+  device: "all-devices" | "desktop" | "mobile";
+  exitIntentTimer: {
     enabled: boolean;
-    url: string;
-    file: File | null;
-    size: "small" | "medium" | "large";
-    position: "left" | "right";
-    minimized: boolean;
+    seconds: number;
   };
   button: {
-    textColor: string;
+    enabled: boolean;
     backgroundColor: string;
+    textColor: string;
+    borderRadius: number;
+    fontSize: number;
+    fontWeight: string;
     backgroundHoverColor: string;
-    minimized: boolean;
+    shadow: boolean;
   };
   section: {
-    primaryTextColor: string;
-    secondaryTextColor: string;
+    primaryText: string;
+    secondaryText: string;
     accentColor: string;
     backgroundColor: string;
+    backgroundType: "solid" | "gradient" | "image";
+    gradientFrom: string;
+    gradientTo: string;
+    gradientDirection:
+      | "to-r"
+      | "to-br"
+      | "to-b"
+      | "to-bl"
+      | "to-l"
+      | "to-tl"
+      | "to-t"
+      | "to-tr";
+    backgroundImage: string;
+    backgroundImageOpacity: number;
+    backgroundImagePosition:
+      | "center"
+      | "top"
+      | "bottom"
+      | "left"
+      | "right"
+      | "cover"
+      | "contain";
+    customCss: string;
+    enableCustomCss: boolean;
   };
 }
 
@@ -1191,12 +1227,7 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
     }
 
     return {
-      backgroundColor: postPurchaseSettings.section.backgroundColor,
-      color: postPurchaseSettings.section.accentColor,
-      borderRadius: `${postPurchaseSettings.button.borderRadius}px`,
-      boxShadow: postPurchaseSettings.button.shadow
-        ? "0 4px 6px rgba(0, 0, 0, 0.1)"
-        : "none",
+      backgroundColor: "white",
     };
   };
 
@@ -1641,101 +1672,26 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
               </div>
             )}
 
-          {/* Side Logo for Dedicated Survey Page */}
-          {getDistributionType() === "dedicated-survey-page" &&
-            brandedSurveySettings?.sideLogo.enabled &&
-            brandedSurveySettings.sideLogo.url && (
-              <div
-                className={`absolute top-4 z-10 ${
-                  brandedSurveySettings.sideLogo.position === "left"
-                    ? "left-4"
-                    : "right-4"
-                }`}
-              >
-                <img
-                  src={brandedSurveySettings.sideLogo.url}
-                  alt="Brand logo"
-                  className={`${
-                    brandedSurveySettings.sideLogo.size === "small"
-                      ? "h-6"
-                      : brandedSurveySettings.sideLogo.size === "medium"
-                      ? "h-8"
-                      : "h-10"
-                  } object-contain`}
-                />
-              </div>
-            )}
-
-          {/* Side Logo for Post-Purchase */}
-          {getDistributionType() === "post-purchase" &&
-            postPurchaseSettings?.sideLogo.enabled &&
-            postPurchaseSettings.sideLogo.url && (
-              <div
-                className={`absolute top-4 z-10 ${
-                  postPurchaseSettings.sideLogo.position === "left"
-                    ? "left-4"
-                    : "right-4"
-                }`}
-              >
-                <img
-                  src={postPurchaseSettings.sideLogo.url}
-                  alt="Side logo"
-                  className={`${
-                    postPurchaseSettings.sideLogo.size === "small"
-                      ? "h-4"
-                      : postPurchaseSettings.sideLogo.size === "medium"
-                      ? "h-6"
-                      : "h-8"
-                  } object-contain`}
-                />
-              </div>
-            )}
-
-          {/* Side Logo for Exit Intent */}
-          {getDistributionType() === "exit-intent" &&
-            exitIntentSettings?.sideLogo.enabled &&
-            exitIntentSettings.sideLogo.url && (
-              <div
-                className={`absolute top-4 ${
-                  exitIntentSettings.sideLogo.position === "left"
-                    ? "left-4"
-                    : "right-4"
-                } z-10`}
-              >
-                <img
-                  src={exitIntentSettings.sideLogo.url}
-                  alt="Side logo"
-                  className={`${
-                    exitIntentSettings.sideLogo.size === "small"
-                      ? "h-4"
-                      : exitIntentSettings.sideLogo.size === "medium"
-                      ? "h-6"
-                      : "h-8"
-                  } object-contain`}
-                />
-              </div>
-            )}
-
-          {/* Header Logo for Email Campaign */}
+          {/* Brand Logo for Email Campaign */}
           {getDistributionType() === "email-campaign" &&
-            emailCampaignSettings?.headerLogo.enabled &&
-            emailCampaignSettings.headerLogo.url && (
+            emailCampaignSettings?.brandLogo?.enabled &&
+            emailCampaignSettings.brandLogo.url && (
               <div
                 className={`flex ${
-                  emailCampaignSettings.headerLogo.position === "left"
+                  emailCampaignSettings.brandLogo.position === "left"
                     ? "justify-start"
-                    : emailCampaignSettings.headerLogo.position === "center"
+                    : emailCampaignSettings.brandLogo.position === "center"
                     ? "justify-center"
                     : "justify-end"
                 } mb-4`}
               >
                 <img
-                  src={emailCampaignSettings.headerLogo.url}
-                  alt="Header logo"
+                  src={emailCampaignSettings.brandLogo.url}
+                  alt="Brand logo"
                   className={`${
-                    emailCampaignSettings.headerLogo.size === "small"
+                    emailCampaignSettings.brandLogo.size === "small"
                       ? "h-8"
-                      : emailCampaignSettings.headerLogo.size === "medium"
+                      : emailCampaignSettings.brandLogo.size === "medium"
                       ? "h-12"
                       : "h-16"
                   } object-contain`}
@@ -1800,10 +1756,10 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                       ? { color: brandedSurveySettings.section.primaryText }
                       : getDistributionType() === "post-purchase" &&
                         postPurchaseSettings
-                      ? { color: postPurchaseSettings.section.accentColor }
+                      ? { color: "#1f2937" }
                       : getDistributionType() === "exit-intent" &&
                         exitIntentSettings
-                      ? { color: exitIntentSettings.section.primaryTextColor }
+                      ? { color: exitIntentSettings.section.primaryText }
                       : getDistributionType() === "email-campaign" &&
                         emailCampaignSettings
                       ? { color: "#1f2937" }
@@ -1823,13 +1779,13 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                       : getDistributionType() === "post-purchase" &&
                         postPurchaseSettings
                       ? {
-                          color: postPurchaseSettings.section.accentColor,
+                          color: "#6b7280",
                           opacity: 0.8,
                         }
                       : getDistributionType() === "exit-intent" &&
                         exitIntentSettings
                       ? {
-                          color: exitIntentSettings.section.secondaryTextColor,
+                          color: exitIntentSettings.section.secondaryText,
                           opacity: 0.9,
                         }
                       : getDistributionType() === "email-campaign" &&
@@ -1877,25 +1833,25 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                   className="px-6 py-6"
                   style={getEmailCampaignBackgroundStyle()}
                 >
-                  {emailCampaignSettings?.headerLogo.enabled &&
-                    emailCampaignSettings.headerLogo.url && (
+                  {emailCampaignSettings?.brandLogo?.enabled &&
+                    emailCampaignSettings.brandLogo.url && (
                       <div
                         className={`mb-6 flex ${
-                          emailCampaignSettings.headerLogo.position === "left"
+                          emailCampaignSettings.brandLogo.position === "left"
                             ? "justify-start"
-                            : emailCampaignSettings.headerLogo.position ===
+                            : emailCampaignSettings.brandLogo.position ===
                               "center"
                             ? "justify-center"
                             : "justify-end"
                         }`}
                       >
                         <img
-                          src={emailCampaignSettings.headerLogo.url}
+                          src={emailCampaignSettings.brandLogo.url}
                           alt="Company Logo"
                           className={`${
-                            emailCampaignSettings.headerLogo.size === "small"
+                            emailCampaignSettings.brandLogo.size === "small"
                               ? "h-8"
-                              : emailCampaignSettings.headerLogo.size ===
+                              : emailCampaignSettings.brandLogo.size ===
                                 "medium"
                               ? "h-12"
                               : "h-16"
@@ -2027,7 +1983,8 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                               <p
                                 className="font-medium text-sm leading-relaxed"
                                 style={
-                                  getDistributionType() === "dedicated-survey-page" &&
+                                  getDistributionType() ===
+                                    "dedicated-survey-page" &&
                                   brandedSurveySettings
                                     ? {
                                         color:
@@ -2055,7 +2012,8 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                               <p
                                 className="text-xs mt-1"
                                 style={
-                                  getDistributionType() === "dedicated-survey-page" &&
+                                  getDistributionType() ===
+                                    "dedicated-survey-page" &&
                                   brandedSurveySettings
                                     ? {
                                         color:
@@ -2206,11 +2164,6 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                                       ) && (
                                         <div className="mt-2 ml-5">
                                           <Input
-                                            placeholder={
-                                              question.customAnswer
-                                                .placeholder ||
-                                              "Enter your answer here"
-                                            }
                                             className="h-8 text-sm"
                                             value={
                                               surveyResponses[
@@ -2327,10 +2280,6 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                                       question.customAnswer.otherLabel && (
                                       <div className="mt-2 ml-5">
                                         <Input
-                                          placeholder={
-                                            question.customAnswer.placeholder ||
-                                            "Enter your answer here"
-                                          }
                                           className="h-8 text-sm"
                                           value={
                                             surveyResponses[
@@ -2556,7 +2505,8 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                                           (question.pointScale?.min || 0) +
                                           1,
                                       },
-                                      (_, i) => (question.pointScale?.max || 10) - i
+                                      (_, i) =>
+                                        (question.pointScale?.max || 10) - i
                                     )
                                   : Array.from(
                                       {
@@ -2565,7 +2515,8 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                                           (question.pointScale?.min || 0) +
                                           1,
                                       },
-                                      (_, i) => (question.pointScale?.min || 0) + i
+                                      (_, i) =>
+                                        (question.pointScale?.min || 0) + i
                                     )
                                 ).map((value) => {
                                   const currentResponse =
@@ -2594,7 +2545,8 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                               </div>
                               <div className="flex justify-between text-xs text-muted-foreground">
                                 <span>
-                                  {question.pointScale?.lowLabel || "Not Likely"}
+                                  {question.pointScale?.lowLabel ||
+                                    "Not Likely"}
                                 </span>
                                 <span>
                                   {question.pointScale?.highLabel || "Likely"}
@@ -2761,10 +2713,9 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                               getDistributionType() === "post-purchase" &&
                               postPurchaseSettings
                             ? {
-                                backgroundColor:
-                                  postPurchaseSettings.button.backgroundColor,
-                                color: postPurchaseSettings.button.textColor,
-                                borderRadius: `${postPurchaseSettings.button.borderRadius}px`,
+                                backgroundColor: "#3b82f6",
+                                color: "#ffffff",
+                                borderRadius: "6px",
                               }
                             : isAllRequiredQuestionsAnswered() &&
                               getDistributionType() === "exit-intent" &&
