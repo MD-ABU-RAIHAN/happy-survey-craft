@@ -53,6 +53,7 @@ interface SurveyQuestion {
   };
   dateFormat?: "MM/DD/YYYY" | "DD/MM/YYYY" | "YYYY-MM-DD";
   textInputType?: "single-line" | "multi-line";
+  singleChoiceDisplayType?: "radio" | "dropdown";
   // Satisfaction properties
   satisfactionEmojis?: string[];
   // Point scale properties
@@ -425,6 +426,115 @@ interface EmailCampaignSettings {
   };
 }
 
+interface OnSitePopupSettings {
+  userTargeting: {
+    type: "all-users" | "segment-users";
+    userTag: {
+      enabled: boolean;
+      selectedTags: string[];
+    };
+    newCustomer: boolean;
+    returningCustomer: boolean;
+    productPurchase: {
+      enabled: boolean;
+      selectedProducts: string[];
+    };
+  };
+  timing: {
+    type: "standard" | "immediate" | "custom-trigger" | "advanced-triggers";
+    delay: number;
+    customTriggerCode: string;
+    advancedTriggers: {
+      timeOnSite: {
+        enabled: boolean;
+        seconds: number;
+      };
+      idleTime: {
+        enabled: boolean;
+        seconds: number;
+      };
+      scrollDepth: {
+        enabled: boolean;
+        percentage: number;
+      };
+    };
+  };
+  recurrence: "only-once" | "once-per-session";
+  pageTargeting: {
+    type: "all-pages" | "specific-pages";
+    excludePagesEnabled: boolean;
+    specificPages: {
+      homePage: boolean;
+      productPages: {
+        enabled: boolean;
+        type: "all" | "specific";
+        selectedProducts: string[];
+      };
+      blogPages: boolean;
+      collectionPages: boolean;
+      cartPage: boolean;
+      customPages: {
+        enabled: boolean;
+        selectedPages: string[];
+      };
+    };
+    excludePages: {
+      homePage: boolean;
+      productPages: boolean;
+      collectionPages: boolean;
+      cartPage: boolean;
+      blogPages: boolean;
+      customPages: {
+        enabled: boolean;
+        selectedPages: string[];
+      };
+    };
+  };
+  display: {
+    position: "bottom-left" | "center" | "bottom-right";
+  };
+  button: {
+    enabled: boolean;
+    backgroundColor: string;
+    textColor: string;
+    borderRadius: number;
+    fontSize: number;
+    fontWeight: string;
+    backgroundHoverColor: string;
+    shadow: boolean;
+  };
+  section: {
+    primaryText: string;
+    secondaryText: string;
+    accentColor: string;
+    backgroundColor: string;
+    backgroundType: "solid" | "gradient" | "image";
+    gradientFrom: string;
+    gradientTo: string;
+    gradientDirection:
+      | "to-r"
+      | "to-br"
+      | "to-b"
+      | "to-bl"
+      | "to-l"
+      | "to-tl"
+      | "to-t"
+      | "to-tr";
+    backgroundImage: string;
+    backgroundImageOpacity: number;
+    backgroundImagePosition:
+      | "center"
+      | "top"
+      | "bottom"
+      | "left"
+      | "right"
+      | "cover"
+      | "contain";
+    customCss: string;
+    enableCustomCss: boolean;
+  };
+}
+
 interface SurveyPreviewProps {
   questions: SurveyQuestion[];
   previewDevice: "desktop" | "mobile" | "full";
@@ -468,6 +578,7 @@ interface SurveyPreviewProps {
   postPurchaseSettings?: PostPurchaseSettings;
   exitIntentSettings?: ExitIntentSettings;
   emailCampaignSettings?: EmailCampaignSettings;
+  onSitePopupSettings?: OnSitePopupSettings;
   // Pagination settings
   paginationEnabled?: boolean;
   questionsPerPage?: number;
@@ -498,6 +609,7 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
   postPurchaseSettings,
   exitIntentSettings,
   emailCampaignSettings,
+  onSitePopupSettings,
   paginationEnabled = false,
   questionsPerPage = 1,
   onPaginationChange,
@@ -1264,9 +1376,20 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
       return {
         backgroundColor: button.backgroundColor,
         color: button.textColor,
-        borderRadius: "6px",
-        fontSize: "14px",
-        fontWeight: "medium",
+        borderRadius: `${button.borderRadius}px`,
+        fontSize: `${button.fontSize}px`,
+        fontWeight: button.fontWeight,
+      };
+    }
+
+    if (type === "onsite" && onSitePopupSettings) {
+      const { button } = onSitePopupSettings;
+      return {
+        backgroundColor: button.backgroundColor,
+        color: button.textColor,
+        borderRadius: `${button.borderRadius}px`,
+        fontSize: `${button.fontSize}px`,
+        fontWeight: button.fontWeight,
       };
     }
 
@@ -1361,14 +1484,27 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
 
           {question.type === "single-choice" && question.options && (
             <div className="space-y-2">
-              {question.options.map((option, optionIndex) => (
-                <div key={optionIndex} className="flex items-center space-x-2">
-                  <div className="w-3 h-3 border rounded-full"></div>
-                  <span className="text-sm text-muted-foreground">
-                    {option}
-                  </span>
+              {question.singleChoiceDisplayType === "dropdown" ? (
+                // Dropdown preview
+                <div className="border border-muted-foreground rounded px-3 py-2 text-sm text-muted-foreground bg-muted/20">
+                  Select an option...
                 </div>
-              ))}
+              ) : (
+                // Radio button preview
+                <>
+                  {question.options.map((option, optionIndex) => (
+                    <div
+                      key={optionIndex}
+                      className="flex items-center space-x-2"
+                    >
+                      <div className="w-3 h-3 border rounded-full"></div>
+                      <span className="text-sm text-muted-foreground">
+                        {option}
+                      </span>
+                    </div>
+                  ))}
+                </>
+              )}
             </div>
           )}
 
@@ -1644,6 +1780,11 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
               ? getPostPurchaseBackgroundStyle()
               : getDistributionType() === "exit-intent"
               ? getExitIntentBackgroundStyle()
+              : getDistributionType() === "onsite"
+              ? {
+                  backgroundColor:
+                    onSitePopupSettings?.section.backgroundColor || "white",
+                }
               : getDistributionType() === "email-campaign"
               ? getEmailCampaignBackgroundStyle()
               : { backgroundColor: "white" }
@@ -1760,6 +1901,9 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                       : getDistributionType() === "exit-intent" &&
                         exitIntentSettings
                       ? { color: exitIntentSettings.section.primaryText }
+                      : getDistributionType() === "onsite" &&
+                        onSitePopupSettings
+                      ? { color: onSitePopupSettings.section.primaryText }
                       : getDistributionType() === "email-campaign" &&
                         emailCampaignSettings
                       ? { color: "#1f2937" }
@@ -1786,6 +1930,12 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                         exitIntentSettings
                       ? {
                           color: exitIntentSettings.section.secondaryText,
+                          opacity: 0.9,
+                        }
+                      : getDistributionType() === "onsite" &&
+                        onSitePopupSettings
+                      ? {
+                          color: onSitePopupSettings.section.secondaryText,
                           opacity: 0.9,
                         }
                       : getDistributionType() === "email-campaign" &&
@@ -1991,6 +2141,20 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                                           brandedSurveySettings.section
                                             .primaryText,
                                       }
+                                    : getDistributionType() === "exit-intent" &&
+                                      exitIntentSettings
+                                    ? {
+                                        color:
+                                          exitIntentSettings.section
+                                            .primaryText,
+                                      }
+                                    : getDistributionType() === "onsite" &&
+                                      onSitePopupSettings
+                                    ? {
+                                        color:
+                                          onSitePopupSettings.section
+                                            .primaryText,
+                                      }
                                     : {}
                                 }
                               >
@@ -2018,6 +2182,20 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                                     ? {
                                         color:
                                           brandedSurveySettings.section
+                                            .secondaryText,
+                                      }
+                                    : getDistributionType() === "exit-intent" &&
+                                      exitIntentSettings
+                                    ? {
+                                        color:
+                                          exitIntentSettings.section
+                                            .secondaryText,
+                                      }
+                                    : getDistributionType() === "onsite" &&
+                                      onSitePopupSettings
+                                    ? {
+                                        color:
+                                          onSitePopupSettings.section
                                             .secondaryText,
                                       }
                                     : {}
@@ -2187,79 +2365,20 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                           {question.type === "single-choice" &&
                             question.options && (
                               <div className="space-y-2">
-                                {question.options.map((option, optionIndex) => {
-                                  const currentResponse =
-                                    surveyResponses[question.id];
-                                  const isSelected = currentResponse === option;
-
-                                  return (
-                                    <div
-                                      key={optionIndex}
-                                      className="flex items-center space-x-2 cursor-pointer hover:bg-muted/30 p-1 rounded"
-                                      onClick={() =>
-                                        handleQuestionResponse(
-                                          question.id,
-                                          option
-                                        )
-                                      }
-                                    >
-                                      <div
-                                        className={`w-3 h-3 border rounded-full flex items-center justify-center ${
-                                          isSelected
-                                            ? "bg-primary border-primary"
-                                            : "border-muted-foreground"
-                                        }`}
-                                      >
-                                        {isSelected && (
-                                          <div className="w-1.5 h-1.5 bg-white rounded-full" />
-                                        )}
-                                      </div>
-                                      <span
-                                        className="text-sm"
-                                        style={
-                                          getDistributionType() ===
-                                            "dedicated-survey-page" &&
-                                          brandedSurveySettings
-                                            ? {
-                                                color:
-                                                  brandedSurveySettings.section
-                                                    .primaryText,
-                                              }
-                                            : {}
-                                        }
-                                      >
-                                        {option}
-                                      </span>
-                                    </div>
-                                  );
-                                })}
-                                {/* Dynamic "Other" Option */}
-                                {question.customAnswer?.enabled && (
+                                {question.singleChoiceDisplayType ===
+                                "dropdown" ? (
+                                  // Dropdown display
                                   <>
-                                    <div
-                                      className="flex items-center space-x-2 cursor-pointer hover:bg-muted/30 p-1 rounded"
-                                      onClick={() =>
+                                    <Select
+                                      value={surveyResponses[question.id] || ""}
+                                      onValueChange={(value) =>
                                         handleQuestionResponse(
                                           question.id,
-                                          question.customAnswer.otherLabel
+                                          value
                                         )
                                       }
                                     >
-                                      <div
-                                        className={`w-3 h-3 border rounded-full flex items-center justify-center ${
-                                          surveyResponses[question.id] ===
-                                          question.customAnswer.otherLabel
-                                            ? "bg-primary border-primary"
-                                            : "border-muted-foreground"
-                                        }`}
-                                      >
-                                        {surveyResponses[question.id] ===
-                                          question.customAnswer.otherLabel && (
-                                          <div className="w-1.5 h-1.5 bg-white rounded-full" />
-                                        )}
-                                      </div>
-                                      <span
-                                        className="text-sm"
+                                      <SelectTrigger
                                         style={
                                           getDistributionType() ===
                                             "dedicated-survey-page" &&
@@ -2268,32 +2387,221 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                                                 color:
                                                   brandedSurveySettings.section
                                                     .primaryText,
+                                                borderColor:
+                                                  brandedSurveySettings.section
+                                                    .accentColor,
+                                              }
+                                            : getDistributionType() ===
+                                                "exit-intent" &&
+                                              exitIntentSettings
+                                            ? {
+                                                color:
+                                                  exitIntentSettings.section
+                                                    .primaryText,
+                                              }
+                                            : getDistributionType() ===
+                                                "onsite" && onSitePopupSettings
+                                            ? {
+                                                color:
+                                                  onSitePopupSettings.section
+                                                    .primaryText,
                                               }
                                             : {}
                                         }
                                       >
-                                        {question.customAnswer.otherLabel}
-                                      </span>
-                                    </div>
-                                    {/* Show input field when "Other" is selected */}
-                                    {surveyResponses[question.id] ===
-                                      question.customAnswer.otherLabel && (
-                                      <div className="mt-2 ml-5">
-                                        <Input
-                                          className="h-8 text-sm"
-                                          value={
-                                            surveyResponses[
-                                              `${question.id}_custom`
-                                            ] || ""
-                                          }
-                                          onChange={(e) =>
+                                        <SelectValue placeholder="Select an option..." />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {question.options.map(
+                                          (option, optionIndex) => (
+                                            <SelectItem
+                                              key={optionIndex}
+                                              value={option}
+                                            >
+                                              {option}
+                                            </SelectItem>
+                                          )
+                                        )}
+                                        {question.customAnswer?.enabled && (
+                                          <SelectItem
+                                            value={
+                                              question.customAnswer.otherLabel
+                                            }
+                                          >
+                                            {question.customAnswer.otherLabel}
+                                          </SelectItem>
+                                        )}
+                                      </SelectContent>
+                                    </Select>
+                                    {/* Show input field when "Other" is selected in dropdown */}
+                                    {question.customAnswer?.enabled &&
+                                      surveyResponses[question.id] ===
+                                        question.customAnswer.otherLabel && (
+                                        <div className="mt-2">
+                                          <Input
+                                            className="h-8 text-sm"
+                                            placeholder="Please specify..."
+                                            value={
+                                              surveyResponses[
+                                                `${question.id}_custom`
+                                              ] || ""
+                                            }
+                                            onChange={(e) =>
+                                              handleQuestionResponse(
+                                                `${question.id}_custom`,
+                                                e.target.value
+                                              )
+                                            }
+                                            style={
+                                              getDistributionType() ===
+                                                "dedicated-survey-page" &&
+                                              brandedSurveySettings
+                                                ? {
+                                                    color:
+                                                      brandedSurveySettings
+                                                        .section.primaryText,
+                                                    borderColor:
+                                                      brandedSurveySettings
+                                                        .section.accentColor,
+                                                  }
+                                                : getDistributionType() ===
+                                                    "exit-intent" &&
+                                                  exitIntentSettings
+                                                ? {
+                                                    color:
+                                                      exitIntentSettings.section
+                                                        .primaryText,
+                                                  }
+                                                : getDistributionType() ===
+                                                    "onsite" &&
+                                                  onSitePopupSettings
+                                                ? {
+                                                    color:
+                                                      onSitePopupSettings
+                                                        .section.primaryText,
+                                                  }
+                                                : {}
+                                            }
+                                          />
+                                        </div>
+                                      )}
+                                  </>
+                                ) : (
+                                  // Radio button display (default)
+                                  <>
+                                    {question.options.map(
+                                      (option, optionIndex) => {
+                                        const currentResponse =
+                                          surveyResponses[question.id];
+                                        const isSelected =
+                                          currentResponse === option;
+
+                                        return (
+                                          <div
+                                            key={optionIndex}
+                                            className="flex items-center space-x-2 cursor-pointer hover:bg-muted/30 p-1 rounded"
+                                            onClick={() =>
+                                              handleQuestionResponse(
+                                                question.id,
+                                                option
+                                              )
+                                            }
+                                          >
+                                            <div
+                                              className={`w-3 h-3 border rounded-full flex items-center justify-center ${
+                                                isSelected
+                                                  ? "bg-primary border-primary"
+                                                  : "border-muted-foreground"
+                                              }`}
+                                            >
+                                              {isSelected && (
+                                                <div className="w-1.5 h-1.5 bg-white rounded-full" />
+                                              )}
+                                            </div>
+                                            <span
+                                              className="text-sm"
+                                              style={
+                                                getDistributionType() ===
+                                                  "dedicated-survey-page" &&
+                                                brandedSurveySettings
+                                                  ? {
+                                                      color:
+                                                        brandedSurveySettings
+                                                          .section.primaryText,
+                                                    }
+                                                  : {}
+                                              }
+                                            >
+                                              {option}
+                                            </span>
+                                          </div>
+                                        );
+                                      }
+                                    )}
+                                    {/* Dynamic "Other" Option */}
+                                    {question.customAnswer?.enabled && (
+                                      <>
+                                        <div
+                                          className="flex items-center space-x-2 cursor-pointer hover:bg-muted/30 p-1 rounded"
+                                          onClick={() =>
                                             handleQuestionResponse(
-                                              `${question.id}_custom`,
-                                              e.target.value
+                                              question.id,
+                                              question.customAnswer.otherLabel
                                             )
                                           }
-                                        />
-                                      </div>
+                                        >
+                                          <div
+                                            className={`w-3 h-3 border rounded-full flex items-center justify-center ${
+                                              surveyResponses[question.id] ===
+                                              question.customAnswer.otherLabel
+                                                ? "bg-primary border-primary"
+                                                : "border-muted-foreground"
+                                            }`}
+                                          >
+                                            {surveyResponses[question.id] ===
+                                              question.customAnswer
+                                                .otherLabel && (
+                                              <div className="w-1.5 h-1.5 bg-white rounded-full" />
+                                            )}
+                                          </div>
+                                          <span
+                                            className="text-sm"
+                                            style={
+                                              getDistributionType() ===
+                                                "dedicated-survey-page" &&
+                                              brandedSurveySettings
+                                                ? {
+                                                    color:
+                                                      brandedSurveySettings
+                                                        .section.primaryText,
+                                                  }
+                                                : {}
+                                            }
+                                          >
+                                            {question.customAnswer.otherLabel}
+                                          </span>
+                                        </div>
+                                        {/* Show input field when "Other" is selected */}
+                                        {surveyResponses[question.id] ===
+                                          question.customAnswer.otherLabel && (
+                                          <div className="mt-2 ml-5">
+                                            <Input
+                                              className="h-8 text-sm"
+                                              value={
+                                                surveyResponses[
+                                                  `${question.id}_custom`
+                                                ] || ""
+                                              }
+                                              onChange={(e) =>
+                                                handleQuestionResponse(
+                                                  `${question.id}_custom`,
+                                                  e.target.value
+                                                )
+                                              }
+                                            />
+                                          </div>
+                                        )}
+                                      </>
                                     )}
                                   </>
                                 )}
@@ -2724,7 +3032,16 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                                 backgroundColor:
                                   exitIntentSettings.button.backgroundColor,
                                 color: exitIntentSettings.button.textColor,
-                                borderRadius: "6px",
+                                borderRadius: `${exitIntentSettings.button.borderRadius}px`,
+                              }
+                            : isAllRequiredQuestionsAnswered() &&
+                              getDistributionType() === "onsite" &&
+                              onSitePopupSettings
+                            ? {
+                                backgroundColor:
+                                  onSitePopupSettings.button.backgroundColor,
+                                color: onSitePopupSettings.button.textColor,
+                                borderRadius: `${onSitePopupSettings.button.borderRadius}px`,
                               }
                             : isAllRequiredQuestionsAnswered() &&
                               getDistributionType() === "email-campaign"

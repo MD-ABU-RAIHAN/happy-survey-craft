@@ -2,7 +2,7 @@ import React from "react";
 import {
   SurveyUrlSection,
   LogoSettings,
-  IntegratedCustomization,
+  SimplifiedCustomization,
 } from "./components";
 
 interface BrandedSurveySettings {
@@ -81,12 +81,7 @@ interface BrandedSurveySettingsRefactoredProps {
 
 const BrandedSurveySettingsRefactored: React.FC<
   BrandedSurveySettingsRefactoredProps
-> = ({
-  settings,
-  onSettingsChange,
-  onCopyUrl,
-  copiedUrl,
-}) => {
+> = ({ settings, onSettingsChange, onCopyUrl, copiedUrl }) => {
   const updateSetting = (key: string, value: string | number | boolean) => {
     const keys = key.split(".");
     if (keys.length === 1) {
@@ -118,7 +113,7 @@ const BrandedSurveySettingsRefactored: React.FC<
         onSettingsChange={updateSetting}
       />
 
-      <IntegratedCustomization
+      <SimplifiedCustomization
         buttonSettings={settings.button}
         sectionSettings={settings.section}
         onSettingsChange={updateSetting}

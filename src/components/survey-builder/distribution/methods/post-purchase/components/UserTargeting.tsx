@@ -66,7 +66,7 @@ const UserTargeting: React.FC<UserTargetingProps> = ({
     "Product F",
   ];
 
-  // Handle User Tag Modal
+  // Handle Customer Tag Modal
   const handleUserTagToggle = (checked: boolean) => {
     if (checked) {
       setTempSelectedTags(settings.userTag.selectedTags);
@@ -130,7 +130,7 @@ const UserTargeting: React.FC<UserTargetingProps> = ({
       <div className="flex items-center justify-between">
         <h5 className="font-semibold flex items-center gap-2">
           <Users className="w-5 h-5 text-secondary-brand" />
-          User Targeting
+          Customer Targeting
         </h5>
         <Button
           variant="ghost"
@@ -165,7 +165,7 @@ const UserTargeting: React.FC<UserTargetingProps> = ({
                     className="w-4 h-4 text-primary"
                   />
                   <Label htmlFor="all-users" className="text-sm cursor-pointer">
-                    All Users
+                    All Customers
                   </Label>
                 </div>
                 <div className="flex items-center space-x-3">
@@ -184,7 +184,7 @@ const UserTargeting: React.FC<UserTargetingProps> = ({
                     htmlFor="segment-users"
                     className="text-sm cursor-pointer"
                   >
-                    A Segment of Users
+                    A Segment of Customers
                   </Label>
                 </div>
               </div>
@@ -193,10 +193,10 @@ const UserTargeting: React.FC<UserTargetingProps> = ({
             {/* Segment Options */}
             {settings.type === "segment-users" && (
               <div className="space-y-4 ml-6">
-                {/* User Tag Section */}
+                {/* Customer Tag Section */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <Label className="text-sm">User Tag</Label>
+                    <Label className="text-sm">Customer Tag</Label>
                     <SlimSwitch
                       checked={settings.userTag.selectedTags.length > 0}
                       onCheckedChange={handleUserTagToggle}
@@ -282,11 +282,11 @@ const UserTargeting: React.FC<UserTargetingProps> = ({
             )}
           </div>
 
-          {/* User Tag Modal */}
+          {/* Customer Tag Modal */}
           <Dialog open={userTagModalOpen} onOpenChange={setUserTagModalOpen}>
             <DialogContent className="max-w-md">
               <DialogHeader>
-                <DialogTitle>Select User Tags</DialogTitle>
+                <DialogTitle>Select Customer Tags</DialogTitle>
               </DialogHeader>
               <div className="space-y-3 max-h-60 overflow-y-auto">
                 {availableTags.map((tag) => (

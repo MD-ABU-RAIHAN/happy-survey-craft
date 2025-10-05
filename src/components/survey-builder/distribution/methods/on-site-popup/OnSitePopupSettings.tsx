@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { SectionCard } from "../../shared";
-import { IntegratedCustomization } from "../branded-survey/components";
+import { SimplifiedCustomization } from "../branded-survey/components";
 import { UserTargeting } from "../post-purchase/components";
 import { Globe, Clock, Repeat } from "lucide-react";
 
@@ -31,11 +31,7 @@ interface OnSitePopupSettings {
     };
   };
   timing: {
-    type:
-      | "standard"
-      | "immediate"
-      | "custom-trigger"
-      | "advanced-triggers";
+    type: "standard" | "immediate" | "custom-trigger" | "advanced-triggers";
     delay: number;
     customTriggerCode: string;
     advancedTriggers: {
@@ -53,9 +49,7 @@ interface OnSitePopupSettings {
       };
     };
   };
-  recurrence:
-    | "only-once"
-    | "once-per-session";
+  recurrence: "only-once" | "once-per-session";
   pageTargeting: {
     type: "all-pages" | "specific-pages";
     excludePagesEnabled: boolean;
@@ -147,7 +141,10 @@ const OnSitePopupSettingsRefactored: React.FC<
     { id: "prod-5", name: "Yoga Mat", category: "Fitness" },
   ];
 
-  const updateSetting = (key: string, value: any) => {
+  const updateSetting = (
+    key: string,
+    value: string | boolean | number | string[]
+  ) => {
     const keys = key.split(".");
     let newSettings = { ...settings };
 
@@ -157,45 +154,82 @@ const OnSitePopupSettingsRefactored: React.FC<
         [keys[0]]: value,
       };
     } else if (keys.length === 2) {
-      newSettings = {
-        ...newSettings,
-        [keys[0]]: {
-          ...newSettings[keys[0] as keyof OnSitePopupSettings],
-          [keys[1]]: value,
-        },
-      };
+      const firstKey = keys[0] as keyof OnSitePopupSettings;
+      const currentValue = newSettings[firstKey];
+      if (typeof currentValue === "object" && currentValue !== null) {
+        newSettings = {
+          ...newSettings,
+          [firstKey]: {
+            ...currentValue,
+            [keys[1]]: value,
+          },
+        };
+      }
     } else if (keys.length === 3) {
       const firstKey = keys[0] as keyof OnSitePopupSettings;
       const secondKey = keys[1];
       const thirdKey = keys[2];
-      newSettings = {
-        ...newSettings,
-        [firstKey]: {
-          ...newSettings[firstKey],
-          [secondKey]: {
-            ...newSettings[firstKey][secondKey],
-            [thirdKey]: value,
-          },
-        },
-      };
+      const currentValue = newSettings[firstKey];
+      if (
+        typeof currentValue === "object" &&
+        currentValue !== null &&
+        secondKey in currentValue
+      ) {
+        const nestedValue = (currentValue as Record<string, unknown>)[
+          secondKey
+        ];
+        if (typeof nestedValue === "object" && nestedValue !== null) {
+          newSettings = {
+            ...newSettings,
+            [firstKey]: {
+              ...currentValue,
+              [secondKey]: {
+                ...nestedValue,
+                [thirdKey]: value,
+              },
+            },
+          };
+        }
+      }
     } else if (keys.length === 4) {
       const firstKey = keys[0] as keyof OnSitePopupSettings;
       const secondKey = keys[1];
       const thirdKey = keys[2];
       const fourthKey = keys[3];
-      newSettings = {
-        ...newSettings,
-        [firstKey]: {
-          ...newSettings[firstKey],
-          [secondKey]: {
-            ...newSettings[firstKey][secondKey],
-            [thirdKey]: {
-              ...newSettings[firstKey][secondKey][thirdKey],
-              [fourthKey]: value,
-            },
-          },
-        },
-      };
+      const currentValue = newSettings[firstKey];
+      if (
+        typeof currentValue === "object" &&
+        currentValue !== null &&
+        secondKey in currentValue
+      ) {
+        const nestedValue = (currentValue as Record<string, unknown>)[
+          secondKey
+        ];
+        if (
+          typeof nestedValue === "object" &&
+          nestedValue !== null &&
+          thirdKey in nestedValue
+        ) {
+          const deeperValue = (nestedValue as Record<string, unknown>)[
+            thirdKey
+          ];
+          if (typeof deeperValue === "object" && deeperValue !== null) {
+            newSettings = {
+              ...newSettings,
+              [firstKey]: {
+                ...currentValue,
+                [secondKey]: {
+                  ...nestedValue,
+                  [thirdKey]: {
+                    ...deeperValue,
+                    [fourthKey]: value,
+                  },
+                },
+              },
+            };
+          }
+        }
+      }
     }
 
     onSettingsChange(newSettings);
@@ -211,7 +245,7 @@ const OnSitePopupSettingsRefactored: React.FC<
 
   return (
     <div className="space-y-8">
-      {/* 1. User Targeting */}
+      {/* 1. Customer Targeting */}
       <UserTargeting
         settings={settings.userTargeting}
         onSettingsChange={updateSetting}
@@ -251,7 +285,10 @@ const OnSitePopupSettingsRefactored: React.FC<
                 <Checkbox
                   checked={settings.pageTargeting.excludePagesEnabled}
                   onCheckedChange={(checked) =>
-                    updateSetting("pageTargeting.excludePagesEnabled", checked === true)
+                    updateSetting(
+                      "pageTargeting.excludePagesEnabled",
+                      checked === true
+                    )
                   }
                 />
                 <Label className="text-sm font-medium">Exclude pages</Label>
@@ -331,7 +368,8 @@ const OnSitePopupSettingsRefactored: React.FC<
                     <div className="flex items-center space-x-2">
                       <Checkbox
                         checked={
-                          settings.pageTargeting.excludePages.customPages.enabled
+                          settings.pageTargeting.excludePages.customPages
+                            .enabled
                         }
                         onCheckedChange={(checked) =>
                           updateSetting(
@@ -342,7 +380,8 @@ const OnSitePopupSettingsRefactored: React.FC<
                       />
                       <Label className="text-sm">Pages</Label>
                     </div>
-                    {settings.pageTargeting.excludePages.customPages.enabled && (
+                    {settings.pageTargeting.excludePages.customPages
+                      .enabled && (
                       <div className="pl-6 space-y-2">
                         <Label className="text-xs text-muted-foreground">
                           Select pages to exclude:
@@ -361,8 +400,8 @@ const OnSitePopupSettingsRefactored: React.FC<
                               className="cursor-pointer text-xs"
                               onClick={() => {
                                 const selected =
-                                  settings.pageTargeting.excludePages.customPages
-                                    .selectedPages;
+                                  settings.pageTargeting.excludePages
+                                    .customPages.selectedPages;
                                 const newSelected = selected.includes(page.id)
                                   ? selected.filter((id) => id !== page.id)
                                   : [...selected, page.id];
@@ -649,7 +688,9 @@ const OnSitePopupSettingsRefactored: React.FC<
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
                   <Checkbox
-                    checked={settings.timing.advancedTriggers.timeOnSite.enabled}
+                    checked={
+                      settings.timing.advancedTriggers.timeOnSite.enabled
+                    }
                     onCheckedChange={(checked) =>
                       updateSetting(
                         "timing.advancedTriggers.timeOnSite.enabled",
@@ -703,7 +744,9 @@ const OnSitePopupSettingsRefactored: React.FC<
                     <div className="flex items-center space-x-2">
                       <Input
                         type="number"
-                        value={settings.timing.advancedTriggers.idleTime.seconds}
+                        value={
+                          settings.timing.advancedTriggers.idleTime.seconds
+                        }
                         onChange={(e) =>
                           updateSetting(
                             "timing.advancedTriggers.idleTime.seconds",
@@ -743,7 +786,8 @@ const OnSitePopupSettingsRefactored: React.FC<
                       <Input
                         type="number"
                         value={
-                          settings.timing.advancedTriggers.scrollDepth.percentage
+                          settings.timing.advancedTriggers.scrollDepth
+                            .percentage
                         }
                         onChange={(e) =>
                           updateSetting(
@@ -775,9 +819,9 @@ const OnSitePopupSettingsRefactored: React.FC<
           <Label className="text-sm font-medium">Show Survey</Label>
           <Select
             value={settings.recurrence}
-            onValueChange={(
-              value: "only-once" | "once-per-session"
-            ) => updateSetting("recurrence", value)}
+            onValueChange={(value: "only-once" | "once-per-session") =>
+              updateSetting("recurrence", value)
+            }
           >
             <SelectTrigger>
               <SelectValue />
@@ -797,9 +841,9 @@ const OnSitePopupSettingsRefactored: React.FC<
         <Label className="text-sm font-medium">Position</Label>
         <Select
           value={settings.display.position}
-          onValueChange={(
-            value: "bottom-left" | "center" | "bottom-right"
-          ) => updateSetting("display.position", value)}
+          onValueChange={(value: "bottom-left" | "center" | "bottom-right") =>
+            updateSetting("display.position", value)
+          }
         >
           <SelectTrigger>
             <SelectValue />
@@ -813,7 +857,7 @@ const OnSitePopupSettingsRefactored: React.FC<
       </div>
 
       {/* 6. Customization Settings */}
-      <IntegratedCustomization
+      <SimplifiedCustomization
         buttonSettings={settings.button}
         sectionSettings={settings.section}
         onSettingsChange={updateSetting}

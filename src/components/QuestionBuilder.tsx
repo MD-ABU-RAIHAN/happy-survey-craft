@@ -117,7 +117,7 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
 
   const questionTypeLabels = {
     "multiple-choice": "Multiple Choice",
-    "single-choice": "Single Choice (Radio)",
+    "single-choice": "Single Choice",
     text: "Text Response",
     rating: "Rating Scale",
     satisfaction: "Satisfaction",
@@ -605,7 +605,16 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                                     variant="secondary"
                                     className="bg-survey-info-light text-survey-info border-survey-info/20"
                                   >
-                                    <QuestionIcon className="w-3 h-3 mr-1" />
+                                    {question.type === "single-choice" ? (
+                                      question.singleChoiceDisplayType ===
+                                      "dropdown" ? (
+                                        <ChevronDown className="w-3 h-3 mr-1" />
+                                      ) : (
+                                        <CircleDot className="w-3 h-3 mr-1" />
+                                      )
+                                    ) : (
+                                      <QuestionIcon className="w-3 h-3 mr-1" />
+                                    )}
                                     {questionTypeLabels[question.type]}
                                   </Badge>
 
@@ -1230,9 +1239,12 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                                     </Label>
                                     <Select
                                       value={
-                                        question.singleChoiceDisplayType || "radio"
+                                        question.singleChoiceDisplayType ||
+                                        "radio"
                                       }
-                                      onValueChange={(value: "radio" | "dropdown") =>
+                                      onValueChange={(
+                                        value: "radio" | "dropdown"
+                                      ) =>
                                         updateQuestion(question.id, {
                                           singleChoiceDisplayType: value,
                                         })
@@ -1242,13 +1254,16 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                                         <SelectValue />
                                       </SelectTrigger>
                                       <SelectContent>
-                                        <SelectItem value="radio">Radio Button</SelectItem>
-                                        <SelectItem value="dropdown">Dropdown</SelectItem>
+                                        <SelectItem value="radio">
+                                          Radio Button
+                                        </SelectItem>
+                                        <SelectItem value="dropdown">
+                                          Dropdown
+                                        </SelectItem>
                                       </SelectContent>
                                     </Select>
                                   </div>
                                 )}
-
                                 {(question.type === "multiple-choice" ||
                                   question.type === "single-choice") && (
                                   <div className="pt-4 border-t border-muted/50 space-y-4">
@@ -1307,7 +1322,8 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                                     {/* Allow participants to skip */}
                                     <div className="flex items-center justify-between">
                                       <Label className="text-sm font-normal">
-                                        Allow participants to skip past the question
+                                        Allow participants to skip past the
+                                        question
                                       </Label>
                                       <SlimSwitch
                                         checked={!question.required}

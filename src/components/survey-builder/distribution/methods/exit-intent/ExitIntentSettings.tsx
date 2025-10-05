@@ -28,7 +28,7 @@ import {
   Clock,
 } from "lucide-react";
 import { SectionCard } from "../../shared";
-import { IntegratedCustomization } from "../branded-survey/components";
+import { SimplifiedCustomization } from "../branded-survey/components";
 
 interface ExitIntentSettings {
   userTargeting: {
@@ -133,7 +133,10 @@ const ExitIntentSettingsRefactored: React.FC<
     "Product F",
   ];
 
-  const updateSetting = (key: string, value: any) => {
+  const updateSetting = (
+    key: string,
+    value: string | boolean | number | string[]
+  ) => {
     const keys = key.split(".");
     let newSettings = { ...settings };
 
@@ -143,33 +146,49 @@ const ExitIntentSettingsRefactored: React.FC<
         [keys[0]]: value,
       };
     } else if (keys.length === 2) {
-      newSettings = {
-        ...newSettings,
-        [keys[0]]: {
-          ...newSettings[keys[0] as keyof ExitIntentSettings],
-          [keys[1]]: value,
-        },
-      };
+      const firstKey = keys[0] as keyof ExitIntentSettings;
+      const currentValue = newSettings[firstKey];
+      if (typeof currentValue === "object" && currentValue !== null) {
+        newSettings = {
+          ...newSettings,
+          [firstKey]: {
+            ...currentValue,
+            [keys[1]]: value,
+          },
+        };
+      }
     } else if (keys.length === 3) {
       const firstKey = keys[0] as keyof ExitIntentSettings;
       const secondKey = keys[1];
       const thirdKey = keys[2];
-      newSettings = {
-        ...newSettings,
-        [firstKey]: {
-          ...newSettings[firstKey],
-          [secondKey]: {
-            ...newSettings[firstKey][secondKey],
-            [thirdKey]: value,
-          },
-        },
-      };
+      const currentValue = newSettings[firstKey];
+      if (
+        typeof currentValue === "object" &&
+        currentValue !== null &&
+        secondKey in currentValue
+      ) {
+        const nestedValue = (currentValue as Record<string, unknown>)[
+          secondKey
+        ];
+        if (typeof nestedValue === "object" && nestedValue !== null) {
+          newSettings = {
+            ...newSettings,
+            [firstKey]: {
+              ...currentValue,
+              [secondKey]: {
+                ...nestedValue,
+                [thirdKey]: value,
+              },
+            },
+          };
+        }
+      }
     }
 
     onSettingsChange(newSettings);
   };
 
-  // Handle User Tag Modal
+  // Handle Customer Tag Modal
   const handleUserTagToggle = (checked: boolean) => {
     if (checked) {
       setTempSelectedTags(settings.userTargeting.userTag.selectedTags);
@@ -181,10 +200,7 @@ const ExitIntentSettingsRefactored: React.FC<
   };
 
   const handleUserTagSave = () => {
-    updateSetting(
-      "userTargeting.userTag.enabled",
-      tempSelectedTags.length > 0
-    );
+    updateSetting("userTargeting.userTag.enabled", tempSelectedTags.length > 0);
     updateSetting("userTargeting.userTag.selectedTags", tempSelectedTags);
     setUserTagModalOpen(false);
   };
@@ -234,12 +250,12 @@ const ExitIntentSettingsRefactored: React.FC<
 
   return (
     <div className="space-y-8">
-      {/* 1. User Targeting */}
+      {/* 1. Customer Targeting */}
       <div className="bg-gradient-to-r from-secondary-brand/5 to-survey-info/5 rounded-lg p-6 space-y-4 border border-secondary-brand/10">
         <div className="flex items-center justify-between">
           <h5 className="font-semibold flex items-center gap-2">
             <Users className="w-5 h-5 text-secondary-brand" />
-            User Targeting
+            Customer Targeting
           </h5>
           <Button
             variant="ghost"
@@ -275,7 +291,7 @@ const ExitIntentSettingsRefactored: React.FC<
                     className="w-4 h-4 text-primary"
                   />
                   <Label htmlFor="all-users" className="text-sm cursor-pointer">
-                    All Users
+                    All Customers
                   </Label>
                 </div>
                 <div className="flex items-center space-x-3">
@@ -294,7 +310,7 @@ const ExitIntentSettingsRefactored: React.FC<
                     htmlFor="segment-users"
                     className="text-sm cursor-pointer"
                   >
-                    A Segment of Users
+                    A Segment of Customers
                   </Label>
                 </div>
               </div>
@@ -303,10 +319,10 @@ const ExitIntentSettingsRefactored: React.FC<
             {/* Segment Options */}
             {settings.userTargeting.type === "segment-users" && (
               <div className="space-y-4 ml-6">
-                {/* User Tag Section */}
+                {/* Customer Tag Section */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <Label className="text-sm">User Tag</Label>
+                    <Label className="text-sm">Customer Tag</Label>
                     <SlimSwitch
                       checked={
                         settings.userTargeting.userTag.selectedTags.length > 0
@@ -552,17 +568,17 @@ const ExitIntentSettingsRefactored: React.FC<
       </SectionCard>
 
       {/* 6. Customization Settings */}
-      <IntegratedCustomization
+      <SimplifiedCustomization
         buttonSettings={settings.button}
         sectionSettings={settings.section}
         onSettingsChange={updateSetting}
       />
 
-      {/* User Tag Modal */}
+      {/* Customer Tag Modal */}
       <Dialog open={userTagModalOpen} onOpenChange={setUserTagModalOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Select User Tags</DialogTitle>
+            <DialogTitle>Select Customer Tags</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 max-h-60 overflow-y-auto">
             {availableTags.map((tag) => (

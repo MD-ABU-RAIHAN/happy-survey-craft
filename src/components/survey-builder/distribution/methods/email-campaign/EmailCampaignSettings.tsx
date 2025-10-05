@@ -193,7 +193,7 @@ const EmailCampaignSettingsRefactored: React.FC<
     onSettingsChange(newSettings);
   };
 
-  // Handle User Tag Modal
+  // Handle Customer Tag Modal
   const handleUserTagToggle = (checked: boolean) => {
     if (checked) {
       setTempSelectedTags(settings.userTargeting.userTag.selectedTags);
@@ -273,9 +273,9 @@ const EmailCampaignSettingsRefactored: React.FC<
             </Label>
             <Select
               value={settings.triggerTiming.orderStatus}
-              onValueChange={(
-                value: "placed" | "fulfilled" | "delivered"
-              ) => updateSetting("triggerTiming.orderStatus", value)}
+              onValueChange={(value: "placed" | "fulfilled" | "delivered") =>
+                updateSetting("triggerTiming.orderStatus", value)
+              }
             >
               <SelectTrigger>
                 <SelectValue />
@@ -341,12 +341,12 @@ const EmailCampaignSettingsRefactored: React.FC<
         </div>
       </SectionCard>
 
-      {/* 2. User Targeting */}
+      {/* 2. Customer Targeting */}
       <div className="bg-gradient-to-r from-secondary-brand/5 to-survey-info/5 rounded-lg p-6 space-y-4 border border-secondary-brand/10">
         <div className="flex items-center justify-between">
           <h5 className="font-semibold flex items-center gap-2">
             <Users className="w-5 h-5 text-secondary-brand" />
-            User Targeting
+            Customer Targeting
           </h5>
           <Button
             variant="ghost"
@@ -386,7 +386,7 @@ const EmailCampaignSettingsRefactored: React.FC<
                       htmlFor="all-users"
                       className="text-sm cursor-pointer"
                     >
-                      All Users
+                      All Customers
                     </Label>
                   </div>
                   <div className="flex items-center space-x-3">
@@ -405,7 +405,7 @@ const EmailCampaignSettingsRefactored: React.FC<
                       htmlFor="segment-users"
                       className="text-sm cursor-pointer"
                     >
-                      A Segment of Users
+                      A Segment of Customers
                     </Label>
                   </div>
                 </div>
@@ -414,10 +414,10 @@ const EmailCampaignSettingsRefactored: React.FC<
               {/* Segment Options */}
               {settings.userTargeting.type === "segment-users" && (
                 <div className="space-y-4 ml-6">
-                  {/* User Tag Section */}
+                  {/* Customer Tag Section */}
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <Label className="text-sm">User Tag</Label>
+                      <Label className="text-sm">Customer Tag</Label>
                       <SlimSwitch
                         checked={
                           settings.userTargeting.userTag.selectedTags.length > 0
@@ -678,15 +678,6 @@ const EmailCampaignSettingsRefactored: React.FC<
             />
           </div>
 
-          {/* Email Greeting */}
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Email Greeting</Label>
-            <Input
-              defaultValue="Hi {{customer_name}},"
-              placeholder="Hi {{customer_name}},"
-            />
-          </div>
-
           {/* Email Message */}
           <div className="space-y-2">
             <Label className="text-sm font-medium">Email Message</Label>
@@ -779,9 +770,7 @@ const EmailCampaignSettingsRefactored: React.FC<
               name="multipleSends"
               value="once-per-email"
               checked={settings.multipleSends === "once-per-email"}
-              onChange={() =>
-                updateSetting("multipleSends", "once-per-email")
-              }
+              onChange={() => updateSetting("multipleSends", "once-per-email")}
               className="w-4 h-4 text-primary"
             />
             <Label htmlFor="once-per-email" className="text-sm cursor-pointer">
@@ -795,9 +784,7 @@ const EmailCampaignSettingsRefactored: React.FC<
               name="multipleSends"
               value="once-per-order"
               checked={settings.multipleSends === "once-per-order"}
-              onChange={() =>
-                updateSetting("multipleSends", "once-per-order")
-              }
+              onChange={() => updateSetting("multipleSends", "once-per-order")}
               className="w-4 h-4 text-primary"
             />
             <Label htmlFor="once-per-order" className="text-sm cursor-pointer">
@@ -859,11 +846,11 @@ const EmailCampaignSettingsRefactored: React.FC<
         </div>
       </SectionCard>
 
-      {/* User Tag Modal */}
+      {/* Customer Tag Modal */}
       <Dialog open={userTagModalOpen} onOpenChange={setUserTagModalOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Select User Tags</DialogTitle>
+            <DialogTitle>Select Customer Tags</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 max-h-60 overflow-y-auto">
             {availableUserTags.map((tag) => (

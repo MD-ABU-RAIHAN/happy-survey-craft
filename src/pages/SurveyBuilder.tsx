@@ -76,8 +76,12 @@ import SurveyPreview from "@/components/SurveyPreview";
 import SimpleHeader from "@/components/SimpleHeader";
 import { DistributionTab } from "@/components/survey-builder/distribution";
 import DiscountTabRefactored from "@/components/survey-builder/IncentivesTabRefactored";
-import { AdvancedLogicTab, LogicBuilder } from "@/components/survey-builder/advanced-logic";
+import {
+  AdvancedLogicTab,
+  LogicBuilder,
+} from "@/components/survey-builder/advanced-logic";
 import { SurveyLogic } from "@/types/logic";
+import { toast } from "@/components/ui/use-toast";
 
 interface SurveyQuestion {
   id: string;
@@ -843,7 +847,7 @@ const SurveyBuilder = () => {
       },
       emailConfig: {
         sendFrom: "",
-        blockDuplicate: 30, // 30 days default
+        blockDuplicate: 1, // 1 day default
       },
       brandLogo: {
         enabled: false,
@@ -855,7 +859,7 @@ const SurveyBuilder = () => {
       },
       content: {
         subject: "We'd love your feedback!",
-        body: `<p>Hi there!</p>
+        body: `<p>Hi {{customer.displayName}},</p>
 <p>We hope you're enjoying your recent purchase. Your feedback is incredibly valuable to us and helps improve our products and services.</p>
 <p>Would you mind taking a few minutes to share your thoughts in our quick survey?</p>
 <p>Thank you for your time!</p>
@@ -1478,12 +1482,25 @@ const SurveyBuilder = () => {
     });
   };
 
-  const copyUrlToClipboard = () => {
+  const copyUrlToClipboard = async () => {
     const fullUrl = `https://yoursurveyapp.com/s/${brandedSurveySettings.customUrl}`;
 
-    navigator.clipboard.writeText(fullUrl);
-    setCopiedUrl(true);
-    setTimeout(() => setCopiedUrl(false), 2000);
+    try {
+      await navigator.clipboard.writeText(fullUrl);
+      setCopiedUrl(true);
+      toast({
+        title: "Copied!",
+        description: "Survey URL has been copied to clipboard.",
+      });
+      setTimeout(() => setCopiedUrl(false), 2000);
+    } catch (error) {
+      console.error("Failed to copy:", error);
+      toast({
+        title: "Copy failed",
+        description: "Please try again or copy the URL manually.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleFileUpload = (
@@ -1683,6 +1700,7 @@ const SurveyBuilder = () => {
                 postPurchaseSettings={postPurchaseSettings}
                 exitIntentSettings={exitIntentSettings}
                 emailCampaignSettings={emailCampaignSettings}
+                onSitePopupSettings={onSitePopupSettings}
                 paginationEnabled={paginationEnabled}
                 questionsPerPage={questionsPerPage}
                 onPaginationChange={setPaginationEnabled}
