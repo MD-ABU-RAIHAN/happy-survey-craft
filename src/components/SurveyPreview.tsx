@@ -573,11 +573,20 @@ interface SurveyPreviewProps {
     borderColor: string;
   }>;
   discountEnabled: boolean;
-  discountType: "percentage" | "fixed";
+  discountType: "percentage" | "fixed" | "free_shipping";
   discountValue: string;
   discountCode?: string;
   discountDescription?: string;
   discountExpiryDays?: string;
+  // New customizable discount text fields
+  rewardTitle?: string;
+  discountMessage?: string;
+  actionMessage?: string;
+  deliveryMethod?: "email" | "thank_you_page";
+  // Email configuration props
+  fromEmail?: string;
+  emailSubject?: string;
+  emailBody?: string;
   brandedSurveySettings?: BrandedSurveySettings;
   postPurchaseSettings?: PostPurchaseSettings;
   exitIntentSettings?: ExitIntentSettings;
@@ -609,6 +618,13 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
   discountCode,
   discountDescription,
   discountExpiryDays,
+  rewardTitle = "🎁 Here's your reward!",
+  discountMessage,
+  actionMessage = "Save this code for your next purchase",
+  deliveryMethod = "email" as "email" | "thank_you_page",
+  fromEmail = "noreply@yourstore.com",
+  emailSubject = "🎁 Your discount code is here!",
+  emailBody,
   brandedSurveySettings,
   postPurchaseSettings,
   exitIntentSettings,
@@ -3153,69 +3169,154 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                       </div>
                     )}
 
-                    {/* Discount Section - Only show when submitted and discount enabled */}
-                    {isSubmitted && discountEnabled && (
-                      <div className="text-center">
-                        <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4 space-y-3">
-                          <div className="flex items-center justify-center gap-2">
-                            <span className="text-lg">🎁</span>
-                            <p className="text-lg font-semibold text-purple-800">
-                              Here's your reward!
+                    {/* Discount Section - Only show when submitted, discount enabled, and thank you page delivery */}
+                    {isSubmitted &&
+                      discountEnabled &&
+                      deliveryMethod === "thank_you_page" && (
+                        <div className="text-center">
+                          <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4 space-y-3">
+                            <div className="flex items-center justify-center gap-2">
+                              <p className="text-lg font-semibold text-purple-800">
+                                {rewardTitle}
+                              </p>
+                            </div>
+
+                            <div className="bg-white rounded-lg p-3 border border-purple-200">
+                              <p className="text-sm font-medium text-gray-800 mb-2">
+                                {discountMessage ||
+                                  (discountType === "percentage"
+                                    ? `Enjoy ${discountValue}% off your next purchase!`
+                                    : discountType === "fixed"
+                                    ? `Enjoy $${discountValue} off your next purchase!`
+                                    : "Enjoy free shipping on your next order!")}
+                              </p>
+
+                              {discountCode && (
+                                <div className="bg-gradient-to-r from-purple-100 to-blue-100 rounded-md p-3 border-2 border-dashed border-purple-300">
+                                  <p className="text-xs text-purple-700 mb-1 font-medium">
+                                    Your Discount Code:
+                                  </p>
+                                  <p className="font-mono font-bold text-xl text-purple-900 tracking-wider">
+                                    {discountCode}
+                                  </p>
+                                  <button
+                                    className="mt-2 text-xs text-purple-600 hover:text-purple-800 underline"
+                                    onClick={() =>
+                                      navigator.clipboard.writeText(
+                                        discountCode || ""
+                                      )
+                                    }
+                                  >
+                                    📋 Copy Code
+                                  </button>
+                                </div>
+                              )}
+
+                              {discountDescription && (
+                                <p className="text-xs text-gray-600 mt-2 italic">
+                                  {discountDescription}
+                                </p>
+                              )}
+
+                              {discountExpiryDays && (
+                                <p className="text-xs text-orange-600 mt-2 font-medium">
+                                  ⏰ Expires in {discountExpiryDays} days
+                                </p>
+                              )}
+                            </div>
+
+                            <p className="text-xs text-purple-700">
+                              {deliveryMethod === "email"
+                                ? "A copy has been sent to your email"
+                                : actionMessage}
                             </p>
                           </div>
-
-                          <div className="bg-white rounded-lg p-3 border border-purple-200">
-                            <p className="text-sm font-medium text-gray-800 mb-2">
-                              Enjoy{" "}
-                              {discountType === "percentage"
-                                ? `${discountValue}%`
-                                : `$${discountValue}`}{" "}
-                              off your next purchase!
-                            </p>
-
-                            {discountCode && (
-                              <div className="bg-gradient-to-r from-purple-100 to-blue-100 rounded-md p-3 border-2 border-dashed border-purple-300">
-                                <p className="text-xs text-purple-700 mb-1 font-medium">
-                                  Your Discount Code:
-                                </p>
-                                <p className="font-mono font-bold text-xl text-purple-900 tracking-wider">
-                                  {discountCode}
-                                </p>
-                                <button
-                                  className="mt-2 text-xs text-purple-600 hover:text-purple-800 underline"
-                                  onClick={() =>
-                                    navigator.clipboard.writeText(
-                                      discountCode || ""
-                                    )
-                                  }
-                                >
-                                  📋 Copy Code
-                                </button>
-                              </div>
-                            )}
-
-                            {discountDescription && (
-                              <p className="text-xs text-gray-600 mt-2 italic">
-                                {discountDescription}
-                              </p>
-                            )}
-
-                            {discountExpiryDays && (
-                              <p className="text-xs text-orange-600 mt-2 font-medium">
-                                ⏰ Expires in {discountExpiryDays} days
-                              </p>
-                            )}
-                          </div>
-
-                          <p className="text-xs text-purple-700">
-                            {getDistributionType() === "post-purchase" ||
-                            getDistributionType() === "email-campaign"
-                              ? "A copy has been sent to your email"
-                              : "Save this code for your next purchase"}
-                          </p>
                         </div>
-                      </div>
-                    )}
+                      )}
+
+                    {/* Email Preview - Only show when email delivery is selected and discount enabled */}
+                    {isSubmitted &&
+                      discountEnabled &&
+                      deliveryMethod === "email" && (
+                        <div className="text-center">
+                          <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+                            <div className="text-left">
+                              <h4 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                                📧 Email Preview
+                                <Badge variant="secondary" className="text-xs">
+                                  How your customer will receive it
+                                </Badge>
+                              </h4>
+
+                              {/* Email Header */}
+                              <div className="bg-gray-50 border border-gray-200 rounded-t-lg p-3 text-xs">
+                                <div className="flex justify-between text-gray-600">
+                                  <span>
+                                    <strong>From:</strong> {fromEmail}
+                                  </span>
+                                  <span>
+                                    <strong>To:</strong> customer@example.com
+                                  </span>
+                                </div>
+                                <div className="mt-1 text-gray-800">
+                                  <strong>Subject:</strong> {emailSubject}
+                                </div>
+                              </div>
+
+                              {/* Email Body */}
+                              <div className="bg-white border-l border-r border-b border-gray-200 rounded-b-lg p-4 text-sm min-h-[200px]">
+                                <div
+                                  className="text-gray-800"
+                                  dangerouslySetInnerHTML={{
+                                    __html: emailBody
+                                      ? emailBody
+                                          .replace(
+                                            /\{\{customer\.name\}\}/g,
+                                            "John Doe"
+                                          )
+                                          .replace(
+                                            /\{\{discount\.code\}\}/g,
+                                            discountCode || "SAVE10"
+                                          )
+                                          .replace(
+                                            /\{\{discount\.message\}\}/g,
+                                            discountMessage ||
+                                              (discountType === "percentage"
+                                                ? `${discountValue}% off your next purchase`
+                                                : discountType === "fixed"
+                                                ? `$${discountValue} off your next purchase`
+                                                : "free shipping on your next order")
+                                          )
+                                          .replace(
+                                            /\{\{discount\.expiry\}\}/g,
+                                            discountExpiryDays || "30"
+                                          )
+                                      : `<h2>Congratulations! Here's your exclusive coupon reward</h2>
+
+<p>Dear John Doe,</p>
+
+<p>Thank you for participating in our survey. Your feedback is valuable to us, and we appreciate you taking the time to share your thoughts.</p>
+
+<p>As a token of our gratitude, we would like to offer you a reward that you can use on your next purchase.</p>
+
+<div style="text-align: center; margin: 30px 0;">
+  <div style="background-color: #f8f9fa; border: 2px dashed #dee2e6; border-radius: 8px; padding: 20px; display: inline-block;">
+    <h3 style="margin: 0; font-size: 24px; font-weight: bold; color: #333;">${
+      discountCode || "SAVE10"
+    }</h3>
+  </div>
+</div>
+
+<p style="text-align: center; color: #e74c3c; font-size: 12px;">⚠️ This email is auto-generated. Please don't reply to this email.</p>
+
+<p style="text-align: center; color: #6c757d; font-size: 12px;">If you don't want to receive these emails → <a href="#" style="color: #007bff;">Unsubscribe</a></p>`,
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
 
                     {/* Trust Signals */}
                     {getDistributionType() === "dedicated-survey-page" &&

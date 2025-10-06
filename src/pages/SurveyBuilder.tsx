@@ -658,15 +658,51 @@ const SurveyBuilder = () => {
 
   // Discount Settings
   const [isDiscountEnabled, setIsDiscountEnabled] = useState(false);
-  const [discountType, setDiscountType] = useState<"percentage" | "fixed">(
-    "percentage"
-  );
+  const [discountType, setDiscountType] = useState<
+    "percentage" | "fixed" | "free_shipping"
+  >("percentage");
   const [discountValue, setDiscountValue] = useState("10");
-  const [discountPrefix, setDiscountPrefix] = useState("SURVEY");
+  const [discountCode, setDiscountCode] = useState("SAVE10");
   const [discountExpiry, setDiscountExpiry] = useState("30");
   const [discountDescription, setDiscountDescription] = useState(
     "Thank you! Use this code for 10% off your next purchase"
   );
+
+  // New customizable discount text fields
+  const [rewardTitle, setRewardTitle] = useState("🎁 Here's your reward!");
+  const [discountMessage, setDiscountMessage] = useState(
+    "Enjoy 10% off your next purchase!"
+  );
+  const [actionMessage, setActionMessage] = useState(
+    "Save this code for your next purchase"
+  );
+  const [deliveryMethod, setDeliveryMethod] = useState<
+    "email" | "thank_you_page"
+  >("email");
+
+  // Email configuration state
+  const [fromEmail, setFromEmail] = useState("noreply@yourstore.com");
+  const [emailSubject, setEmailSubject] = useState(
+    "Thank you for taking the survey for MS-Store-Dev-2! Here's your exclusive coupon reward"
+  );
+  const [emailBody, setEmailBody] =
+    useState(`<h2>Congratulations! Here's your exclusive coupon reward</h2>
+
+<p>Dear {{customer.name}},</p>
+
+<p>Thank you for participating in our survey. Your feedback is valuable to us, and we appreciate you taking the time to share your thoughts.</p>
+
+<p>As a token of our gratitude, we would like to offer you a reward that you can use on your next purchase.</p>
+
+<div style="text-align: center; margin: 30px 0;">
+  <div style="background-color: #f8f9fa; border: 2px dashed #dee2e6; border-radius: 8px; padding: 20px; display: inline-block;">
+    <h3 style="margin: 0; font-size: 24px; font-weight: bold; color: #333;">{{discount.code}}</h3>
+  </div>
+</div>
+
+<p style="text-align: center; color: #e74c3c; font-size: 12px;">⚠️ This email is auto-generated. Please don't reply to this email.</p>
+
+<p style="text-align: center; color: #6c757d; font-size: 12px;">If you don't want to receive these emails → <a href="#" style="color: #007bff;">Unsubscribe</a></p>`);
 
   // Product Selection Modal State
   const [showProductModal, setShowProductModal] = useState(false);
@@ -1662,10 +1698,24 @@ const SurveyBuilder = () => {
                       setDiscountValue={setDiscountValue}
                       discountDescription={discountDescription}
                       setDiscountDescription={setDiscountDescription}
-                      discountCode={discountPrefix}
-                      setDiscountCode={setDiscountPrefix}
+                      discountCode={discountCode}
+                      setDiscountCode={setDiscountCode}
                       discountExpiryDays={discountExpiry}
                       setDiscountExpiryDays={setDiscountExpiry}
+                      rewardTitle={rewardTitle}
+                      setRewardTitle={setRewardTitle}
+                      discountMessage={discountMessage}
+                      setDiscountMessage={setDiscountMessage}
+                      actionMessage={actionMessage}
+                      setActionMessage={setActionMessage}
+                      deliveryMethod={deliveryMethod}
+                      setDeliveryMethod={setDeliveryMethod}
+                      fromEmail={fromEmail}
+                      setFromEmail={setFromEmail}
+                      emailSubject={emailSubject}
+                      setEmailSubject={setEmailSubject}
+                      emailBody={emailBody}
+                      setEmailBody={setEmailBody}
                     />
                   </TabsContent>
 
@@ -1711,9 +1761,16 @@ const SurveyBuilder = () => {
                 discountEnabled={isDiscountEnabled}
                 discountType={discountType}
                 discountValue={discountValue}
-                discountCode={discountPrefix}
+                discountCode={discountCode}
                 discountDescription={discountDescription}
                 discountExpiryDays={discountExpiry}
+                rewardTitle={rewardTitle}
+                discountMessage={discountMessage}
+                actionMessage={actionMessage}
+                deliveryMethod={deliveryMethod}
+                fromEmail={fromEmail}
+                emailSubject={emailSubject}
+                emailBody={emailBody}
                 brandedSurveySettings={brandedSurveySettings}
                 postPurchaseSettings={postPurchaseSettings}
                 exitIntentSettings={exitIntentSettings}

@@ -23,6 +23,24 @@ interface DiscountTabRefactoredProps {
   setDiscountCode: (code: string) => void;
   discountExpiryDays: string;
   setDiscountExpiryDays: (days: string) => void;
+
+  // New customization props
+  rewardTitle: string;
+  setRewardTitle: (title: string) => void;
+  discountMessage: string;
+  setDiscountMessage: (message: string) => void;
+  actionMessage: string;
+  setActionMessage: (message: string) => void;
+  deliveryMethod: "email" | "thank_you_page";
+  setDeliveryMethod: (method: "email" | "thank_you_page") => void;
+
+  // Email configuration props
+  fromEmail: string;
+  setFromEmail: (email: string) => void;
+  emailSubject: string;
+  setEmailSubject: (subject: string) => void;
+  emailBody: string;
+  setEmailBody: (body: string) => void;
 }
 
 const DiscountTabRefactored: React.FC<DiscountTabRefactoredProps> = ({
@@ -38,6 +56,20 @@ const DiscountTabRefactored: React.FC<DiscountTabRefactoredProps> = ({
   setDiscountCode,
   discountExpiryDays,
   setDiscountExpiryDays,
+  rewardTitle,
+  setRewardTitle,
+  discountMessage,
+  setDiscountMessage,
+  actionMessage,
+  setActionMessage,
+  deliveryMethod,
+  setDeliveryMethod,
+  fromEmail,
+  setFromEmail,
+  emailSubject,
+  setEmailSubject,
+  emailBody,
+  setEmailBody,
 }) => {
   const [isCollapsed, setIsCollapsed] = React.useState(!isDiscountEnabled);
 
@@ -52,7 +84,10 @@ const DiscountTabRefactored: React.FC<DiscountTabRefactoredProps> = ({
 
   return (
     <div className="p-6 pt-4 space-y-6">
-      <Collapsible open={!isCollapsed} onOpenChange={(open) => setIsCollapsed(!open)}>
+      <Collapsible
+        open={!isCollapsed}
+        onOpenChange={(open) => setIsCollapsed(!open)}
+      >
         <Card
           className={`transition-all duration-300 border-2 ${
             isDiscountEnabled
@@ -77,7 +112,9 @@ const DiscountTabRefactored: React.FC<DiscountTabRefactoredProps> = ({
                 >
                   <Gift
                     className={`w-5 h-5 ${
-                      isDiscountEnabled ? "text-primary" : "text-muted-foreground"
+                      isDiscountEnabled
+                        ? "text-primary"
+                        : "text-muted-foreground"
                     }`}
                   />
                 </div>
@@ -129,6 +166,20 @@ const DiscountTabRefactored: React.FC<DiscountTabRefactoredProps> = ({
                 setDiscountExpiryDays={setDiscountExpiryDays}
                 discountDescription={discountDescription}
                 setDiscountDescription={setDiscountDescription}
+                rewardTitle={rewardTitle}
+                setRewardTitle={setRewardTitle}
+                discountMessage={discountMessage}
+                setDiscountMessage={setDiscountMessage}
+                actionMessage={actionMessage}
+                setActionMessage={setActionMessage}
+                deliveryMethod={deliveryMethod}
+                setDeliveryMethod={setDeliveryMethod}
+                fromEmail={fromEmail}
+                setFromEmail={setFromEmail}
+                emailSubject={emailSubject}
+                setEmailSubject={setEmailSubject}
+                emailBody={emailBody}
+                setEmailBody={setEmailBody}
               />
             </CardContent>
           </CollapsibleContent>
