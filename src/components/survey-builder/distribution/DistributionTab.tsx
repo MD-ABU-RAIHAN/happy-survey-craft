@@ -250,6 +250,7 @@ interface EmailCampaignSettings {
   };
   button: {
     enabled: boolean;
+    text: string;
     backgroundColor: string;
     textColor: string;
     borderRadius: number;

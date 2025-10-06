@@ -389,6 +389,7 @@ interface EmailCampaignSettings {
   };
   button: {
     enabled: boolean;
+    text: string;
     backgroundColor: string;
     textColor: string;
     borderRadius: number;
@@ -2095,7 +2096,7 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                         display: "inline-block",
                       }}
                     >
-                      Take Survey Now
+                      {emailCampaignSettings?.button?.text || "Take Survey"}
                     </a>
                   </div>
 

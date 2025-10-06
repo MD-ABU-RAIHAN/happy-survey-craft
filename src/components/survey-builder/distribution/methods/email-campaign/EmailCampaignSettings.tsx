@@ -81,6 +81,7 @@ interface EmailCampaignSettings {
   multipleSends: "once-per-email" | "once-per-order";
   button: {
     enabled: boolean;
+    text: string;
     backgroundColor: string;
     textColor: string;
     borderRadius: number;
@@ -787,46 +788,37 @@ const EmailCampaignSettingsRefactored: React.FC<
         title="Button Customization"
         description="Customize the survey button appearance"
       >
-        <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-4">
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Background Color</Label>
-            <div className="flex items-center gap-2">
+            <Label className="text-sm font-medium">Button Text</Label>
+            <Input
+              type="text"
+              value={settings.button.text}
+              onChange={(e) => updateSetting("button.text", e.target.value)}
+              placeholder="Enter button text"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Background Color</Label>
               <Input
                 type="color"
                 value={settings.button.backgroundColor}
                 onChange={(e) =>
                   updateSetting("button.backgroundColor", e.target.value)
                 }
-                className="w-16 h-10 p-1 cursor-pointer"
-              />
-              <Input
-                type="text"
-                value={settings.button.backgroundColor}
-                onChange={(e) =>
-                  updateSetting("button.backgroundColor", e.target.value)
-                }
-                className="flex-1"
+                className="w-full h-10 p-1 cursor-pointer"
               />
             </div>
-          </div>
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Text Color</Label>
-            <div className="flex items-center gap-2">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Text Color</Label>
               <Input
                 type="color"
                 value={settings.button.textColor}
                 onChange={(e) =>
                   updateSetting("button.textColor", e.target.value)
                 }
-                className="w-16 h-10 p-1 cursor-pointer"
-              />
-              <Input
-                type="text"
-                value={settings.button.textColor}
-                onChange={(e) =>
-                  updateSetting("button.textColor", e.target.value)
-                }
-                className="flex-1"
+                className="w-full h-10 p-1 cursor-pointer"
               />
             </div>
           </div>

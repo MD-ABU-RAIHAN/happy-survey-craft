@@ -328,6 +328,7 @@ interface ExitIntentSettings {
   // Button customization
   button: {
     enabled: boolean;
+    text: string;
     backgroundColor: string;
     textColor: string;
     borderRadius: number;
@@ -411,6 +412,7 @@ interface EmailCampaignSettings {
   // Button customization
   button: {
     enabled: boolean;
+    text: string;
     backgroundColor: string;
     textColor: string;
     borderRadius: number;
@@ -505,6 +507,7 @@ interface OnSitePopupSettings {
   // Button customization
   button: {
     enabled: boolean;
+    text: string;
     backgroundColor: string;
     textColor: string;
     borderRadius: number;
@@ -802,6 +805,7 @@ const SurveyBuilder = () => {
       },
       button: {
         enabled: true,
+        text: "Take Survey",
         backgroundColor: "#3b82f6",
         textColor: "#ffffff",
         borderRadius: 8,
@@ -880,6 +884,7 @@ const SurveyBuilder = () => {
       multipleSends: "once-per-order",
       button: {
         enabled: true,
+        text: "Take Survey",
         backgroundColor: "#3b82f6",
         textColor: "#ffffff",
         borderRadius: 8,
@@ -974,6 +979,7 @@ const SurveyBuilder = () => {
       },
       button: {
         enabled: true,
+        text: "Take Survey",
         backgroundColor: "#3b82f6",
         textColor: "#ffffff",
         borderRadius: 8,
@@ -1390,6 +1396,7 @@ const SurveyBuilder = () => {
       },
       button: {
         enabled: true,
+        text: "Take Survey",
         backgroundColor: "#3b82f6",
         textColor: "#ffffff",
         borderRadius: 8,
