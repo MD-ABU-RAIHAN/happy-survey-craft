@@ -655,7 +655,15 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
       }
     });
     return map;
-  }, [JSON.stringify(questions.map(q => ({ id: q.id, randomize: q.randomizeOptions, opts: q.options })))]);
+  }, [
+    JSON.stringify(
+      questions.map((q) => ({
+        id: q.id,
+        randomize: q.randomizeOptions,
+        opts: q.options,
+      }))
+    ),
+  ]);
 
   // Get display options (shuffled if randomize is enabled)
   const getDisplayOptions = (question: SurveyQuestion): string[] => {
@@ -1215,7 +1223,7 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
       case "email-campaign":
         return "We value your feedback";
       case "dedicated-survey-page":
-        return "Customer Survey";
+        return brandedSurveySettings?.title || "Customer Survey";
       default:
         return "Customer Survey";
     }
@@ -1233,7 +1241,10 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
       case "email-campaign":
         return "Your feedback helps us serve you better";
       case "dedicated-survey-page":
-        return "Please take a moment to answer our questions";
+        return (
+          brandedSurveySettings?.introductionText ||
+          "Please take a moment to answer our questions"
+        );
       default:
         return "Please answer a few quick questions";
     }

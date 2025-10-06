@@ -790,10 +790,16 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                                   {question.imageUrl && (
                                     <div className="grid grid-cols-2 gap-4 pt-3">
                                       <div className="space-y-2">
-                                        <Label className="text-sm">Image Alignment</Label>
+                                        <Label className="text-sm">
+                                          Image Alignment
+                                        </Label>
                                         <Select
-                                          value={question.imageAlignment || "center"}
-                                          onValueChange={(value: "left" | "center" | "right") =>
+                                          value={
+                                            question.imageAlignment || "center"
+                                          }
+                                          onValueChange={(
+                                            value: "left" | "center" | "right"
+                                          ) =>
                                             updateQuestion(question.id, {
                                               imageAlignment: value,
                                             })
@@ -803,14 +809,22 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                                             <SelectValue />
                                           </SelectTrigger>
                                           <SelectContent>
-                                            <SelectItem value="left">Left</SelectItem>
-                                            <SelectItem value="center">Center</SelectItem>
-                                            <SelectItem value="right">Right</SelectItem>
+                                            <SelectItem value="left">
+                                              Left
+                                            </SelectItem>
+                                            <SelectItem value="center">
+                                              Center
+                                            </SelectItem>
+                                            <SelectItem value="right">
+                                              Right
+                                            </SelectItem>
                                           </SelectContent>
                                         </Select>
                                       </div>
                                       <div className="space-y-2">
-                                        <Label className="text-sm">Image Width (%)</Label>
+                                        <Label className="text-sm">
+                                          Image Width (%)
+                                        </Label>
                                         <Input
                                           type="number"
                                           min="10"
@@ -818,7 +832,8 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                                           value={question.imageWidth || 100}
                                           onChange={(e) =>
                                             updateQuestion(question.id, {
-                                              imageWidth: parseInt(e.target.value) || 100,
+                                              imageWidth:
+                                                parseInt(e.target.value) || 100,
                                             })
                                           }
                                           placeholder="100"
@@ -827,6 +842,39 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                                     </div>
                                   )}
                                 </div>
+                                {/* Single Choice Display Type - MOVED HERE */}
+                                {question.type === "single-choice" && (
+                                  <div className="space-y-2">
+                                    <Label className="text-sm font-medium">
+                                      Display Type
+                                    </Label>
+                                    <Select
+                                      value={
+                                        question.singleChoiceDisplayType ||
+                                        "radio"
+                                      }
+                                      onValueChange={(
+                                        value: "radio" | "dropdown"
+                                      ) =>
+                                        updateQuestion(question.id, {
+                                          singleChoiceDisplayType: value,
+                                        })
+                                      }
+                                    >
+                                      <SelectTrigger>
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="radio">
+                                          Radio Button
+                                        </SelectItem>
+                                        <SelectItem value="dropdown">
+                                          Dropdown
+                                        </SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                )}
                                 {question.type === "text" && (
                                   <div className="space-y-4">
                                     <div className="space-y-2">
@@ -1274,60 +1322,25 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                                         Add Option
                                       </Button>
 
-                                      {/* Show randomly checkbox */}
-                                      <div className="flex items-center space-x-2 pt-2">
-                                        <Checkbox
-                                          id={`randomize-${question.id}`}
-                                          checked={question.randomizeOptions || false}
+                                      {/* Show randomly with SlimSwitch */}
+                                      <div className="flex items-center justify-between pt-2">
+                                        <Label className="text-sm font-normal">
+                                          Show randomly
+                                        </Label>
+                                        <SlimSwitch
+                                          checked={
+                                            question.randomizeOptions || false
+                                          }
                                           onCheckedChange={(checked) =>
                                             updateQuestion(question.id, {
-                                              randomizeOptions: checked === true,
+                                              randomizeOptions: checked,
                                             })
                                           }
                                         />
-                                        <Label
-                                          htmlFor={`randomize-${question.id}`}
-                                          className="text-sm font-normal cursor-pointer"
-                                        >
-                                          Show randomly
-                                        </Label>
                                       </div>
                                     </div>
                                   )}
                                 {/* Custom Answer Section for Multiple Choice and Single Choice */}
-                                {/* Single Choice Display Type */}
-                                {question.type === "single-choice" && (
-                                  <div className="space-y-2">
-                                    <Label className="text-sm font-medium">
-                                      Display Type
-                                    </Label>
-                                    <Select
-                                      value={
-                                        question.singleChoiceDisplayType ||
-                                        "radio"
-                                      }
-                                      onValueChange={(
-                                        value: "radio" | "dropdown"
-                                      ) =>
-                                        updateQuestion(question.id, {
-                                          singleChoiceDisplayType: value,
-                                        })
-                                      }
-                                    >
-                                      <SelectTrigger>
-                                        <SelectValue />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="radio">
-                                          Radio Button
-                                        </SelectItem>
-                                        <SelectItem value="dropdown">
-                                          Dropdown
-                                        </SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-                                )}
                                 {(question.type === "multiple-choice" ||
                                   question.type === "single-choice") && (
                                   <div className="pt-4 border-t border-muted/50 space-y-4">

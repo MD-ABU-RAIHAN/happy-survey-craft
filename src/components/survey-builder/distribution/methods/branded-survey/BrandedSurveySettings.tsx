@@ -1,12 +1,16 @@
 import React from "react";
 import {
   SurveyUrlSection,
+  SurveyContentSection,
   LogoSettings,
   SimplifiedCustomization,
 } from "./components";
 
 interface BrandedSurveySettings {
   customUrl: string;
+  title: string;
+  pageTitle: string;
+  introductionText: string;
   headerLogo: { enabled: boolean; url: string; width: number; height: number };
   button: {
     enabled: boolean;
@@ -106,6 +110,15 @@ const BrandedSurveySettingsRefactored: React.FC<
         }}
         onCopyUrl={onCopyUrl}
         copiedUrl={copiedUrl}
+      />
+
+      <SurveyContentSection
+        settings={{
+          title: settings.title,
+          pageTitle: settings.pageTitle,
+          introductionText: settings.introductionText,
+        }}
+        onSettingsChange={updateSetting}
       />
 
       <LogoSettings

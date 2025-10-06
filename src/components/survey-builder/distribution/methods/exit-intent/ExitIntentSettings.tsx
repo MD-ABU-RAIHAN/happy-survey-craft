@@ -440,7 +440,7 @@ const ExitIntentSettingsRefactored: React.FC<
               <SelectItem value="cart-has-products">
                 Cart has Products
               </SelectItem>
-              <SelectItem value="show-always">Show no matter what</SelectItem>
+              <SelectItem value="show-always">Always Display</SelectItem>
             </SelectContent>
           </Select>
         </div>

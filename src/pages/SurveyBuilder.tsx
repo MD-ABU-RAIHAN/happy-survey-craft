@@ -147,6 +147,11 @@ interface BrandedSurveySettings {
   // Auto-generated page link
   customUrl: string;
 
+  // Survey Content
+  title: string;
+  pageTitle: string;
+  introductionText: string;
+
   // Header Logo (Brand Logo)
   headerLogo: {
     enabled: boolean;
@@ -385,7 +390,6 @@ interface EmailCampaignSettings {
   emailConfig: {
     delayAfter: number; // in days
     sendFrom: string;
-    blockDuplicate: number; // in days
   };
 
   // Header Logo
@@ -672,6 +676,9 @@ const SurveyBuilder = () => {
   const [brandedSurveySettings, setBrandedSurveySettings] =
     useState<BrandedSurveySettings>({
       customUrl: `survey-${Math.random().toString(36).substring(2, 8)}`,
+      title: "Customer Survey",
+      pageTitle: "Customer Survey",
+      introductionText: "Please take a moment to answer our questions",
       headerLogo: {
         enabled: false,
         url: "",
@@ -846,8 +853,8 @@ const SurveyBuilder = () => {
         },
       },
       emailConfig: {
+        delayAfter: 3,
         sendFrom: "",
-        blockDuplicate: 1, // 1 day default
       },
       brandLogo: {
         enabled: false,
@@ -1158,6 +1165,11 @@ const SurveyBuilder = () => {
 
   // Distribution helper functions
   const toggleDistribution = (distributionId: string) => {
+    // Prevent disabling the dedicated-survey-page - it should always be enabled
+    if (distributionId === "dedicated-survey-page") {
+      return; // Do nothing if trying to toggle dedicated survey page
+    }
+
     setEnabledDistributions((prev) => {
       const isCurrentlyEnabled = prev.includes(distributionId);
       if (isCurrentlyEnabled) {
@@ -1359,7 +1371,6 @@ const SurveyBuilder = () => {
       emailConfig: {
         delayAfter: 7,
         sendFrom: "",
-        blockDuplicate: 30,
       },
       headerLogo: {
         enabled: false,

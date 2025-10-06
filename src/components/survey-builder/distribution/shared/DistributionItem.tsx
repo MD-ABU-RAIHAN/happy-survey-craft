@@ -3,6 +3,12 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CustomSwitch } from "@/components/ui/custom-switch";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
@@ -26,6 +32,7 @@ interface DistributionItemProps {
   onToggleEnabled: () => void;
   onToggleCollapsed: () => void;
   children?: React.ReactNode;
+  isAlwaysEnabled?: boolean; // New prop to make switch non-interactive
 }
 
 const DistributionItem: React.FC<DistributionItemProps> = ({
@@ -35,6 +42,7 @@ const DistributionItem: React.FC<DistributionItemProps> = ({
   onToggleEnabled,
   onToggleCollapsed,
   children,
+  isAlwaysEnabled = false, // Default to false for backward compatibility
 }) => {
   const IconComponent = distribution.icon;
 
@@ -76,7 +84,7 @@ const DistributionItem: React.FC<DistributionItemProps> = ({
                       variant="secondary"
                       className="text-xs bg-primary/10 text-primary"
                     >
-                      Active
+                      {isAlwaysEnabled ? "Always Active" : "Active"}
                     </Badge>
                   ) : (
                     <Badge
@@ -93,7 +101,35 @@ const DistributionItem: React.FC<DistributionItemProps> = ({
               </div>
             </div>
             <div className="flex items-center">
-              <CustomSwitch checked={isEnabled} onCheckedChange={onToggleEnabled} />
+              {isAlwaysEnabled ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div>
+                        <CustomSwitch
+                          checked={isEnabled}
+                          onCheckedChange={undefined}
+                          disabled={true}
+                          className="opacity-75 cursor-help"
+                        />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="left" className="max-w-xs">
+                      <p className="text-sm">
+                        The Dedicated Survey Page is your primary distribution
+                        method and cannot be disabled. It provides a standalone
+                        URL for your survey that's always accessible to
+                        respondents.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
+                <CustomSwitch
+                  checked={isEnabled}
+                  onCheckedChange={onToggleEnabled}
+                />
+              )}
             </div>
           </div>
         </CardHeader>

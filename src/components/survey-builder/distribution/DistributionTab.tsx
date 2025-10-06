@@ -501,6 +501,7 @@ const DistributionTabRefactored: React.FC<DistributionTabRefactoredProps> = ({
         {distributionTypes.map((distribution) => {
           const isEnabled = enabledDistributions.includes(distribution.id);
           const isCollapsed = expandedDistributionId !== distribution.id;
+          const isAlwaysEnabled = distribution.id === "dedicated-survey-page";
 
           return (
             <DistributionItem
@@ -510,6 +511,7 @@ const DistributionTabRefactored: React.FC<DistributionTabRefactoredProps> = ({
               isCollapsed={isCollapsed}
               onToggleEnabled={() => onToggleDistribution(distribution.id)}
               onToggleCollapsed={() => onToggleCollapsed(distribution.id)}
+              isAlwaysEnabled={isAlwaysEnabled}
             >
               {renderDistributionContent(distribution)}
             </DistributionItem>

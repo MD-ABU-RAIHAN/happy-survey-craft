@@ -60,7 +60,6 @@ interface EmailCampaignSettings {
   };
   emailConfig: {
     sendFrom: string;
-    blockDuplicate: number;
   };
   brandLogo: {
     enabled: boolean;
@@ -281,9 +280,9 @@ const EmailCampaignSettingsRefactored: React.FC<
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="placed">Placed</SelectItem>
-                <SelectItem value="fulfilled">Fulfilled</SelectItem>
-                <SelectItem value="delivered">Delivered</SelectItem>
+                <SelectItem value="placed">Order Placed</SelectItem>
+                <SelectItem value="fulfilled">Order Fulfilled</SelectItem>
+                <SelectItem value="delivered">Order Delivered</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -512,50 +511,55 @@ const EmailCampaignSettingsRefactored: React.FC<
                   </div>
                 </div>
               )}
-
-              {/* Minimum Order Value Section - Always visible */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label className="text-sm">Minimum Order Value</Label>
-                  <SlimSwitch
-                    checked={settings.userTargeting.minimumOrderValue.enabled}
-                    onCheckedChange={(checked) =>
-                      updateSetting(
-                        "userTargeting.minimumOrderValue.enabled",
-                        checked === true
-                      )
-                    }
-                  />
-                </div>
-                {settings.userTargeting.minimumOrderValue.enabled && (
-                  <div className="pl-6">
-                    <div className="space-y-2">
-                      <Label className="text-xs text-muted-foreground">
-                        Amount ($)
-                      </Label>
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={settings.userTargeting.minimumOrderValue.amount}
-                        onChange={(e) =>
-                          updateSetting(
-                            "userTargeting.minimumOrderValue.amount",
-                            parseFloat(e.target.value)
-                          )
-                        }
-                        placeholder="0.00"
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* 3. Email Configuration */}
+      {/* 3. Minimum Order Value Section */}
+      <SectionCard
+        icon={<Users className="w-5 h-5 text-purple-600" />}
+        title="Minimum Order Value"
+        description="Set minimum order value requirement"
+      >
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium">
+              Enable Minimum Order Value
+            </Label>
+            <SlimSwitch
+              checked={settings.userTargeting.minimumOrderValue.enabled}
+              onCheckedChange={(checked) =>
+                updateSetting(
+                  "userTargeting.minimumOrderValue.enabled",
+                  checked === true
+                )
+              }
+            />
+          </div>
+          {settings.userTargeting.minimumOrderValue.enabled && (
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Amount ($)</Label>
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                value={settings.userTargeting.minimumOrderValue.amount}
+                onChange={(e) =>
+                  updateSetting(
+                    "userTargeting.minimumOrderValue.amount",
+                    parseFloat(e.target.value)
+                  )
+                }
+                placeholder="0.00"
+                className="max-w-xs"
+              />
+            </div>
+          )}
+        </div>
+      </SectionCard>
+
+      {/* 4. Email Configuration */}
       <SectionCard
         icon={<Mail className="w-5 h-5 text-green-600" />}
         title="Email Configuration"
@@ -573,27 +577,10 @@ const EmailCampaignSettingsRefactored: React.FC<
               placeholder="noreply@yourstore.com"
             />
           </div>
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">
-              Block Duplicate (days)
-            </Label>
-            <Input
-              type="number"
-              min="1"
-              max="365"
-              value={settings.emailConfig.blockDuplicate}
-              onChange={(e) =>
-                updateSetting(
-                  "emailConfig.blockDuplicate",
-                  parseInt(e.target.value)
-                )
-              }
-            />
-          </div>
         </div>
       </SectionCard>
 
-      {/* 4. Email Content with Brand Logo */}
+      {/* 5. Email Content with Brand Logo */}
       <SectionCard
         icon={<Mail className="w-5 h-5 text-blue-600" />}
         title="Email Template Design"
