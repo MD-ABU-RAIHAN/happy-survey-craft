@@ -66,6 +66,8 @@ interface SurveyQuestion {
   placeholder?: string;
   imageUrl?: string;
   imageName?: string;
+  imageAlignment?: "left" | "center" | "right";
+  imageWidth?: number;
   customAnswer?: {
     enabled: boolean;
     otherLabel: string;
@@ -87,6 +89,8 @@ interface SurveyQuestion {
   };
   // Single choice display type
   singleChoiceDisplayType?: "radio" | "dropdown";
+  // Randomize options
+  randomizeOptions?: boolean;
 }
 
 interface QuestionBuilderProps {
@@ -781,6 +785,47 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                                       />
                                     </div>
                                   )}
+
+                                  {/* Image Alignment & Width Options */}
+                                  {question.imageUrl && (
+                                    <div className="grid grid-cols-2 gap-4 pt-3">
+                                      <div className="space-y-2">
+                                        <Label className="text-sm">Image Alignment</Label>
+                                        <Select
+                                          value={question.imageAlignment || "center"}
+                                          onValueChange={(value: "left" | "center" | "right") =>
+                                            updateQuestion(question.id, {
+                                              imageAlignment: value,
+                                            })
+                                          }
+                                        >
+                                          <SelectTrigger>
+                                            <SelectValue />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            <SelectItem value="left">Left</SelectItem>
+                                            <SelectItem value="center">Center</SelectItem>
+                                            <SelectItem value="right">Right</SelectItem>
+                                          </SelectContent>
+                                        </Select>
+                                      </div>
+                                      <div className="space-y-2">
+                                        <Label className="text-sm">Image Width (%)</Label>
+                                        <Input
+                                          type="number"
+                                          min="10"
+                                          max="100"
+                                          value={question.imageWidth || 100}
+                                          onChange={(e) =>
+                                            updateQuestion(question.id, {
+                                              imageWidth: parseInt(e.target.value) || 100,
+                                            })
+                                          }
+                                          placeholder="100"
+                                        />
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
                                 {question.type === "text" && (
                                   <div className="space-y-4">
@@ -1228,6 +1273,25 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                                         <Plus className="w-4 h-4 mr-2" />
                                         Add Option
                                       </Button>
+
+                                      {/* Show randomly checkbox */}
+                                      <div className="flex items-center space-x-2 pt-2">
+                                        <Checkbox
+                                          id={`randomize-${question.id}`}
+                                          checked={question.randomizeOptions || false}
+                                          onCheckedChange={(checked) =>
+                                            updateQuestion(question.id, {
+                                              randomizeOptions: checked === true,
+                                            })
+                                          }
+                                        />
+                                        <Label
+                                          htmlFor={`randomize-${question.id}`}
+                                          className="text-sm font-normal cursor-pointer"
+                                        >
+                                          Show randomly
+                                        </Label>
+                                      </div>
                                     </div>
                                   )}
                                 {/* Custom Answer Section for Multiple Choice and Single Choice */}

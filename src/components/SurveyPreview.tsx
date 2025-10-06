@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -54,6 +54,9 @@ interface SurveyQuestion {
   dateFormat?: "MM/DD/YYYY" | "DD/MM/YYYY" | "YYYY-MM-DD";
   textInputType?: "single-line" | "multi-line";
   singleChoiceDisplayType?: "radio" | "dropdown";
+  randomizeOptions?: boolean;
+  imageAlignment?: "left" | "center" | "right";
+  imageWidth?: number;
   // Satisfaction properties
   satisfactionEmojis?: string[];
   // Point scale properties
@@ -632,6 +635,36 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Helper function to shuffle array
+  const shuffleArray = <T,>(array: T[]): T[] => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
+
+  // Memoized randomized options for each question
+  const randomizedOptionsMap = useMemo(() => {
+    const map = new Map<string, string[]>();
+    questions.forEach((question) => {
+      if (question.options && question.randomizeOptions) {
+        map.set(question.id, shuffleArray(question.options));
+      }
+    });
+    return map;
+  }, [JSON.stringify(questions.map(q => ({ id: q.id, randomize: q.randomizeOptions, opts: q.options })))]);
+
+  // Get display options (shuffled if randomize is enabled)
+  const getDisplayOptions = (question: SurveyQuestion): string[] => {
+    if (!question.options) return [];
+    if (question.randomizeOptions && randomizedOptionsMap.has(question.id)) {
+      return randomizedOptionsMap.get(question.id)!;
+    }
+    return question.options;
+  };
 
   // Calculate pagination
   const totalPages = paginationEnabled
@@ -1471,7 +1504,7 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
         <div className="ml-6 space-y-2">
           {question.type === "multiple-choice" && question.options && (
             <div className="space-y-2">
-              {question.options.map((option, optionIndex) => (
+              {getDisplayOptions(question).map((option, optionIndex) => (
                 <div key={optionIndex} className="flex items-center space-x-2">
                   <div className="w-3 h-3 border border-muted-foreground rounded-sm"></div>
                   <span className="text-sm text-muted-foreground">
@@ -1492,7 +1525,7 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
               ) : (
                 // Radio button preview
                 <>
-                  {question.options.map((option, optionIndex) => (
+                  {getDisplayOptions(question).map((option, optionIndex) => (
                     <div
                       key={optionIndex}
                       className="flex items-center space-x-2"
