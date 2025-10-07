@@ -11,7 +11,13 @@ interface BrandedSurveySettings {
   title: string;
   pageTitle: string;
   introductionText: string;
-  headerLogo: { enabled: boolean; url: string; width: number; height: number };
+  headerLogo: {
+    enabled: boolean;
+    url: string;
+    width: number;
+    height: number;
+    position?: "left" | "center" | "right";
+  };
   button: {
     enabled: boolean;
     backgroundColor: string;

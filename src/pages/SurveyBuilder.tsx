@@ -680,6 +680,12 @@ const SurveyBuilder = () => {
     "email" | "thank_you_page"
   >("email");
 
+  // Banner configuration state
+  const [showDiscountBanner, setShowDiscountBanner] = useState(false);
+  const [discountBannerMessage, setDiscountBannerMessage] = useState(
+    "Complete this quick survey and get cupon code for your next order!"
+  );
+
   // Email configuration state
   const [fromEmail, setFromEmail] = useState("noreply@yourstore.com");
   const [emailSubject, setEmailSubject] = useState(
@@ -1716,6 +1722,10 @@ const SurveyBuilder = () => {
                       setEmailSubject={setEmailSubject}
                       emailBody={emailBody}
                       setEmailBody={setEmailBody}
+                      showDiscountBanner={showDiscountBanner}
+                      setShowDiscountBanner={setShowDiscountBanner}
+                      discountBannerMessage={discountBannerMessage}
+                      setDiscountBannerMessage={setDiscountBannerMessage}
                     />
                   </TabsContent>
 
@@ -1768,6 +1778,8 @@ const SurveyBuilder = () => {
                 discountMessage={discountMessage}
                 actionMessage={actionMessage}
                 deliveryMethod={deliveryMethod}
+                showDiscountBanner={showDiscountBanner}
+                discountBannerMessage={discountBannerMessage}
                 fromEmail={fromEmail}
                 emailSubject={emailSubject}
                 emailBody={emailBody}

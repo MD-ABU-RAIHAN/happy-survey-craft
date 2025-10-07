@@ -59,6 +59,11 @@ interface DiscountConfigurationProps {
   setEmailBody: (body: string) => void;
   fromEmail: string;
   setFromEmail: (email: string) => void;
+  // Banner configuration props
+  showDiscountBanner?: boolean;
+  setShowDiscountBanner?: (show: boolean) => void;
+  discountBannerMessage?: string;
+  setDiscountBannerMessage?: (message: string) => void;
 }
 
 type DiscountSource = "merchant" | "app";
@@ -90,6 +95,11 @@ const DiscountConfiguration: React.FC<DiscountConfigurationProps> = ({
   setEmailBody,
   fromEmail,
   setFromEmail,
+  // Banner props
+  showDiscountBanner,
+  setShowDiscountBanner,
+  discountBannerMessage,
+  setDiscountBannerMessage,
 }) => {
   // Local state for discount configuration
   const [discountSource, setDiscountSource] = useState<DiscountSource>("app");
@@ -424,6 +434,50 @@ const DiscountConfiguration: React.FC<DiscountConfigurationProps> = ({
               </div>
             </div>
           </RadioGroup>
+        </CardContent>
+      </Card>
+
+      {/* Discount Banner Configuration */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            🎯 Survey Discount Banner
+          </CardTitle>
+          <CardDescription>
+            Show participants there's a discount available before they start the
+            survey
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium">Show Discount Banner</p>
+              <p className="text-sm text-muted-foreground">
+                Display incentive message to motivate survey completion
+              </p>
+            </div>
+            <SlimSwitch
+              checked={showDiscountBanner || false}
+              onCheckedChange={(checked) => setShowDiscountBanner?.(checked)}
+            />
+          </div>
+
+          {showDiscountBanner && (
+            <div className="space-y-4 pt-4 border-t border-muted/50">
+              <div className="space-y-2">
+                <Label>Banner Message</Label>
+                <Input
+                  value={discountBannerMessage || ""}
+                  onChange={(e) => setDiscountBannerMessage?.(e.target.value)}
+                  placeholder="Complete this quick survey and get cupon code for your next order!"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Use {"{{"} discount.value {"}"} for dynamic discount amount
+                  (e.g., "10%" or "$5")
+                </p>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

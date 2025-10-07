@@ -41,6 +41,11 @@ interface DiscountTabRefactoredProps {
   setEmailSubject: (subject: string) => void;
   emailBody: string;
   setEmailBody: (body: string) => void;
+  // Banner configuration props
+  showDiscountBanner?: boolean;
+  setShowDiscountBanner?: (show: boolean) => void;
+  discountBannerMessage?: string;
+  setDiscountBannerMessage?: (message: string) => void;
 }
 
 const DiscountTabRefactored: React.FC<DiscountTabRefactoredProps> = ({
@@ -70,6 +75,11 @@ const DiscountTabRefactored: React.FC<DiscountTabRefactoredProps> = ({
   setEmailSubject,
   emailBody,
   setEmailBody,
+  // Banner props
+  showDiscountBanner,
+  setShowDiscountBanner,
+  discountBannerMessage,
+  setDiscountBannerMessage,
 }) => {
   const [isCollapsed, setIsCollapsed] = React.useState(!isDiscountEnabled);
 
@@ -180,6 +190,10 @@ const DiscountTabRefactored: React.FC<DiscountTabRefactoredProps> = ({
                 setEmailSubject={setEmailSubject}
                 emailBody={emailBody}
                 setEmailBody={setEmailBody}
+                showDiscountBanner={showDiscountBanner}
+                setShowDiscountBanner={setShowDiscountBanner}
+                discountBannerMessage={discountBannerMessage}
+                setDiscountBannerMessage={setDiscountBannerMessage}
               />
             </CardContent>
           </CollapsibleContent>

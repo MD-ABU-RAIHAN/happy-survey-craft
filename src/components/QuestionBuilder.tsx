@@ -32,6 +32,7 @@ import {
   Trash2,
   Copy,
   Plus,
+  Minus,
   Type,
   CheckSquare,
   Star,
@@ -79,6 +80,14 @@ interface SurveyQuestion {
   textInputType?: "single-line" | "multi-line";
   // Satisfaction properties
   satisfactionEmojis?: string[];
+  satisfactionLabels?: {
+    lowLabel: string;
+    highLabel: string;
+  };
+  // Rating scale properties
+  ratingScale?: {
+    max: number;
+  };
   // Point scale properties
   pointScale?: {
     min: number;
@@ -979,6 +988,85 @@ const QuestionBuilder: React.FC<QuestionBuilderProps> = ({
                                       <p className="text-xs text-muted-foreground text-center">
                                         Click on each emoji field to customize
                                         the satisfaction levels (1-5 scale)
+                                      </p>
+
+                                      {/* Satisfaction Labels */}
+                                      <div className="grid grid-cols-2 gap-4 pt-4 border-t border-muted/50">
+                                        <div className="space-y-2">
+                                          <Label className="text-sm font-medium">
+                                            Very Dissatisfied Label
+                                          </Label>
+                                          <Input
+                                            value={
+                                              question.satisfactionLabels
+                                                ?.lowLabel || ""
+                                            }
+                                            onChange={(e) =>
+                                              updateQuestion(question.id, {
+                                                satisfactionLabels: {
+                                                  lowLabel: e.target.value,
+                                                  highLabel:
+                                                    question.satisfactionLabels
+                                                      ?.highLabel || "",
+                                                },
+                                              })
+                                            }
+                                            placeholder="Very Dissatisfied"
+                                          />
+                                        </div>
+                                        <div className="space-y-2">
+                                          <Label className="text-sm font-medium">
+                                            Very Satisfied Label
+                                          </Label>
+                                          <Input
+                                            value={
+                                              question.satisfactionLabels
+                                                ?.highLabel || ""
+                                            }
+                                            onChange={(e) =>
+                                              updateQuestion(question.id, {
+                                                satisfactionLabels: {
+                                                  lowLabel:
+                                                    question.satisfactionLabels
+                                                      ?.lowLabel || "",
+                                                  highLabel: e.target.value,
+                                                },
+                                              })
+                                            }
+                                            placeholder="Very Satisfied"
+                                          />
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                                {/* Rating Scale Configuration */}
+                                {question.type === "rating" && (
+                                  <div className="space-y-4">
+                                    <Label className="text-sm font-medium">
+                                      Rating Scale Configuration
+                                    </Label>
+                                    <div className="space-y-2">
+                                      <Label className="text-sm font-medium">
+                                        Number of Stars
+                                      </Label>
+                                      <Input
+                                        type="number"
+                                        min="1"
+                                        max="10"
+                                        value={question.ratingScale?.max || 5}
+                                        onChange={(e) =>
+                                          updateQuestion(question.id, {
+                                            ratingScale: {
+                                              max:
+                                                parseInt(e.target.value) || 5,
+                                            },
+                                          })
+                                        }
+                                        placeholder="5"
+                                      />
+                                      <p className="text-xs text-muted-foreground">
+                                        Set the maximum number of stars (1-10)
                                       </p>
                                     </div>
                                   </div>

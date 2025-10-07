@@ -59,6 +59,14 @@ interface SurveyQuestion {
   imageWidth?: number;
   // Satisfaction properties
   satisfactionEmojis?: string[];
+  satisfactionLabels?: {
+    lowLabel: string;
+    highLabel: string;
+  };
+  // Rating scale properties
+  ratingScale?: {
+    max: number;
+  };
   // Point scale properties
   pointScale?: {
     min: number;
@@ -583,6 +591,9 @@ interface SurveyPreviewProps {
   discountMessage?: string;
   actionMessage?: string;
   deliveryMethod?: "email" | "thank_you_page";
+  // Banner configuration props
+  showDiscountBanner?: boolean;
+  discountBannerMessage?: string;
   // Email configuration props
   fromEmail?: string;
   emailSubject?: string;
@@ -622,6 +633,10 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
   discountMessage,
   actionMessage = "Save this code for your next purchase",
   deliveryMethod = "email" as "email" | "thank_you_page",
+  // Banner props
+  showDiscountBanner,
+  discountBannerMessage,
+  // Email props
   fromEmail = "noreply@yourstore.com",
   emailSubject = "🎁 Your discount code is here!",
   emailBody,
@@ -1647,8 +1662,12 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                 ))}
               </div>
               <div className="flex justify-between text-xs text-muted-foreground px-2">
-                <span>Very Dissatisfied</span>
-                <span>Very Satisfied</span>
+                <span>
+                  {question.satisfactionLabels?.lowLabel || "Very Dissatisfied"}
+                </span>
+                <span>
+                  {question.satisfactionLabels?.highLabel || "Very Satisfied"}
+                </span>
               </div>
             </div>
           )}
@@ -1710,7 +1729,10 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
 
           {question.type === "rating" && (
             <div className="flex space-x-1">
-              {[1, 2, 3, 4, 5].map((star) => (
+              {Array.from(
+                { length: question.ratingScale?.max || 5 },
+                (_, i) => i + 1
+              ).map((star) => (
                 <Star
                   key={star}
                   className="w-5 h-5 cursor-pointer hover:fill-current"
@@ -1940,6 +1962,25 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                           : "h-16"
                       } object-contain`}
                     />
+                  </div>
+                )}
+
+              {/* Discount Banner - Show before starting survey */}
+              {!isSubmitted &&
+                showDiscountBanner &&
+                discountEnabled &&
+                discountBannerMessage && (
+                  <div className="mb-4 bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/20 rounded-lg p-3 text-center">
+                    <p className="text-sm font-medium text-primary">
+                      {discountBannerMessage.replace(
+                        "{{discount.value}}",
+                        discountType === "percentage"
+                          ? `${discountValue}%`
+                          : discountType === "fixed"
+                          ? `$${discountValue}`
+                          : "Free Shipping"
+                      )}
+                    </p>
                   </div>
                 )}
 
@@ -2857,8 +2898,14 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                                 })}
                               </div>
                               <div className="flex justify-between text-xs text-muted-foreground px-1">
-                                <span>Very Dissatisfied</span>
-                                <span>Very Satisfied</span>
+                                <span>
+                                  {question.satisfactionLabels?.lowLabel ||
+                                    "Very Dissatisfied"}
+                                </span>
+                                <span>
+                                  {question.satisfactionLabels?.highLabel ||
+                                    "Very Satisfied"}
+                                </span>
                               </div>
                             </div>
                           )}
@@ -2947,7 +2994,10 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
 
                           {question.type === "rating" && (
                             <div className="flex space-x-1">
-                              {[1, 2, 3, 4, 5].map((star) => {
+                              {Array.from(
+                                { length: question.ratingScale?.max || 5 },
+                                (_, i) => i + 1
+                              ).map((star) => {
                                 const currentResponse =
                                   surveyResponses[question.id] || 0;
                                 const isFilled = star <= currentResponse;
