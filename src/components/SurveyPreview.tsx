@@ -3199,6 +3199,56 @@ const SurveyPreview: React.FC<SurveyPreviewProps> = ({
                           </p>
                         </div>
 
+                        {/* Email Input for Email Delivery Method */}
+                        {discountEnabled && deliveryMethod === "email" && (
+                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <div className="flex items-start gap-2 mb-3">
+                              <div className="text-xl">📧</div>
+                              <div className="flex-1">
+                                <h4 className="font-medium text-blue-900 text-sm">
+                                  Get your discount code via email
+                                </h4>
+                                <p className="text-xs text-blue-700 mt-1">
+                                  Enter your email address to receive your
+                                  discount code
+                                </p>
+                              </div>
+                            </div>
+                            <Input
+                              type="email"
+                              placeholder="Enter your email address"
+                              value={surveyResponses["_customer_email"] || ""}
+                              onChange={(e) =>
+                                handleQuestionResponse(
+                                  "_customer_email",
+                                  e.target.value
+                                )
+                              }
+                              className="bg-white mb-3"
+                            />
+                            <Button
+                              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                              onClick={() => {
+                                // Handle email submission
+                                const email =
+                                  surveyResponses["_customer_email"];
+                                if (email && email.includes("@")) {
+                                  // Show success message or handle email sending
+                                  console.log("Sending discount to:", email);
+                                }
+                              }}
+                              disabled={
+                                !surveyResponses["_customer_email"] ||
+                                !surveyResponses["_customer_email"].includes(
+                                  "@"
+                                )
+                              }
+                            >
+                              Send Discount Code
+                            </Button>
+                          </div>
+                        )}
+
                         {/* Action Buttons */}
                         <div className="flex gap-2">
                           <Button

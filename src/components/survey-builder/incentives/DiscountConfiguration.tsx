@@ -1,17 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { SlimSwitch } from "@/components/ui/slim-switch";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Card,
   CardContent,
@@ -19,18 +10,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Percent,
-  DollarSign,
-  Truck,
-  Code,
-  User,
-  Sparkles,
-  Settings,
-  AlertCircle,
-} from "lucide-react";
+import { Truck, Code, AlertCircle, Sparkles } from "lucide-react";
 import QuillEditor from "../distribution/shared/QuillEditor";
 import "react-quill/dist/quill.snow.css";
+import { SlimSwitch } from "@/components/ui/slim-switch";
 
 interface DiscountConfigurationProps {
   discountType: "percentage" | "fixed";
@@ -66,8 +49,6 @@ interface DiscountConfigurationProps {
   setDiscountBannerMessage?: (message: string) => void;
 }
 
-type DiscountSource = "merchant" | "app";
-type AppDiscountType = "percentage" | "fixed" | "free_shipping";
 type DeliveryMethod = "email" | "thank_you_page";
 
 const DiscountConfiguration: React.FC<DiscountConfigurationProps> = ({
@@ -101,291 +82,48 @@ const DiscountConfiguration: React.FC<DiscountConfigurationProps> = ({
   discountBannerMessage,
   setDiscountBannerMessage,
 }) => {
-  // Local state for discount configuration
-  const [discountSource, setDiscountSource] = useState<DiscountSource>("app");
-  const [appDiscountType, setAppDiscountType] =
-    useState<AppDiscountType>("percentage");
+  // Local state for merchant coupon code
   const [merchantCouponCode, setMerchantCouponCode] = useState("");
-
-  // Common settings
-  const [limitOnePerCustomer, setLimitOnePerCustomer] = useState(true);
-  const [hasUsageLimit, setHasUsageLimit] = useState(false);
-  const [usageLimit, setUsageLimit] = useState("100");
-
-  // Generate default discount message based on type
-  const generateDiscountMessage = (type: AppDiscountType, value: string) => {
-    switch (type) {
-      case "percentage":
-        return `Enjoy ${value}% off your next purchase!`;
-      case "fixed":
-        return `Enjoy $${value} off your next purchase!`;
-      case "free_shipping":
-        return "Enjoy free shipping on your next order!";
-      default:
-        return "Enjoy your discount!";
-    }
-  };
-
-  // Update discount message when app discount type or value changes
-  useEffect(() => {
-    if (discountSource === "app") {
-      setDiscountMessage(
-        generateDiscountMessage(appDiscountType, discountValue)
-      );
-    }
-  }, [appDiscountType, discountValue, discountSource, setDiscountMessage]);
-
-  // Update discount code when app discount type changes
-  useEffect(() => {
-    if (discountSource === "app") {
-      const generateAppCode = () => {
-        const prefixes = {
-          percentage: "SAVE",
-          fixed: "OFF",
-          free_shipping: "SHIP",
-        };
-        const prefix = prefixes[appDiscountType];
-        const timestamp = Date.now().toString().slice(-4);
-        const randomNum = Math.floor(Math.random() * 100)
-          .toString()
-          .padStart(2, "0");
-        return `${prefix}${timestamp}${randomNum}`;
-      };
-      setDiscountCode(generateAppCode());
-    }
-  }, [discountSource, appDiscountType, setDiscountCode]);
-
-  // Sync legacy props with new app discount type
-  useEffect(() => {
-    if (discountSource === "app" && appDiscountType !== "free_shipping") {
-      setDiscountType(appDiscountType);
-    }
-  }, [appDiscountType, discountSource, setDiscountType]);
 
   return (
     <div className="space-y-6">
-      {/* Discount Source Selection */}
+      {/* Merchant Generated Configuration */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <Settings className="w-5 h-5" />
-            Discount Source
+            <Code className="w-5 h-5" />
+            Existing Discount Code
           </CardTitle>
           <CardDescription>
-            Choose how discount codes will be created and managed
+            Enter a discount code that already exists in your admin dashboard
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <RadioGroup
-            value={discountSource}
-            onValueChange={(value: DiscountSource) => setDiscountSource(value)}
-            className="space-y-4"
-          >
-            <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-              <RadioGroupItem value="merchant" id="merchant" />
-              <div className="flex-1">
-                <Label
-                  htmlFor="merchant"
-                  className="flex items-center gap-2 font-medium cursor-pointer"
-                >
-                  <User className="w-4 h-4" />
-                  Merchant Generated
-                </Label>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Use existing discount codes from your Shopify admin dashboard
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="merchant-code">Discount Code</Label>
+            <Input
+              id="merchant-code"
+              value={merchantCouponCode}
+              onChange={(e) => {
+                setMerchantCouponCode(e.target.value);
+                setDiscountCode(e.target.value);
+              }}
+              placeholder="Enter existing coupon code (e.g., SUMMER2024)"
+              className="font-mono"
+            />
+            <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+              <AlertCircle className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+              <div className="text-sm text-blue-800">
+                <p className="font-medium">Important:</p>
+                <p>
+                  Make sure this discount code exists in your admin → Discounts
+                  section. The app will validate this code before using it.
                 </p>
               </div>
             </div>
-
-            <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-              <RadioGroupItem value="app" id="app" />
-              <div className="flex-1">
-                <Label
-                  htmlFor="app"
-                  className="flex items-center gap-2 font-medium cursor-pointer"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  App Generated
-                </Label>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Let our app automatically create and manage discount codes
-                </p>
-              </div>
-            </div>
-          </RadioGroup>
+          </div>
         </CardContent>
       </Card>
-
-      {/* Merchant Generated Configuration */}
-      {discountSource === "merchant" && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Code className="w-5 h-5" />
-              Existing Discount Code
-            </CardTitle>
-            <CardDescription>
-              Enter a discount code that already exists in your Shopify admin
-              dashboard
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="merchant-code">Shopify Discount Code</Label>
-              <Input
-                id="merchant-code"
-                value={merchantCouponCode}
-                onChange={(e) => {
-                  setMerchantCouponCode(e.target.value);
-                  setDiscountCode(e.target.value);
-                }}
-                placeholder="Enter existing coupon code (e.g., SUMMER2024)"
-                className="font-mono"
-              />
-              <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                <AlertCircle className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                <div className="text-sm text-blue-800">
-                  <p className="font-medium">Important:</p>
-                  <p>
-                    Make sure this discount code exists in your Shopify admin →
-                    Discounts section. The app will validate this code before
-                    using it.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* App Generated Configuration */}
-      {discountSource === "app" && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Sparkles className="w-5 h-5" />
-              App Generated Discount
-            </CardTitle>
-            <CardDescription>
-              Configure the discount that will be automatically created
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Discount Type</Label>
-              <Select
-                value={appDiscountType}
-                onValueChange={(value: AppDiscountType) =>
-                  setAppDiscountType(value)
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="percentage">
-                    <div className="flex items-center gap-2">
-                      <Percent className="w-4 h-4" />
-                      Percentage (%)
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="fixed">
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="w-4 h-4" />
-                      Fixed Amount ($)
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="free_shipping">
-                    <div className="flex items-center gap-2">
-                      <Truck className="w-4 h-4" />
-                      Free Shipping
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Discount Value (only for percentage and fixed amount) */}
-            {appDiscountType !== "free_shipping" && (
-              <div className="space-y-2">
-                <Label>Discount Value</Label>
-                <Input
-                  value={discountValue}
-                  onChange={(e) => setDiscountValue(e.target.value)}
-                  placeholder={appDiscountType === "percentage" ? "10" : "5.00"}
-                  type="number"
-                />
-              </div>
-            )}
-
-            {/* Auto-generated code display (read-only) */}
-            <div className="space-y-2">
-              <Label>Generated Discount Code</Label>
-              <Input
-                value={discountCode}
-                readOnly
-                className="font-mono bg-muted cursor-not-allowed"
-              />
-              <p className="text-xs text-muted-foreground">
-                This code is automatically generated and cannot be edited
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Expires After (Days)</Label>
-              <Input
-                value={discountExpiryDays}
-                onChange={(e) => setDiscountExpiryDays(e.target.value)}
-                placeholder="30"
-                type="number"
-              />
-            </div>
-
-            {/* Usage Controls for App Generated */}
-            <div className="pt-4 space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Once Per Customer</p>
-                  <p className="text-sm text-muted-foreground">
-                    Each customer can use this discount only once
-                  </p>
-                </div>
-                <SlimSwitch
-                  checked={limitOnePerCustomer}
-                  onCheckedChange={setLimitOnePerCustomer}
-                />
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Total Usage Limit (Optional)</p>
-                  </div>
-                  <SlimSwitch
-                    checked={hasUsageLimit}
-                    onCheckedChange={setHasUsageLimit}
-                  />
-                </div>
-
-                {hasUsageLimit && (
-                  <div className="space-y-2">
-                    <Input
-                      value={usageLimit}
-                      onChange={(e) => setUsageLimit(e.target.value)}
-                      placeholder="Unlimited"
-                      type="number"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Discount will be automatically disabled after this many
-                      uses
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Delivery Method */}
       <Card>
@@ -426,7 +164,7 @@ const DiscountConfiguration: React.FC<DiscountConfigurationProps> = ({
                   htmlFor="thank-you-delivery"
                   className="flex items-center gap-2 font-medium cursor-pointer"
                 >
-                  🎉 Thank You Page
+                  🎉 Thank You Message
                 </Label>
                 <p className="text-sm text-muted-foreground mt-1">
                   Display discount code on the survey completion page
